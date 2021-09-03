@@ -1,4 +1,4 @@
-import { encodeSecp256k1Pubkey, makeSignDoc as makeSignDocAmino, StdFee } from "@cosmjs/amino";
+import { encodeSecp256k1Pubkey, encodeEthSecp256k1Pubkey, makeSignDoc as makeSignDocAmino, StdFee } from "@cosmjs/amino";
 import { fromBase64 } from "@cosmjs/encoding";
 import { Int53 } from "@cosmjs/math";
 import {
@@ -384,7 +384,9 @@ export class SigningStargateClient extends StargateClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
+    const pubkey = accountFromSigner.algo == "ethsecp256k1" ?
+      encodePubkey(encodeEthSecp256k1Pubkey(accountFromSigner.pubkey)) :
+      encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
     const txBodyEncodeObject: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {

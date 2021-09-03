@@ -11,10 +11,10 @@ import {
   Slip10Curve,
   stringToPath,
 } from "@cosmjs/crypto";
-import { Bech32, fromBase64, fromUtf8, toBase64, toUtf8 } from "@cosmjs/encoding";
+import { fromBase64, fromUtf8, toBase64, toUtf8 } from "@cosmjs/encoding";
 import { assert, isNonNullObject } from "@cosmjs/utils";
 
-import { rawSecp256k1PubkeyToRawAddress } from "./addresses";
+import { rawSecp256k1PubkeyToRawAddress, ethAddressChecksum } from "./addresses";
 import { makeCosmoshubPath } from "./paths";
 import { encodeSecp256k1Signature } from "./signature";
 import { serializeSignDoc, StdSignDoc } from "./signdoc";
@@ -346,7 +346,7 @@ export class Secp256k1HdWallet implements OfflineAminoSigner {
     return Promise.all(
       this.accounts.map(async ({ hdPath, prefix }) => {
         const { privkey, pubkey } = await this.getKeyPair(hdPath);
-        const address = Bech32.encode(prefix, rawSecp256k1PubkeyToRawAddress(pubkey));
+        const address = ethAddressChecksum(rawSecp256k1PubkeyToRawAddress(pubkey));
         return {
           algo: "secp256k1" as const,
           privkey: privkey,

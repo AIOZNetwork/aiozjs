@@ -13,3 +13,23 @@ export function makeCosmoshubPath(a: number): HdPath {
     Slip10RawIndex.normal(a),
   ];
 }
+
+export function makeAiozPath(a: number): HdPath {
+  return [
+    Slip10RawIndex.hardened(44),
+    Slip10RawIndex.hardened(989),
+    Slip10RawIndex.hardened(0),
+    Slip10RawIndex.normal(0),
+    Slip10RawIndex.normal(a),
+  ];
+}
+
+export function makeEthPath(a: number): HdPath {
+  return [
+    Slip10RawIndex.hardened(44),
+    Slip10RawIndex.hardened(60),
+    Slip10RawIndex.hardened(0),
+    Slip10RawIndex.normal(0),
+    Slip10RawIndex.normal(a),
+  ];
+}

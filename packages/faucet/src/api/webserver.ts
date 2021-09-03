@@ -61,7 +61,7 @@ export class Webserver {
 
           const { address, denom } = creditBody;
 
-          if (!isValidAddress(address, constants.addressPrefix)) {
+          if (!isValidAddress(address)) {
             throw new HttpError(400, "Address is not in the expected format for this chain.");
           }
 

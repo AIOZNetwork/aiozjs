@@ -1,5 +1,5 @@
-import { decodeSignature, makeSignDoc, serializeSignDoc } from "@cosmjs/amino";
-import { Secp256k1, Secp256k1Signature, sha256 } from "@cosmjs/crypto";
+import { decodeSignature, makeSignDoc, serializeSignDoc, pubkeyType } from "@cosmjs/amino";
+import { Secp256k1, Secp256k1Signature, ExtendedSecp256k1Signature, sha256 } from "@cosmjs/crypto";
 
 import { WrappedStdTx } from "./tx";
 
@@ -25,7 +25,9 @@ export async function findSequenceForSignedTx(
   if (!firstSignature) throw new Error("Signature missing in tx");
 
   const { pubkey, signature } = decodeSignature(firstSignature);
-  const secp256keSignature = Secp256k1Signature.fromFixedLength(signature);
+  const secp256keSignature = firstSignature.pub_key.type == pubkeyType.ethsecp256k1 ?
+    ExtendedSecp256k1Signature.fromFixedLength(signature) :
+    Secp256k1Signature.fromFixedLength(signature);
 
   for (let s = min; s < upperBound; s++) {
     // console.log(`Trying sequence ${s}`);

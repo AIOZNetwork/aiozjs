@@ -21,7 +21,7 @@ export {
   encodeBech32Pubkey,
   encodeSecp256k1Pubkey,
   encodeSecp256k1Signature,
-  extractKdfConfiguration,
+  extractSecp256k1KdfConfiguration,
   executeKdf,
   makeCosmoshubPath,
   makeSignDoc,

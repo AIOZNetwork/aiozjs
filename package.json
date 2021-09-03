@@ -47,8 +47,18 @@
     "@cosmjs/launchpad": "workspace:packages/launchpad",
     "@cosmjs/proto-signing": "workspace:packages/proto-signing",
     "@cosmjs/stargate": "workspace:packages/stargate",
+    "@types/jest": "^27.0.1",
+    "cosmjs-types": "workspace:packages/cosmjs-types",
     "eslint": "^7.5",
     "prettier": "^2.3.2",
     "typescript": "~4.3"
-  }
+  },
+  "resolutions": {
+    "test1": "portal:/Users/trieu/aioz/cosmjs/packages/test1"
+  },
+  "dependencies": {
+    "crypto-js": "^4.1.1",
+    "long": "^4.0.0"
+  },
+  "packageManager": "yarn@2.4.2"
 }

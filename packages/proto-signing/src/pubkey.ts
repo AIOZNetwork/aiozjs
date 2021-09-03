@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {
   encodeSecp256k1Pubkey,
+  encodeEthSecp256k1Pubkey,
   isMultisigThresholdPubkey,
   isSecp256k1Pubkey,
+  isEthSecp256k1Pubkey,
   MultisigThresholdPubkey,
   Pubkey,
   SinglePubkey,
@@ -10,17 +12,26 @@ import {
 import { fromBase64 } from "@cosmjs/encoding";
 import { Uint53 } from "@cosmjs/math";
 import { LegacyAminoPubKey } from "cosmjs-types/cosmos/crypto/multisig/keys";
-import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
+import { PubKey as Secp256k1PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
+import { PubKey as EthSecp256k1PubKey } from "cosmjs-types/cosmos/crypto/ethsecp256k1/keys";
 import { Any } from "cosmjs-types/google/protobuf/any";
 
 export function encodePubkey(pubkey: Pubkey): Any {
   if (isSecp256k1Pubkey(pubkey)) {
-    const pubkeyProto = PubKey.fromPartial({
+    const pubkeyProto = Secp256k1PubKey.fromPartial({
       key: fromBase64(pubkey.value),
     });
     return Any.fromPartial({
       typeUrl: "/cosmos.crypto.secp256k1.PubKey",
-      value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
+      value: Uint8Array.from(Secp256k1PubKey.encode(pubkeyProto).finish()),
+    });
+  } else if (isEthSecp256k1Pubkey(pubkey)) {
+    const pubkeyProto = EthSecp256k1PubKey.fromPartial({
+      key: fromBase64(pubkey.value),
+    });
+    return Any.fromPartial({
+      typeUrl: "/cosmos.crypto.ethsecp256k1.PubKey",
+      value: Uint8Array.from(EthSecp256k1PubKey.encode(pubkeyProto).finish()),
     });
   } else if (isMultisigThresholdPubkey(pubkey)) {
     const pubkeyProto = LegacyAminoPubKey.fromPartial({
@@ -39,8 +50,12 @@ export function encodePubkey(pubkey: Pubkey): Any {
 function decodeSinglePubkey(pubkey: Any): SinglePubkey {
   switch (pubkey.typeUrl) {
     case "/cosmos.crypto.secp256k1.PubKey": {
-      const { key } = PubKey.decode(pubkey.value);
+      const { key } = Secp256k1PubKey.decode(pubkey.value);
       return encodeSecp256k1Pubkey(key);
+    }
+    case "/cosmos.crypto.ethsecp256k1.PubKey": {
+      const { key } = EthSecp256k1PubKey.decode(pubkey.value);
+      return encodeEthSecp256k1Pubkey(key);
     }
     default:
       throw new Error(`Pubkey type_url ${pubkey.typeUrl} not recognized as single public key type`);
@@ -54,6 +69,9 @@ export function decodePubkey(pubkey?: Any | null): Pubkey | null {
 
   switch (pubkey.typeUrl) {
     case "/cosmos.crypto.secp256k1.PubKey": {
+      return decodeSinglePubkey(pubkey);
+    }
+    case "/cosmos.crypto.ethsecp256k1.PubKey": {
       return decodeSinglePubkey(pubkey);
     }
     case "/cosmos.crypto.multisig.LegacyAminoPubKey": {

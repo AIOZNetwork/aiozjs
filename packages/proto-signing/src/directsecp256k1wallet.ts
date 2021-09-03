@@ -1,4 +1,4 @@
-import { encodeSecp256k1Signature, rawSecp256k1PubkeyToRawAddress } from "@cosmjs/amino";
+import { encodeSecp256k1Signature, rawSecp256k1PubkeyToRawAddress, ethAddressChecksum } from "@cosmjs/amino";
 import { Secp256k1, sha256 } from "@cosmjs/crypto";
 import { Bech32 } from "@cosmjs/encoding";
 import { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
@@ -34,6 +34,10 @@ export class DirectSecp256k1Wallet implements OfflineDirectSigner {
   }
 
   private get address(): string {
+    return ethAddressChecksum(rawSecp256k1PubkeyToRawAddress(this.pubkey));
+  }
+
+  private get bech32Address(): string {
     return Bech32.encode(this.prefix, rawSecp256k1PubkeyToRawAddress(this.pubkey));
   }
 

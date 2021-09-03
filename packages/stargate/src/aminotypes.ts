@@ -311,6 +311,20 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
         assertDefinedAndNotNull(commission, "missing commission");
         assertDefinedAndNotNull(pubkey, "missing pubkey");
         assertDefinedAndNotNull(value, "missing value");
+        let pubkeyAminoType: string;
+        switch (pubkey.typeUrl) {
+          case "/cosmos.crypto.secp256k1.PubKey": {
+            pubkeyAminoType = "tendermint/PubKeySecp256k1";
+          }
+          break;
+          case "/cosmos.crypto.ethsecp256k1.PubKey": {
+            pubkeyAminoType = "tendermint/PubKeyEthSecp256k1";
+          }
+          break;
+          default: {
+            throw new Error("Only Secp256k1 and EthSecp256k1 public keys are supported");
+          }
+        }
         return {
           description: {
             moniker: description.moniker,
@@ -329,7 +343,7 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
           validator_address: validatorAddress,
           pubkey: encodeBech32Pubkey(
             {
-              type: "tendermint/PubKeySecp256k1",
+              type: pubkeyAminoType,
               value: toBase64(pubkey.value),
             },
             prefix,
@@ -347,8 +361,25 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
         value,
       }: AminoMsgCreateValidator["value"]): MsgCreateValidator => {
         const decodedPubkey = decodeBech32Pubkey(pubkey);
-        if (decodedPubkey.type !== "tendermint/PubKeySecp256k1") {
-          throw new Error("Only Secp256k1 public keys are supported");
+        let retPubkey;
+        switch (decodedPubkey.type) {
+          case "tendermint/PubKeySecp256k1": {
+            retPubkey = {
+              typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+              value: fromBase64(decodedPubkey.value),
+            };
+          }
+          break;
+          case "tendermint/PubKeyEthSecp256k1": {
+            retPubkey = {
+              typeUrl: "/cosmos.crypto.ethsecp256k1.PubKey",
+              value: fromBase64(decodedPubkey.value),
+            };
+          }
+          break;
+          default: {
+            throw new Error("Only Secp256k1 and EthSecp256k1 public keys are supported");
+          }
         }
         return {
           description: {
@@ -366,10 +397,7 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
           minSelfDelegation: min_self_delegation,
           delegatorAddress: delegator_address,
           validatorAddress: validator_address,
-          pubkey: {
-            typeUrl: "/cosmos.crypto.secp256k1.PubKey",
-            value: fromBase64(decodedPubkey.value),
-          },
+          pubkey: retPubkey,
           value: value,
         };
       },

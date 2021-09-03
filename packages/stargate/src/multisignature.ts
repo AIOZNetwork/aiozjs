@@ -35,7 +35,7 @@ export function makeMultisignedTx(
   const signers: boolean[] = Array(multisigPubkey.value.pubkeys.length).fill(false);
   const signaturesList = new Array<Uint8Array>();
   for (let i = 0; i < multisigPubkey.value.pubkeys.length; i++) {
-    const signerAddress = pubkeyToAddress(multisigPubkey.value.pubkeys[i], prefix);
+    const signerAddress = pubkeyToAddress(multisigPubkey.value.pubkeys[i]);
     const signature = signatures.get(signerAddress);
     if (signature) {
       signers[i] = true;

@@ -16,12 +16,18 @@ export {
   TxBodyEncodeObject,
 } from "./registry";
 export {
-  extractKdfConfiguration,
+  extractKdfConfiguration as extractSecp256k1KdfConfiguration,
   DirectSecp256k1HdWallet,
   DirectSecp256k1HdWalletOptions,
 } from "./directsecp256k1hdwallet";
 export { DirectSecp256k1Wallet } from "./directsecp256k1wallet";
-export { makeCosmoshubPath } from "./paths";
+export {
+  extractKdfConfiguration as extractEthSecp256k1KdfConfiguration,
+  DirectEthSecp256k1HdWallet,
+  DirectEthSecp256k1HdWalletOptions,
+} from "./directethsecp256k1hdwallet";
+export { DirectEthSecp256k1Wallet } from "./directethsecp256k1wallet";
+export { makeCosmoshubPath, makeAiozPath, makeEthPath } from "./paths";
 export { decodePubkey, encodePubkey } from "./pubkey";
 export {
   AccountData,
