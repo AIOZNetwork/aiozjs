@@ -32,7 +32,7 @@ interface AccountDataWithPrivkey extends AccountData {
   readonly privkey: Uint8Array;
 }
 
-const serializationTypeV1 = "ethsecp256k1wallet-v1";
+const serializationTypeV1 = "ethsecp256k1hdwallet-v1";
 
 /**
  * A KDF configuration that is not very strong but can be used on the main thread.

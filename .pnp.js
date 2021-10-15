@@ -12770,6 +12770,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["test1", "workspace:packages/test1"],
             ["@cosmjs/crypto", "workspace:packages/crypto"],
+            ["@cosmjs/encoding", "workspace:packages/encoding"],
             ["@cosmjs/proto-signing", "workspace:packages/proto-signing"],
             ["@cosmjs/stargate", "workspace:packages/stargate"],
             ["buffer", "npm:6.0.3"],

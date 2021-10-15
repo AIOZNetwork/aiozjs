@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@cosmjs/crypto": "workspace:packages/crypto",
+    "@cosmjs/encoding": "workspace:packages/encoding",
     "@cosmjs/proto-signing": "workspace:packages/proto-signing",
     "@cosmjs/stargate": "workspace:packages/stargate",
     "buffer": "^6.0.3"

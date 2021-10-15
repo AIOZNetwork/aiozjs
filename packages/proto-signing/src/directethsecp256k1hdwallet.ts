@@ -31,7 +31,7 @@ interface AccountDataWithPrivkey extends AccountData {
   readonly privkey: Uint8Array;
 }
 
-const serializationTypeV1 = "directethsecp256k1hdwallet-v1";
+const serializationTypeV1 = "ethsecp256k1hdwallet-v1";
 
 /**
  * A KDF configuration that is not very strong but can be used on the main thread.
@@ -57,7 +57,7 @@ export interface DirectEthSecp256k1HdWalletSerialization {
   readonly kdf: KdfConfiguration;
   /** Information about the symmetric encryption */
   readonly encryption: EncryptionConfiguration;
-  /** An instance of Secp256k1HdWalletData, which is stringified, encrypted and base64 encoded. */
+  /** An instance of DirectEthSecp256k1HdWalletData, which is stringified, encrypted and base64 encoded. */
   readonly data: string;
 }
 
