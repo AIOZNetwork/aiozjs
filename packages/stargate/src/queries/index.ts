@@ -10,4 +10,5 @@ export { DistributionExtension, setupDistributionExtension } from "./distributio
 export { setupGovExtension, GovExtension, GovProposalId, GovParamsType } from "./gov";
 export { IbcExtension, setupIbcExtension } from "./ibc";
 export { setupStakingExtension, StakingExtension } from "./staking";
+export { setupCosmosStakingExtension, CosmosStakingExtension } from "./staking_cosmos";
 export { createPagination, createProtobufRpcClient, ProtobufRpcClient } from "./utils";

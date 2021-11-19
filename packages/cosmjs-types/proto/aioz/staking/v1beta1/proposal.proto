@@ -1,0 +1,18 @@
+syntax = "proto3";
+package aioz.staking.v1beta1;
+
+option go_package            = "x/staking/types";
+option (gogoproto.equal_all) = false;
+
+import "gogoproto/gogo.proto";
+import "cosmos/staking/v1beta1/tx.proto";
+
+// ParameterChangeProposal defines a proposal to change one or more parameters.
+message CreateValidatorProposal {
+  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string               title       = 1;
+  string               description = 2;
+  cosmos.staking.v1beta1.MsgCreateValidator validator     = 3 [(gogoproto.nullable) = false];
+}

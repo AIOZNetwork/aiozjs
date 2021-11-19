@@ -9,6 +9,7 @@ import {
   DelayedVestingAccount,
   PeriodicVestingAccount,
 } from "cosmjs-types/cosmos/vesting/v1beta1/vesting";
+import { EthAccount } from "cosmjs-types/ethermint/types/v1/account";
 import { Any } from "cosmjs-types/google/protobuf/any";
 import Long from "long";
 
@@ -74,6 +75,14 @@ export function accountFromAny(input: Any): Account {
     }
     case "/cosmos.vesting.v1beta1.PeriodicVestingAccount": {
       const baseAccount = PeriodicVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
+      assert(baseAccount);
+      return accountFromBaseAccount(baseAccount);
+    }
+
+    // evm
+
+    case "/ethermint.types.v1.EthAccount": {
+      const baseAccount = EthAccount.decode(value)?.baseAccount;
       assert(baseAccount);
       return accountFromBaseAccount(baseAccount);
     }

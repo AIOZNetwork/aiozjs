@@ -11,6 +11,8 @@
 #/.pnp.*
 
 /build/
+/aioz/
+/ethermint/
 /confio/
 /cosmos/
 /cosmos_proto/

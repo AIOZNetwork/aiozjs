@@ -79,6 +79,8 @@ export {
   setupIbcExtension,
   setupStakingExtension,
   StakingExtension,
+  setupCosmosStakingExtension,
+  CosmosStakingExtension,
 } from "./queries";
 export {
   SearchByHeightQuery,

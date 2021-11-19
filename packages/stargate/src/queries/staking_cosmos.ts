@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { QueryClientImpl, QueryParamsResponse } from "cosmjs-types/aioz/staking/v1beta1/query";
 import {
+  QueryClientImpl,
   QueryDelegationResponse,
   QueryDelegatorDelegationsResponse,
   QueryDelegatorUnbondingDelegationsResponse,
   QueryDelegatorValidatorResponse,
   QueryDelegatorValidatorsResponse,
   QueryHistoricalInfoResponse,
+  QueryParamsResponse,
   QueryPoolResponse,
   QueryRedelegationsResponse,
   QueryUnbondingDelegationResponse,
@@ -21,9 +22,9 @@ import Long from "long";
 import { QueryClient } from "./queryclient";
 import { createPagination, createProtobufRpcClient } from "./utils";
 
-export type BondStatusString = Exclude<keyof typeof BondStatus, "BOND_STATUS_UNSPECIFIED">;
+export type CosmosBondStatusString = Exclude<keyof typeof BondStatus, "BOND_STATUS_UNSPECIFIED">;
 
-export interface StakingExtension {
+export interface CosmosStakingExtension {
   readonly staking: {
     delegation: (delegatorAddress: string, validatorAddress: string) => Promise<QueryDelegationResponse>;
     delegatorDelegations: (
@@ -60,7 +61,7 @@ export interface StakingExtension {
       validatorAddress: string,
       paginationKey?: Uint8Array,
     ) => Promise<QueryValidatorDelegationsResponse>;
-    validators: (status: BondStatusString, paginationKey?: Uint8Array) => Promise<QueryValidatorsResponse>;
+    validators: (status: CosmosBondStatusString, paginationKey?: Uint8Array) => Promise<QueryValidatorsResponse>;
     validatorUnbondingDelegations: (
       validatorAddress: string,
       paginationKey?: Uint8Array,
@@ -68,7 +69,7 @@ export interface StakingExtension {
   };
 }
 
-export function setupStakingExtension(base: QueryClient): StakingExtension {
+export function setupCosmosStakingExtension(base: QueryClient): CosmosStakingExtension {
   // Use this service to get easy typed access to query methods
   // This cannot be used for proof verification
   const rpc = createProtobufRpcClient(base);
@@ -157,7 +158,7 @@ export function setupStakingExtension(base: QueryClient): StakingExtension {
         });
         return response;
       },
-      validators: async (status: BondStatusString, paginationKey?: Uint8Array) => {
+      validators: async (status: CosmosBondStatusString, paginationKey?: Uint8Array) => {
         const response = await queryService.Validators({
           status: status,
           pagination: createPagination(paginationKey),
