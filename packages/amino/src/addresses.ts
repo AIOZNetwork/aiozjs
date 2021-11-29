@@ -101,10 +101,16 @@ export function hexToAddress(address: string, prefix: string): string {
   if (isValidBech32Address(address, prefix)) {
     return address;
   }
-  return Bech32.encode(prefix, fromHex(address.slice(2).toLowerCase()));
+  if (isValidHexAddress(address)) {
+    return Bech32.encode(prefix, fromHex(address.slice(2).toLowerCase()));
+  }
+  throw new Error("address is invalid");
 }
 
 export function addressToHex(address: string): string {
+  if (isValidHexAddress(address)) {
+    return address;
+  }
   const { data } = Bech32.decode(address);
   return ethAddressChecksum(data);
 }
