@@ -1,6 +1,6 @@
 import { Bech32, fromHex, toBase64 } from "@cosmjs/encoding";
 
-import { pubkeyToAddress, pubkeyToBech32Address, pubkeyToRawAddress } from "./addresses";
+import { pubkeyToAddressHex, pubkeyToAddress, pubkeyToRawAddress } from "./addresses";
 import { decodeBech32Pubkey } from "./encoding";
 import { MultisigThresholdPubkey } from "./pubkeys";
 
@@ -18,7 +18,7 @@ describe("addresses", () => {
 
     it("works for EthSecp256k1", () => {
       const pubkey = {
-        type: "tendermint/PubKeyEthSecp256k1",
+        type: "ethermint/PubKeyEthSecp256k1",
         value: "AtQaCqFnshaZQp6rIkvAPyzThvCvXSDO+9AzbxVErqJP",
       };
       expect(pubkeyToRawAddress(pubkey)).toEqual(
@@ -58,21 +58,21 @@ describe("addresses", () => {
     });
   });
 
-  describe("pubkeyToAddress", () => {
+  describe("pubkeyToAddressHex", () => {
     it("works for Secp256k1", () => {
       const pubkey = {
         type: "tendermint/PubKeySecp256k1",
         value: "AtQaCqFnshaZQp6rIkvAPyzThvCvXSDO+9AzbxVErqJP",
       };
-      expect(pubkeyToAddress(pubkey)).toEqual("cosmos1h806c7khnvmjlywdrkdgk2vrayy2mmvf9rxk2r");
+      expect(pubkeyToAddressHex(pubkey)).toEqual("cosmos1h806c7khnvmjlywdrkdgk2vrayy2mmvf9rxk2r");
     });
 
     it("works for EthSecp256k1", () => {
       const pubkey = {
-        type: "tendermint/PubKeyEthSecp256k1",
+        type: "ethermint/PubKeyEthSecp256k1",
         value: "AtQaCqFnshaZQp6rIkvAPyzThvCvXSDO+9AzbxVErqJP",
       };
-      expect(pubkeyToAddress(pubkey)).toEqual("cosmos1h806c7khnvmjlywdrkdgk2vrayy2mmvf9rxk2r");
+      expect(pubkeyToAddressHex(pubkey)).toEqual("cosmos1h806c7khnvmjlywdrkdgk2vrayy2mmvf9rxk2r");
     });
 
     it("works for Ed25519", () => {
@@ -80,7 +80,7 @@ describe("addresses", () => {
         type: "tendermint/PubKeyEd25519",
         value: toBase64(fromHex("12ee6f581fe55673a1e9e1382a0829e32075a0aa4763c968bc526e1852e78c95")),
       };
-      expect(pubkeyToAddress(pubkey)).toEqual("cosmos1pfq05em6sfkls66ut4m2257p7qwlk448h8mysz");
+      expect(pubkeyToAddressHex(pubkey)).toEqual("cosmos1pfq05em6sfkls66ut4m2257p7qwlk448h8mysz");
     });
 
     it("works for multisig", () => {
@@ -101,27 +101,27 @@ describe("addresses", () => {
           pubkeys: [test1, test2, test3],
         },
       };
-      expect(pubkeyToAddress(testgroup1)).toEqual("wasm1pzf2wlat97n7rykrk7e8g8nxste6hde0r8jqsy");
+      expect(pubkeyToAddressHex(testgroup1)).toEqual("wasm1pzf2wlat97n7rykrk7e8g8nxste6hde0r8jqsy");
     });
   });
 
-  describe("pubkeyToBech32Address", () => {
+  describe("pubkeyToAddress", () => {
     it("works for Secp256k1", () => {
       const prefix = "cosmos";
       const pubkey = {
         type: "tendermint/PubKeySecp256k1",
         value: "AtQaCqFnshaZQp6rIkvAPyzThvCvXSDO+9AzbxVErqJP",
       };
-      expect(pubkeyToBech32Address(pubkey, prefix)).toEqual("cosmos1h806c7khnvmjlywdrkdgk2vrayy2mmvf9rxk2r");
+      expect(pubkeyToAddress(pubkey, prefix)).toEqual("cosmos1h806c7khnvmjlywdrkdgk2vrayy2mmvf9rxk2r");
     });
 
     it("works for EthSecp256k1", () => {
       const prefix = "cosmos";
       const pubkey = {
-        type: "tendermint/PubKeyEthSecp256k1",
+        type: "ethermint/PubKeyEthSecp256k1",
         value: "AtQaCqFnshaZQp6rIkvAPyzThvCvXSDO+9AzbxVErqJP",
       };
-      expect(pubkeyToBech32Address(pubkey, prefix)).toEqual("cosmos1h806c7khnvmjlywdrkdgk2vrayy2mmvf9rxk2r");
+      expect(pubkeyToAddress(pubkey, prefix)).toEqual("cosmos1h806c7khnvmjlywdrkdgk2vrayy2mmvf9rxk2r");
     });
 
     it("works for Ed25519", () => {
@@ -130,7 +130,7 @@ describe("addresses", () => {
         type: "tendermint/PubKeyEd25519",
         value: toBase64(fromHex("12ee6f581fe55673a1e9e1382a0829e32075a0aa4763c968bc526e1852e78c95")),
       };
-      expect(pubkeyToBech32Address(pubkey, prefix)).toEqual("cosmos1pfq05em6sfkls66ut4m2257p7qwlk448h8mysz");
+      expect(pubkeyToAddress(pubkey, prefix)).toEqual("cosmos1pfq05em6sfkls66ut4m2257p7qwlk448h8mysz");
     });
 
     it("works for multisig", () => {
@@ -151,7 +151,7 @@ describe("addresses", () => {
           pubkeys: [test1, test2, test3],
         },
       };
-      expect(pubkeyToBech32Address(testgroup1, "wasm")).toEqual("wasm1pzf2wlat97n7rykrk7e8g8nxste6hde0r8jqsy");
+      expect(pubkeyToAddress(testgroup1, "wasm")).toEqual("wasm1pzf2wlat97n7rykrk7e8g8nxste6hde0r8jqsy");
     });
   });
 });

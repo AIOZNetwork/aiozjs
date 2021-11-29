@@ -1,7 +1,11 @@
 import { Bech32 } from "@cosmjs/encoding";
 import { checkEthAddressChecksum } from "@cosmjs/amino";
 
-export function isValidAddress(input: string): boolean {
+export function isValidAddress(input: string, requiredPrefix: string): boolean {
+  return isValidHexAddress(input) || isValidBech32Address(input, requiredPrefix);
+}
+
+export function isValidHexAddress(input: string): boolean {
   if (!/^(0x)?[0-9a-f]{40}$/i.test(input)) {
     return false;
   // If it's ALL lowercase or ALL upppercase

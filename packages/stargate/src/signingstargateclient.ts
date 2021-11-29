@@ -1,4 +1,8 @@
-import { encodeSecp256k1Pubkey, encodeEthSecp256k1Pubkey, makeSignDoc as makeSignDocAmino, StdFee } from "@cosmjs/amino";
+import {
+  encodeSecp256k1Pubkey, encodeEthSecp256k1Pubkey,
+  makeSignDoc as makeSignDocAmino, StdFee,
+  hexToAddress,
+ } from "@cosmjs/amino";
 import { fromBase64 } from "@cosmjs/encoding";
 import { Int53 } from "@cosmjs/math";
 import {
@@ -140,6 +144,7 @@ export class SigningStargateClient extends StargateClient {
 
   private readonly signer: OfflineSigner;
   private readonly aminoTypes: AminoTypes;
+  private readonly prefix: string;
 
   public static async connectWithSigner(
     endpoint: string,
@@ -175,6 +180,7 @@ export class SigningStargateClient extends StargateClient {
     const { registry = createDefaultRegistry(), aminoTypes = new AminoTypes({ prefix: options.prefix }) } =
       options;
     this.registry = registry;
+    this.prefix = options.prefix || 'aioz';
     this.aminoTypes = aminoTypes;
     this.signer = signer;
     this.broadcastTimeoutMs = options.broadcastTimeoutMs;
@@ -191,12 +197,12 @@ export class SigningStargateClient extends StargateClient {
     const sendMsg: MsgSendEncodeObject = {
       typeUrl: "/cosmos.bank.v1beta1.MsgSend",
       value: {
-        fromAddress: senderAddress,
-        toAddress: recipientAddress,
+        fromAddress: hexToAddress(senderAddress, this.prefix),
+        toAddress: hexToAddress(recipientAddress, this.prefix),
         amount: [...amount],
       },
     };
-    return this.signAndBroadcast(senderAddress, [sendMsg], fee, memo);
+    return this.signAndBroadcast(hexToAddress(senderAddress, this.prefix), [sendMsg], fee, memo);
   }
 
   public async delegateTokens(
@@ -209,12 +215,12 @@ export class SigningStargateClient extends StargateClient {
     const delegateMsg: MsgDelegateEncodeObject = {
       typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
       value: MsgDelegate.fromPartial({
-        delegatorAddress: delegatorAddress,
-        validatorAddress: validatorAddress,
+        delegatorAddress: hexToAddress(delegatorAddress, this.prefix),
+        validatorAddress: hexToAddress(validatorAddress, this.prefix + 'valoper'),
         amount: amount,
       }),
     };
-    return this.signAndBroadcast(delegatorAddress, [delegateMsg], fee, memo);
+    return this.signAndBroadcast(hexToAddress(delegatorAddress, this.prefix), [delegateMsg], fee, memo);
   }
 
   public async undelegateTokens(
@@ -227,12 +233,12 @@ export class SigningStargateClient extends StargateClient {
     const undelegateMsg: MsgUndelegateEncodeObject = {
       typeUrl: "/cosmos.staking.v1beta1.MsgUndelegate",
       value: MsgUndelegate.fromPartial({
-        delegatorAddress: delegatorAddress,
-        validatorAddress: validatorAddress,
+        delegatorAddress: hexToAddress(delegatorAddress, this.prefix),
+        validatorAddress: hexToAddress(validatorAddress, this.prefix + 'valoper'),
         amount: amount,
       }),
     };
-    return this.signAndBroadcast(delegatorAddress, [undelegateMsg], fee, memo);
+    return this.signAndBroadcast(hexToAddress(delegatorAddress, this.prefix), [undelegateMsg], fee, memo);
   }
 
   public async withdrawRewards(
@@ -244,11 +250,11 @@ export class SigningStargateClient extends StargateClient {
     const withdrawMsg: MsgWithdrawDelegatorRewardEncodeObject = {
       typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
       value: MsgWithdrawDelegatorReward.fromPartial({
-        delegatorAddress: delegatorAddress,
-        validatorAddress: validatorAddress,
+        delegatorAddress: hexToAddress(delegatorAddress, this.prefix),
+        validatorAddress: hexToAddress(validatorAddress, this.prefix + 'valoper'),
       }),
     };
-    return this.signAndBroadcast(delegatorAddress, [withdrawMsg], fee, memo);
+    return this.signAndBroadcast(hexToAddress(delegatorAddress, this.prefix), [withdrawMsg], fee, memo);
   }
 
   public async sendIbcTokens(
@@ -271,14 +277,14 @@ export class SigningStargateClient extends StargateClient {
       value: MsgTransfer.fromPartial({
         sourcePort: sourcePort,
         sourceChannel: sourceChannel,
-        sender: senderAddress,
+        sender: hexToAddress(senderAddress, this.prefix),
         receiver: recipientAddress,
         token: transferAmount,
         timeoutHeight: timeoutHeight,
         timeoutTimestamp: timeoutTimestampNanoseconds,
       }),
     };
-    return this.signAndBroadcast(senderAddress, [transferMsg], fee, memo);
+    return this.signAndBroadcast(hexToAddress(senderAddress, this.prefix), [transferMsg], fee, memo);
   }
 
   public async signAndBroadcast(
@@ -384,7 +390,7 @@ export class SigningStargateClient extends StargateClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = accountFromSigner.algo == "ethsecp256k1" ?
+    const pubkey = accountFromSigner.algo == "eth_secp256k1" ?
       encodePubkey(encodeEthSecp256k1Pubkey(accountFromSigner.pubkey)) :
       encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
     const txBodyEncodeObject: TxBodyEncodeObject = {

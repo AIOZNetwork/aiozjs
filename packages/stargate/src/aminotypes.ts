@@ -317,8 +317,8 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
             pubkeyAminoType = "tendermint/PubKeySecp256k1";
           }
           break;
-          case "/cosmos.crypto.ethsecp256k1.PubKey": {
-            pubkeyAminoType = "tendermint/PubKeyEthSecp256k1";
+          case "/ethermint.crypto.v1.ethsecp256k1.PubKey": {
+            pubkeyAminoType = "ethermint/PubKeyEthSecp256k1";
           }
           break;
           default: {
@@ -370,9 +370,9 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
             };
           }
           break;
-          case "tendermint/PubKeyEthSecp256k1": {
+          case "ethermint/PubKeyEthSecp256k1": {
             retPubkey = {
-              typeUrl: "/cosmos.crypto.ethsecp256k1.PubKey",
+              typeUrl: "/ethermint.crypto.v1.ethsecp256k1.PubKey",
               value: fromBase64(decodedPubkey.value),
             };
           }

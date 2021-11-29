@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { coins } from "@cosmjs/amino";
+import { coins, addressToHex } from "@cosmjs/amino";
 import { Secp256k1, Secp256k1Signature, sha256 } from "@cosmjs/crypto";
 import { fromBase64, fromHex } from "@cosmjs/encoding";
 
@@ -26,6 +26,7 @@ describe("DirectSecp256k1Wallet", () => {
       expect(accounts.length).toEqual(1);
       expect(accounts[0]).toEqual({
         address: defaultAddress,
+        addressHex: addressToHex(defaultAddress),
         algo: "secp256k1",
         pubkey: defaultPubkey,
       });

@@ -480,7 +480,7 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = accountFromSigner.algo == "ethsecp256k1" ?
+    const pubkey = accountFromSigner.algo == "eth_secp256k1" ?
       encodePubkey(encodeEthSecp256k1Pubkey(accountFromSigner.pubkey)) :
       encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
     const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
@@ -524,7 +524,7 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = accountFromSigner.algo == "ethsecp256k1" ?
+    const pubkey = accountFromSigner.algo == "eth_secp256k1" ?
       encodePubkey(encodeEthSecp256k1Pubkey(accountFromSigner.pubkey)) :
       encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
     const txBody: TxBodyEncodeObject = {

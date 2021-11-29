@@ -1,4 +1,4 @@
-import { coins, makeCosmoshubPath } from "@cosmjs/amino";
+import { coins, makeCosmoshubPath, addressToHex } from "@cosmjs/amino";
 import { Secp256k1, Secp256k1Signature, sha256 } from "@cosmjs/crypto";
 import { fromBase64, fromHex } from "@cosmjs/encoding";
 
@@ -74,6 +74,7 @@ describe("DirectSecp256k1HdWallet", () => {
         {
           algo: "secp256k1",
           address: defaultAddress,
+          addressHex: addressToHex(defaultAddress),
           pubkey: defaultPubkey,
         },
       ]);
@@ -101,26 +102,31 @@ describe("DirectSecp256k1HdWallet", () => {
           algo: "secp256k1",
           pubkey: fromBase64("A08EGB7ro1ORuFhjOnZcSgwYlpe0DSFjVNUIkNNQxwKQ"),
           address: "wasm1pkptre7fdkl6gfrzlesjjvhxhlc3r4gm32kke3",
+          addressHex: addressToHex("wasm1pkptre7fdkl6gfrzlesjjvhxhlc3r4gm32kke3"),
         },
         {
           algo: "secp256k1",
           pubkey: fromBase64("AiDosfIbBi54XJ1QjCeApumcy/FjdtF+YhywPf3DKTx7"),
           address: "wasm10dyr9899g6t0pelew4nvf4j5c3jcgv0r5d3a5l",
+          addressHex: addressToHex("wasm10dyr9899g6t0pelew4nvf4j5c3jcgv0r5d3a5l"),
         },
         {
           algo: "secp256k1",
           pubkey: fromBase64("AzQg33JZqH7vSsm09esZY5bZvmzYwE/SY78cA0iLxpD7"),
           address: "wasm1xy4yqngt0nlkdcenxymg8tenrghmek4n3u2lwa",
+          addressHex: addressToHex("wasm1xy4yqngt0nlkdcenxymg8tenrghmek4n3u2lwa"),
         },
         {
           algo: "secp256k1",
           pubkey: fromBase64("A3gOAlB6aiRTCPvWMQg2+ZbGYNsLd8qlvV28m8p2UhY2"),
           address: "wasm142u9fgcjdlycfcez3lw8x6x5h7rfjlnfaallkd",
+          addressHex: addressToHex("wasm142u9fgcjdlycfcez3lw8x6x5h7rfjlnfaallkd"),
         },
         {
           algo: "secp256k1",
           pubkey: fromBase64("Aum2063ub/ErUnIUB36sK55LktGUStgcbSiaAnL1wadu"),
           address: "wasm1hsm76p4ahyhl5yh3ve9ur49r5kemhp2r93f89d",
+          addressHex: addressToHex("wasm1hsm76p4ahyhl5yh3ve9ur49r5kemhp2r93f89d"),
         },
       ]);
     });
@@ -156,6 +162,7 @@ describe("DirectSecp256k1HdWallet", () => {
           {
             algo: "secp256k1",
             address: defaultAddress,
+            addressHex: addressToHex(defaultAddress),
             pubkey: defaultPubkey,
           },
         ]);
@@ -204,26 +211,31 @@ describe("DirectSecp256k1HdWallet", () => {
             algo: "secp256k1",
             pubkey: fromBase64("A08EGB7ro1ORuFhjOnZcSgwYlpe0DSFjVNUIkNNQxwKQ"),
             address: "wasm1pkptre7fdkl6gfrzlesjjvhxhlc3r4gm32kke3",
+            addressHex: addressToHex("wasm1pkptre7fdkl6gfrzlesjjvhxhlc3r4gm32kke3"),
           },
           {
             algo: "secp256k1",
             pubkey: fromBase64("AiDosfIbBi54XJ1QjCeApumcy/FjdtF+YhywPf3DKTx7"),
             address: "wasm10dyr9899g6t0pelew4nvf4j5c3jcgv0r5d3a5l",
+            addressHex: addressToHex("wasm10dyr9899g6t0pelew4nvf4j5c3jcgv0r5d3a5l"),
           },
           {
             algo: "secp256k1",
             pubkey: fromBase64("AzQg33JZqH7vSsm09esZY5bZvmzYwE/SY78cA0iLxpD7"),
             address: "wasm1xy4yqngt0nlkdcenxymg8tenrghmek4n3u2lwa",
+            addressHex: addressToHex("wasm1xy4yqngt0nlkdcenxymg8tenrghmek4n3u2lwa"),
           },
           {
             algo: "secp256k1",
             pubkey: fromBase64("A3gOAlB6aiRTCPvWMQg2+ZbGYNsLd8qlvV28m8p2UhY2"),
             address: "wasm142u9fgcjdlycfcez3lw8x6x5h7rfjlnfaallkd",
+            addressHex: addressToHex("wasm142u9fgcjdlycfcez3lw8x6x5h7rfjlnfaallkd"),
           },
           {
             algo: "secp256k1",
             pubkey: fromBase64("Aum2063ub/ErUnIUB36sK55LktGUStgcbSiaAnL1wadu"),
             address: "wasm1hsm76p4ahyhl5yh3ve9ur49r5kemhp2r93f89d",
+            addressHex: addressToHex("wasm1hsm76p4ahyhl5yh3ve9ur49r5kemhp2r93f89d"),
           },
         ]);
       }
@@ -237,6 +249,7 @@ describe("DirectSecp256k1HdWallet", () => {
       expect(accounts.length).toEqual(1);
       expect(accounts[0]).toEqual({
         address: defaultAddress,
+        addressHex: addressToHex(defaultAddress),
         algo: "secp256k1",
         pubkey: defaultPubkey,
       });

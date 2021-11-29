@@ -244,13 +244,13 @@ describe("multisignature", () => {
           [pubkey0, pubkey1, pubkey2, pubkey3, pubkey4],
           2,
         );
-        expect(pubkeyToAddress(multisigPubkey)).toEqual(multisigAccountAddress);
+        expect(pubkeyToAddress(multisigPubkey, "cosmos")).toEqual(multisigAccountAddress);
 
-        const address0 = pubkeyToAddress(pubkey0);
-        const address1 = pubkeyToAddress(pubkey1);
-        const address2 = pubkeyToAddress(pubkey2);
-        const address3 = pubkeyToAddress(pubkey3);
-        const address4 = pubkeyToAddress(pubkey4);
+        const address0 = pubkeyToAddress(pubkey0, "cosmos");
+        const address1 = pubkeyToAddress(pubkey1, "cosmos");
+        const address2 = pubkeyToAddress(pubkey2, "cosmos");
+        const address3 = pubkeyToAddress(pubkey3, "cosmos");
+        const address4 = pubkeyToAddress(pubkey4, "cosmos");
 
         const broadcaster = await StargateClient.connect(simapp.tendermintUrl);
         const signedTx = makeMultisignedTx(

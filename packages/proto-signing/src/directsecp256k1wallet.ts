@@ -159,11 +159,11 @@ export class DirectSecp256k1Wallet implements OfflineDirectSigner {
   }
 
   private get address(): string {
-    return ethAddressChecksum(rawSecp256k1PubkeyToRawAddress(this.pubkey));
+    return Bech32.encode(this.prefix, rawSecp256k1PubkeyToRawAddress(this.pubkey));
   }
 
-  private get bech32Address(): string {
-    return Bech32.encode(this.prefix, rawSecp256k1PubkeyToRawAddress(this.pubkey));
+  private get addressHex(): string {
+    return ethAddressChecksum(rawSecp256k1PubkeyToRawAddress(this.pubkey));
   }
 
   public async getAccounts(): Promise<readonly AccountData[]> {
@@ -171,6 +171,7 @@ export class DirectSecp256k1Wallet implements OfflineDirectSigner {
       {
         algo: "secp256k1",
         address: this.address,
+        addressHex: this.addressHex,
         pubkey: this.pubkey,
       },
     ];

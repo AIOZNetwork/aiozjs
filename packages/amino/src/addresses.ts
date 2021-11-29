@@ -1,7 +1,7 @@
 // See https://github.com/tendermint/tendermint/blob/f2ada0a604b4c0763bda2f64fac53d506d3beca7/docs/spec/blockchain/encoding.md#public-key-cryptography
 
 import { ripemd160, sha256, keccak256, Secp256k1 } from "@cosmjs/crypto";
-import { Bech32, fromBase64, toHex, toUtf8 } from "@cosmjs/encoding";
+import { Bech32, fromBase64, toHex, fromHex, toUtf8 } from "@cosmjs/encoding";
 
 import { encodeAminoPubkey } from "./encoding";
 import { isEd25519Pubkey, isMultisigThresholdPubkey, isSecp256k1Pubkey, isEthSecp256k1Pubkey, Pubkey } from "./pubkeys";
@@ -69,10 +69,50 @@ export function checkEthAddressChecksum(address: string): boolean {
   return true;
 };
 
-export function pubkeyToBech32Address(pubkey: Pubkey, prefix: string): string {
+export function isValidAddress(input: string, requiredPrefix: string): boolean {
+  return isValidHexAddress(input) || isValidBech32Address(input, requiredPrefix);
+}
+
+export function isValidHexAddress(input: string): boolean {
+  if (!/^(0x)?[0-9a-f]{40}$/i.test(input)) {
+    return false;
+  // If it's ALL lowercase or ALL upppercase
+  } else if (/^(0x|0X)?[0-9a-f]{40}$/.test(input) || /^(0x|0X)?[0-9A-F]{40}$/.test(input)) {
+    return true;
+  // Otherwise check each case
+  } else {
+    return checkEthAddressChecksum(input);
+  }
+}
+
+export function isValidBech32Address(input: string, requiredPrefix: string): boolean {
+  try {
+    const { prefix, data } = Bech32.decode(input);
+    if (prefix !== requiredPrefix) {
+      return false;
+    }
+    return data.length === 20;
+  } catch {
+    return false;
+  }
+}
+
+export function hexToAddress(address: string, prefix: string): string {
+  if (isValidHexAddress(address)) {
+    return address;
+  }
+  return Bech32.encode(prefix, fromHex(address.slice(2).toLowerCase()));
+}
+
+export function addressToHex(address: string): string {
+  const { data } = Bech32.decode(address);
+  return ethAddressChecksum(data);
+}
+
+export function pubkeyToAddress(pubkey: Pubkey, prefix: string): string {
   return Bech32.encode(prefix, pubkeyToRawAddress(pubkey));
 }
 
-export function pubkeyToAddress(pubkey: Pubkey): string {
+export function pubkeyToAddressHex(pubkey: Pubkey): string {
   return ethAddressChecksum(pubkeyToRawAddress(pubkey));
 }

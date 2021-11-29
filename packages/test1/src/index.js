@@ -27,21 +27,23 @@ const wallet = await DirectEthSecp256k1Wallet.fromKey(fromHex(hexPriv));
 const [firstAccount] = await wallet.getAccounts();
 
 show(firstAccount.address);
+show(firstAccount.addressHex);
 
 const keyStore = await wallet.serialize('123123123');
 
 show(keyStore);
 
 show((await (await DirectEthSecp256k1Wallet.deserialize(keyStore, '123123123')).getAccounts())[0].address);
+show((await (await DirectEthSecp256k1Wallet.deserialize(keyStore, '123123123')).getAccounts())[0].addressHex);
 
-const rpcEndpoint = "http://10.0.0.77:16657";
+const rpcEndpoint = "http://10.0.0.77:46657";
 const client = await SigningStargateClient.connectWithSigner(rpcEndpoint, wallet);
 
 const recipient = "0x2d8C4f1b322Fb51C7b0C10EE266074b28925383E";
 const amount = {
-  denom: "atoz",
+  denom: "attoaioz",
   amount: "1234567",
 };
-const fee = calculateFee(80000, "0atoz");
+const fee = calculateFee(200000, "1000000000attoaioz");
 const result = await client.sendTokens(firstAccount.address, recipient, [amount], fee, "Have fun with your star coins");
 assertIsBroadcastTxSuccess(result);

@@ -1,12 +1,17 @@
 export {
   pubkeyToAddress,
-  pubkeyToBech32Address,
+  pubkeyToAddressHex,
   pubkeyToRawAddress,
   rawEd25519PubkeyToRawAddress,
   rawSecp256k1PubkeyToRawAddress,
   rawEthSecp256k1PubkeyToRawAddress,
   ethAddressChecksum,
   checkEthAddressChecksum,
+  isValidAddress,
+  isValidHexAddress,
+  isValidBech32Address,
+  hexToAddress,
+  addressToHex,
 } from "./addresses";
 export { Coin, coin, coins, parseCoins } from "./coins";
 export {

@@ -214,8 +214,16 @@ protoc \
   --proto_path="$AIOZD_DIR" \
   --proto_path="$WASMD_THIRD_PARTY_DIR" \
   --ts_proto_yarn_2_opt="esModuleInterop=true,forceLong=long,useOptionals=true" \
-  "$AIOZD_DIR/cosmos/crypto/ethsecp256k1/keys.proto" \
+  "$AIOZD_DIR/ethermint/crypto/v1/ethsecp256k1/keys.proto" \
+  "$AIOZD_DIR/ethermint/evm/v1/evm.proto" \
+  "$AIOZD_DIR/ethermint/evm/v1/genesis.proto" \
+  "$AIOZD_DIR/ethermint/evm/v1/query.proto" \
+  "$AIOZD_DIR/ethermint/evm/v1/tx.proto" \
+  "$AIOZD_DIR/ethermint/feemarket/v1/feemarket.proto" \
+  "$AIOZD_DIR/ethermint/feemarket/v1/genesis.proto" \
+  "$AIOZD_DIR/ethermint/feemarket/v1/query.proto" \
   "$AIOZD_DIR/ethermint/types/v1/account.proto" \
+  "$AIOZD_DIR/ethermint/types/v1/web3.proto" \
   "$AIOZD_DIR/aioz/staking/v1beta1/genesis.proto" \
   "$AIOZD_DIR/aioz/staking/v1beta1/query.proto" \
   "$AIOZD_DIR/aioz/staking/v1beta1/staking.proto" \
