@@ -98,7 +98,7 @@ export function isValidBech32Address(input: string, requiredPrefix: string): boo
 }
 
 export function hexToAddress(address: string, prefix: string): string {
-  if (isValidHexAddress(address)) {
+  if (isValidBech32Address(address, prefix)) {
     return address;
   }
   return Bech32.encode(prefix, fromHex(address.slice(2).toLowerCase()));
