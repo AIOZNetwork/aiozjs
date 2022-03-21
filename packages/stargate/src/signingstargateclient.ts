@@ -9,13 +9,19 @@ import {
   EncodeObject,
   encodePubkey,
   GeneratedType,
-  isOfflineDirectSigner,
+  // isOfflineDirectSigner,
   makeAuthInfoBytes,
   makeSignDoc,
-  OfflineSigner,
+  // OfflineSigner,
   Registry,
   TxBodyEncodeObject,
 } from "@cosmjs/proto-signing";
+import {
+  isOfflineDirectSigner,
+  isOfflineEIP712Signer,
+  OfflineSigner,
+  parseChainId,
+} from "@cosmjs/eip712";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { assert } from "@cosmjs/utils";
 import { MsgMultiSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
@@ -62,6 +68,8 @@ import {
   MsgConnectionOpenInit,
   MsgConnectionOpenTry,
 } from "cosmjs-types/ibc/core/connection/v1/tx";
+import { ExtensionOptionsWeb3Tx } from "cosmjs-types/ethermint/types/v1/web3";
+import { Any } from "cosmjs-types/google/protobuf/any";
 import Long from "long";
 
 import { AminoTypes } from "./aminotypes";
@@ -107,6 +115,7 @@ export const defaultRegistryTypes: ReadonlyArray<[string, GeneratedType]> = [
   ["/ibc.core.connection.v1.MsgConnectionOpenAck", MsgConnectionOpenAck],
   ["/ibc.core.connection.v1.MsgConnectionOpenConfirm", MsgConnectionOpenConfirm],
   ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
+  ["/ethermint.types.v1.ExtensionOptionsWeb3Tx", ExtensionOptionsWeb3Tx],
 ];
 
 function createDefaultRegistry(): Registry {
@@ -330,6 +339,8 @@ export class SigningStargateClient extends StargateClient {
 
     return isOfflineDirectSigner(this.signer)
       ? this.signDirect(signerAddress, messages, fee, memo, signerData)
+      : isOfflineEIP712Signer(this.signer)
+      ? this.signEIP712(signerAddress, messages, fee, memo, signerData)
       : this.signAmino(signerAddress, messages, fee, memo, signerData);
   }
 
@@ -340,7 +351,7 @@ export class SigningStargateClient extends StargateClient {
     memo: string,
     { accountNumber, sequence, chainId }: SignerData,
   ): Promise<TxRaw> {
-    assert(!isOfflineDirectSigner(this.signer));
+    assert(!isOfflineDirectSigner(this.signer) && !isOfflineEIP712Signer(this.signer));
     const accountFromSigner = (await this.signer.getAccounts()).find(
       (account) => account.address === signerAddress,
     );
@@ -409,6 +420,61 @@ export class SigningStargateClient extends StargateClient {
       bodyBytes: signed.bodyBytes,
       authInfoBytes: signed.authInfoBytes,
       signatures: [fromBase64(signature.signature)],
+    });
+  }
+
+  private async signEIP712(
+    signerAddress: string,
+    messages: readonly EncodeObject[],
+    fee: StdFee,
+    memo: string,
+    { accountNumber, sequence, chainId }: SignerData,
+  ): Promise<TxRaw> {
+    assert(isOfflineEIP712Signer(this.signer));
+    const accountFromSigner = (await this.signer.getAccounts()).find(
+      (account) => account.address === signerAddress,
+    );
+    if (!accountFromSigner) {
+      throw new Error("Failed to retrieve account from signer");
+    }
+
+    const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
+    const msgs = messages.map((msg) => this.aminoTypes.toAmino(msg));
+    const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence);
+    const { signature, pubkey, signed } = await this.signer.signEIP712(signerAddress, signDoc);
+    const encodedPubkey = encodePubkey(encodeEthSecp256k1Pubkey(pubkey));
+    const extension = ExtensionOptionsWeb3Tx.fromPartial({
+      typedDataChainId: parseChainId(chainId),
+      feePayer: signerAddress,
+      feePayerSig: signature,
+    });
+    const extensionEncodeObject: EncodeObject = {
+      typeUrl: "/ethermint.types.v1.ExtensionOptionsWeb3Tx",
+      value: extension
+    }
+    const extensionBytes = this.registry.encode(extensionEncodeObject);
+    const signedTxBody = {
+      messages: signed.msgs.map((msg) => this.aminoTypes.fromAmino(msg)),
+      memo: signed.memo,
+      extensionOptions: [Any.fromPartial({typeUrl: extensionEncodeObject.typeUrl, value: extensionBytes})],
+    };
+    const signedTxBodyEncodeObject: TxBodyEncodeObject = {
+      typeUrl: "/cosmos.tx.v1beta1.TxBody",
+      value: signedTxBody,
+    };
+    const signedTxBodyBytes = this.registry.encode(signedTxBodyEncodeObject);
+    const signedGasLimit = Int53.fromString(signed.fee.gas).toNumber();
+    const signedSequence = Int53.fromString(signed.sequence).toNumber();
+    const signedAuthInfoBytes = makeAuthInfoBytes(
+      [{ pubkey: encodedPubkey, sequence: signedSequence }],
+      signed.fee.amount,
+      signedGasLimit,
+      signMode,
+    );
+    return TxRaw.fromPartial({
+      bodyBytes: signedTxBodyBytes,
+      authInfoBytes: signedAuthInfoBytes,
+      signatures: [new Uint8Array(0)],
     });
   }
 }

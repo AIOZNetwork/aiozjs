@@ -47,9 +47,17 @@ export function pubkeyToRawAddress(pubkey: Pubkey): Uint8Array {
   }
 }
 
-export function ethAddressChecksum(rawAddress: Uint8Array): string {
+export function ethAddressChecksumRaw(rawAddress: Uint8Array): string {
   const address = toHex(rawAddress);
-  const addressHash = toHex(keccak256(toUtf8(toHex(rawAddress))));
+  const addressHash = toHex(keccak256(toUtf8(address)));
+  let checksumAddress = "0x";
+  for (let i = 0; i < address.length; i++) checksumAddress += parseInt(addressHash[i], 16) > 7 ? address[i].toUpperCase() : address[i];
+  return checksumAddress;
+};
+
+export function ethAddressChecksum(address: string): string {
+  address = address.replace(/^0x/i,'').toLowerCase();
+  const addressHash = toHex(keccak256(toUtf8(address)));
   let checksumAddress = "0x";
   for (let i = 0; i < address.length; i++) checksumAddress += parseInt(addressHash[i], 16) > 7 ? address[i].toUpperCase() : address[i];
   return checksumAddress;
@@ -112,7 +120,7 @@ export function addressToHex(address: string): string {
     return address;
   }
   const { data } = Bech32.decode(address);
-  return ethAddressChecksum(data);
+  return ethAddressChecksumRaw(data);
 }
 
 export function pubkeyToAddress(pubkey: Pubkey, prefix: string): string {
@@ -120,5 +128,5 @@ export function pubkeyToAddress(pubkey: Pubkey, prefix: string): string {
 }
 
 export function pubkeyToAddressHex(pubkey: Pubkey): string {
-  return ethAddressChecksum(pubkeyToRawAddress(pubkey));
+  return ethAddressChecksumRaw(pubkeyToRawAddress(pubkey));
 }

@@ -1,4 +1,4 @@
-import { encodeSecp256k1Signature, makeCosmoshubPath, rawSecp256k1PubkeyToRawAddress, ethAddressChecksum } from "@cosmjs/amino";
+import { encodeSecp256k1Signature, makeCosmoshubPath, rawSecp256k1PubkeyToRawAddress, ethAddressChecksumRaw } from "@cosmjs/amino";
 import {
   Bip39,
   EnglishMnemonic,
@@ -348,7 +348,7 @@ export class DirectSecp256k1HdWallet implements OfflineDirectSigner {
       this.accounts.map(async ({ hdPath, prefix }) => {
         const { privkey, pubkey } = await this.getKeyPair(hdPath);
         const address = Bech32.encode(prefix, rawSecp256k1PubkeyToRawAddress(pubkey));
-        const addressHex = ethAddressChecksum(rawSecp256k1PubkeyToRawAddress(pubkey));
+        const addressHex = ethAddressChecksumRaw(rawSecp256k1PubkeyToRawAddress(pubkey));
         return {
           algo: "secp256k1" as const,
           privkey: privkey,

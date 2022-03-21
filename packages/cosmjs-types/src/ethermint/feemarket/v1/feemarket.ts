@@ -18,18 +18,18 @@ export interface Params {
    * have.
    */
   elasticityMultiplier: number;
-  /** initial base fee for EIP-1559 blocks. */
-  initialBaseFee: Long;
   /** height at which the base fee calculation is enabled. */
   enableHeight: Long;
+  /** base fee for EIP-1559 blocks. */
+  baseFee: string;
 }
 
 const baseParams: object = {
   noBaseFee: false,
   baseFeeChangeDenominator: 0,
   elasticityMultiplier: 0,
-  initialBaseFee: Long.ZERO,
   enableHeight: Long.ZERO,
+  baseFee: "",
 };
 
 export const Params = {
@@ -43,11 +43,11 @@ export const Params = {
     if (message.elasticityMultiplier !== 0) {
       writer.uint32(24).uint32(message.elasticityMultiplier);
     }
-    if (!message.initialBaseFee.isZero()) {
-      writer.uint32(32).int64(message.initialBaseFee);
-    }
     if (!message.enableHeight.isZero()) {
       writer.uint32(40).int64(message.enableHeight);
+    }
+    if (message.baseFee !== "") {
+      writer.uint32(50).string(message.baseFee);
     }
     return writer;
   },
@@ -68,11 +68,11 @@ export const Params = {
         case 3:
           message.elasticityMultiplier = reader.uint32();
           break;
-        case 4:
-          message.initialBaseFee = reader.int64() as Long;
-          break;
         case 5:
           message.enableHeight = reader.int64() as Long;
+          break;
+        case 6:
+          message.baseFee = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -99,15 +99,15 @@ export const Params = {
     } else {
       message.elasticityMultiplier = 0;
     }
-    if (object.initialBaseFee !== undefined && object.initialBaseFee !== null) {
-      message.initialBaseFee = Long.fromString(object.initialBaseFee);
-    } else {
-      message.initialBaseFee = Long.ZERO;
-    }
     if (object.enableHeight !== undefined && object.enableHeight !== null) {
       message.enableHeight = Long.fromString(object.enableHeight);
     } else {
       message.enableHeight = Long.ZERO;
+    }
+    if (object.baseFee !== undefined && object.baseFee !== null) {
+      message.baseFee = String(object.baseFee);
+    } else {
+      message.baseFee = "";
     }
     return message;
   },
@@ -118,9 +118,8 @@ export const Params = {
     message.baseFeeChangeDenominator !== undefined &&
       (obj.baseFeeChangeDenominator = message.baseFeeChangeDenominator);
     message.elasticityMultiplier !== undefined && (obj.elasticityMultiplier = message.elasticityMultiplier);
-    message.initialBaseFee !== undefined &&
-      (obj.initialBaseFee = (message.initialBaseFee || Long.ZERO).toString());
     message.enableHeight !== undefined && (obj.enableHeight = (message.enableHeight || Long.ZERO).toString());
+    message.baseFee !== undefined && (obj.baseFee = message.baseFee);
     return obj;
   },
 
@@ -141,15 +140,15 @@ export const Params = {
     } else {
       message.elasticityMultiplier = 0;
     }
-    if (object.initialBaseFee !== undefined && object.initialBaseFee !== null) {
-      message.initialBaseFee = object.initialBaseFee as Long;
-    } else {
-      message.initialBaseFee = Long.ZERO;
-    }
     if (object.enableHeight !== undefined && object.enableHeight !== null) {
       message.enableHeight = object.enableHeight as Long;
     } else {
       message.enableHeight = Long.ZERO;
+    }
+    if (object.baseFee !== undefined && object.baseFee !== null) {
+      message.baseFee = object.baseFee;
+    } else {
+      message.baseFee = "";
     }
     return message;
   },

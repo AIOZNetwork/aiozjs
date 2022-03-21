@@ -2,7 +2,7 @@ import { Secp256k1, Sha256 } from "@cosmjs/crypto";
 import { Bech32, fromHex, fromBase64, fromUtf8, toHex, toBase64, toUtf8 } from "@cosmjs/encoding";
 import { assert, isNonNullObject } from "@cosmjs/utils/build";
 
-import { ethAddressChecksum, rawSecp256k1PubkeyToRawAddress } from "./addresses";
+import { ethAddressChecksumRaw, rawSecp256k1PubkeyToRawAddress } from "./addresses";
 import { encodeSecp256k1Signature } from "./signature";
 import { serializeSignDoc, StdSignDoc } from "./signdoc";
 import { AccountData, AminoSignResponse, OfflineAminoSigner } from "./signer";
@@ -162,7 +162,7 @@ export class Secp256k1Wallet implements OfflineAminoSigner {
   }
 
   private get addressHex(): string {
-    return ethAddressChecksum(rawSecp256k1PubkeyToRawAddress(this.pubkey));
+    return ethAddressChecksumRaw(rawSecp256k1PubkeyToRawAddress(this.pubkey));
   }
 
   public async getAccounts(): Promise<readonly AccountData[]> {

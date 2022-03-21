@@ -6,6 +6,7 @@ export {
   rawSecp256k1PubkeyToRawAddress,
   rawEthSecp256k1PubkeyToRawAddress,
   ethAddressChecksum,
+  ethAddressChecksumRaw,
   checkEthAddressChecksum,
   isValidAddress,
   isValidHexAddress,

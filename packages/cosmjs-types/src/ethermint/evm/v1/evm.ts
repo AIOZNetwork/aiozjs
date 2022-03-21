@@ -57,6 +57,10 @@ export interface ChainConfig {
   berlinBlock: string;
   /** London switch block (nil = no fork, 0 = already on london) */
   londonBlock: string;
+  /** Eip-4345 (bomb delay) switch block (nil = no fork, 0 = already activated) */
+  arrowGlacierBlock: string;
+  /** EIP-3675 (TheMerge) switch block (nil = no fork, 0 = already in merge proceedings) */
+  mergeForkBlock: string;
 }
 
 /** State represents a single Storage key value pair item. */
@@ -318,6 +322,8 @@ const baseChainConfig: object = {
   muirGlacierBlock: "",
   berlinBlock: "",
   londonBlock: "",
+  arrowGlacierBlock: "",
+  mergeForkBlock: "",
 };
 
 export const ChainConfig = {
@@ -363,6 +369,12 @@ export const ChainConfig = {
     }
     if (message.londonBlock !== "") {
       writer.uint32(138).string(message.londonBlock);
+    }
+    if (message.arrowGlacierBlock !== "") {
+      writer.uint32(146).string(message.arrowGlacierBlock);
+    }
+    if (message.mergeForkBlock !== "") {
+      writer.uint32(154).string(message.mergeForkBlock);
     }
     return writer;
   },
@@ -415,6 +427,12 @@ export const ChainConfig = {
           break;
         case 17:
           message.londonBlock = reader.string();
+          break;
+        case 18:
+          message.arrowGlacierBlock = reader.string();
+          break;
+        case 19:
+          message.mergeForkBlock = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -496,6 +514,16 @@ export const ChainConfig = {
     } else {
       message.londonBlock = "";
     }
+    if (object.arrowGlacierBlock !== undefined && object.arrowGlacierBlock !== null) {
+      message.arrowGlacierBlock = String(object.arrowGlacierBlock);
+    } else {
+      message.arrowGlacierBlock = "";
+    }
+    if (object.mergeForkBlock !== undefined && object.mergeForkBlock !== null) {
+      message.mergeForkBlock = String(object.mergeForkBlock);
+    } else {
+      message.mergeForkBlock = "";
+    }
     return message;
   },
 
@@ -515,6 +543,8 @@ export const ChainConfig = {
     message.muirGlacierBlock !== undefined && (obj.muirGlacierBlock = message.muirGlacierBlock);
     message.berlinBlock !== undefined && (obj.berlinBlock = message.berlinBlock);
     message.londonBlock !== undefined && (obj.londonBlock = message.londonBlock);
+    message.arrowGlacierBlock !== undefined && (obj.arrowGlacierBlock = message.arrowGlacierBlock);
+    message.mergeForkBlock !== undefined && (obj.mergeForkBlock = message.mergeForkBlock);
     return obj;
   },
 
@@ -589,6 +619,16 @@ export const ChainConfig = {
       message.londonBlock = object.londonBlock;
     } else {
       message.londonBlock = "";
+    }
+    if (object.arrowGlacierBlock !== undefined && object.arrowGlacierBlock !== null) {
+      message.arrowGlacierBlock = object.arrowGlacierBlock;
+    } else {
+      message.arrowGlacierBlock = "";
+    }
+    if (object.mergeForkBlock !== undefined && object.mergeForkBlock !== null) {
+      message.mergeForkBlock = object.mergeForkBlock;
+    } else {
+      message.mergeForkBlock = "";
     }
     return message;
   },

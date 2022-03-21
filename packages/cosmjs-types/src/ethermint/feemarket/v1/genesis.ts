@@ -10,26 +10,18 @@ export interface GenesisState {
   /** params defines all the paramaters of the module. */
   params?: Params;
   /**
-   * base fee is the exported value from previous software version.
-   * Zero by default.
-   */
-  baseFee: string;
-  /**
    * block gas is the amount of gas used on the last block before the upgrade.
    * Zero by default.
    */
   blockGas: Long;
 }
 
-const baseGenesisState: object = { baseFee: "", blockGas: Long.UZERO };
+const baseGenesisState: object = { blockGas: Long.UZERO };
 
 export const GenesisState = {
   encode(message: GenesisState, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.params !== undefined) {
       Params.encode(message.params, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.baseFee !== "") {
-      writer.uint32(18).string(message.baseFee);
     }
     if (!message.blockGas.isZero()) {
       writer.uint32(24).uint64(message.blockGas);
@@ -46,9 +38,6 @@ export const GenesisState = {
       switch (tag >>> 3) {
         case 1:
           message.params = Params.decode(reader, reader.uint32());
-          break;
-        case 2:
-          message.baseFee = reader.string();
           break;
         case 3:
           message.blockGas = reader.uint64() as Long;
@@ -68,11 +57,6 @@ export const GenesisState = {
     } else {
       message.params = undefined;
     }
-    if (object.baseFee !== undefined && object.baseFee !== null) {
-      message.baseFee = String(object.baseFee);
-    } else {
-      message.baseFee = "";
-    }
     if (object.blockGas !== undefined && object.blockGas !== null) {
       message.blockGas = Long.fromString(object.blockGas);
     } else {
@@ -84,7 +68,6 @@ export const GenesisState = {
   toJSON(message: GenesisState): unknown {
     const obj: any = {};
     message.params !== undefined && (obj.params = message.params ? Params.toJSON(message.params) : undefined);
-    message.baseFee !== undefined && (obj.baseFee = message.baseFee);
     message.blockGas !== undefined && (obj.blockGas = (message.blockGas || Long.UZERO).toString());
     return obj;
   },
@@ -95,11 +78,6 @@ export const GenesisState = {
       message.params = Params.fromPartial(object.params);
     } else {
       message.params = undefined;
-    }
-    if (object.baseFee !== undefined && object.baseFee !== null) {
-      message.baseFee = object.baseFee;
-    } else {
-      message.baseFee = "";
     }
     if (object.blockGas !== undefined && object.blockGas !== null) {
       message.blockGas = object.blockGas as Long;
