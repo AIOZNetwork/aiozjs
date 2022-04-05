@@ -4,7 +4,7 @@ import { Bech32, fromHex, fromBase64, fromUtf8, toHex, toBase64, toUtf8 } from "
 import { assert, isNonNullObject } from "@cosmjs/utils/build";
 import { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
-import { AccountData, DirectSignResponse, OfflineDirectSigner } from "./signer";
+import { AccountData, AccountDataWithPrivkey, DirectSignResponse, OfflineDirectSigner } from "./signer";
 import { makeSignBytes } from "./signing";
 import {
   decrypt,
@@ -170,6 +170,18 @@ export class DirectSecp256k1Wallet implements OfflineDirectSigner {
     return [
       {
         algo: "secp256k1",
+        address: this.address,
+        addressHex: this.addressHex,
+        pubkey: this.pubkey,
+      },
+    ];
+  }
+
+  public async getAccountsWithPrivkeys(): Promise<readonly AccountDataWithPrivkey[]> {
+    return [
+      {
+        algo: "secp256k1",
+        privkey: this.privkey,
         address: this.address,
         addressHex: this.addressHex,
         pubkey: this.pubkey,

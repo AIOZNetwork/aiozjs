@@ -59,40 +59,24 @@ export class Web3Wallet implements OfflineEIP712Signer {
     const msgParams = generateEIP712(types, chainId, signDoc);
     const params = [from, JSON.stringify(msgParams)];
     const method = 'eth_signTypedData_v4';
-    const signResult = await rpcSend(this.web3, {
+    const signature = await (this.web3.currentProvider as AbstractProvider).request?.({
       method,
       params,
       from,
     });
-    if (signResult.error) {
-      throw new Error(signResult.error.message);
-    }
 
     const messageHash = eip712Hash(
       msgParams,
       SignTypedDataVersion.V4,
     );
-    const pubkey = recoverPublicKey(messageHash, signResult.result);
+    const pubkey = recoverPublicKey(messageHash, signature);
     
     return {
       signed: signDoc,
-      signature: fromHex(signResult.result.slice(2)),
-      pubkey: Secp256k1.compressPubkey(Buffer.concat([new Uint8Array([4]), pubkey])),
+      signature: fromHex(signature.slice(2)),
+      pubkey: Secp256k1.compressPubkey(Buffer.concat([Buffer.from([4]), pubkey])),
     };
   }
-}
-
-async function rpcSend(web3: Web3, params: any): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const provider = web3.currentProvider as AbstractProvider;
-    provider.send?.(params, (error: any, result: any) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(result);
-    });
-  });
 }
 
 function generateEIP712(types: MessageTypes, chainId: number, message: any) {

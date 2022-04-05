@@ -17,6 +17,10 @@ export interface AccountData {
   readonly pubkey: Uint8Array;
 }
 
+export interface AccountDataWithPrivkey extends AccountData {
+  readonly privkey: Uint8Array;
+}
+
 export interface DirectSignResponse {
   /**
    * The sign doc that was signed.

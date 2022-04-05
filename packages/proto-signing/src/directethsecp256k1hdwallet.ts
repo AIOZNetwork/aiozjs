@@ -16,7 +16,7 @@ import { fromBase64, fromUtf8, toBase64, toUtf8, Bech32 } from "@cosmjs/encoding
 import { assert, isNonNullObject } from "@cosmjs/utils/build";
 import { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
-import { AccountData, DirectSignResponse, OfflineDirectSigner } from "./signer";
+import { AccountData, AccountDataWithPrivkey, DirectSignResponse, OfflineDirectSigner } from "./signer";
 import { makeSignBytes } from "./signing";
 import {
   decrypt,
@@ -26,10 +26,6 @@ import {
   KdfConfiguration,
   supportedAlgorithms,
 } from "./wallet";
-
-interface AccountDataWithPrivkey extends AccountData {
-  readonly privkey: Uint8Array;
-}
 
 const serializationTypeV1 = "ethsecp256k1hdwallet-v1";
 
@@ -343,7 +339,7 @@ export class DirectEthSecp256k1HdWallet implements OfflineDirectSigner {
     };
   }
 
-  private async getAccountsWithPrivkeys(): Promise<readonly AccountDataWithPrivkey[]> {
+  public async getAccountsWithPrivkeys(): Promise<readonly AccountDataWithPrivkey[]> {
     return Promise.all(
       this.accounts.map(async ({ hdPath, prefix }) => {
         const { privkey, pubkey } = await this.getKeyPair(hdPath);
