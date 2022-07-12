@@ -227,4 +227,11 @@ protoc \
   "$AIOZD_DIR/aioz/staking/v1beta1/genesis.proto" \
   "$AIOZD_DIR/aioz/staking/v1beta1/query.proto" \
   "$AIOZD_DIR/aioz/staking/v1beta1/staking.proto" \
-  "$AIOZD_DIR/aioz/staking/v1beta1/proposal.proto"
+  "$AIOZD_DIR/aioz/staking/v1beta1/proposal.proto" \
+  "$AIOZD_DIR/aioz/mint/v1/genesis.proto" \
+  "$AIOZD_DIR/aioz/mint/v1/query.proto" \
+  "$AIOZD_DIR/aioz/mint/v1/mint.proto" \
+  "$AIOZD_DIR/aioz/aiozrc20/v1/genesis.proto" \
+  "$AIOZD_DIR/aioz/aiozrc20/v1/query.proto" \
+  "$AIOZD_DIR/aioz/aiozrc20/v1/aiozrc20.proto" \
+  "$AIOZD_DIR/aioz/aiozrc20/v1/tx.proto"

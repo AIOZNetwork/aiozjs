@@ -46,15 +46,27 @@ const rpcEndpoint = "http://10.0.0.77:26657";
 const client = await SigningStargateClient.connectWithSigner(rpcEndpoint, wallet);
 
 const recipient = "0x70207819eC28FB8cc692A4327C80282006E6476A";
-const validator = "0xc9fA7046d2A898180Be8D8Dd5227591Db9298823";
+  const ibcRecipient = "cosmos1davg4s96ulrya44njxgzdstlyau69fuvlyn2x4";
+  const validator = "0xfFE6b1A63667c8c5BC4c804b898E20747C52C611";
 
 const amount = {
 denom: "attoaioz",
 amount: "1000000000000000000",
 };
 const fee = calculateFee(200000, "1000000000attoaioz");
-// const result = await client.sendTokens(firstAccount.address, recipient, amount, fee, "Have fun with your star coins");
-const result = await client.delegateTokens(firstAccount.address, validator, amount, fee, "Have fun with your star coins");
+  // const result = await client.sendTokens(firstAccount.address, recipient, [amount], fee, "Have fun with your star coins");
+  const result = await client.sendIbcTokens(
+    firstAccount.address,
+    ibcRecipient,
+    amount,
+    'transfer',
+    'channel-8',
+    0,
+    Date.now() + 5000,
+    fee,
+    "send ibc",
+  )
+  // const result = await client.delegateTokens(firstAccount.address, validator, amount, fee, "Have fun with your star coins");
 console.log(result)
 assertIsBroadcastTxSuccess(result);
 

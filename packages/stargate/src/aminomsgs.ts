@@ -388,3 +388,37 @@ export interface AminoMsgTransfer extends AminoMsg {
 export function isAminoMsgTransfer(msg: AminoMsg): msg is AminoMsgTransfer {
   return msg.type === "cosmos-sdk/MsgTransfer";
 }
+
+// aiozrc20
+
+export interface AminoMsgConvertCoin extends AminoMsg {
+  readonly type: "aiozrc20/MsgConvertCoin";
+  readonly value: {
+    readonly coin: Coin;
+    /** Hex account address */
+    readonly receiver: string;
+    /** Bech32 account address */
+    readonly sender: string;
+  };
+}
+
+export function isAminoMsgConvertCoin(msg: AminoMsg): msg is AminoMsgConvertCoin {
+  return msg.type === "aiozrc20/MsgConvertCoin";
+}
+
+export interface AminoMsgConvertAIOZRC20 extends AminoMsg {
+  readonly type: "aiozrc20/MsgConvertAIOZRC20";
+  readonly value: {
+    /** Hex contract address */
+    readonly contract_address: string;
+    readonly amount: string;
+    /** Bech32 account address */
+    readonly receiver: string;
+    /** Bech32 account address */
+    readonly sender: string;
+  };
+}
+
+export function isAminoMsgConvertAIOZRC20(msg: AminoMsg): msg is AminoMsgConvertAIOZRC20 {
+  return msg.type === "aiozrc20/MsgConvertAIOZRC20";
+}

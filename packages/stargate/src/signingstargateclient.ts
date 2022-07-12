@@ -40,6 +40,10 @@ import {
   MsgEditValidator,
   MsgUndelegate,
 } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import {
+  MsgConvertCoin,
+  MsgConvertAIOZRC20,
+} from "cosmjs-types/aioz/aiozrc20/v1/tx";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
@@ -115,6 +119,8 @@ export const defaultRegistryTypes: ReadonlyArray<[string, GeneratedType]> = [
   ["/ibc.core.connection.v1.MsgConnectionOpenAck", MsgConnectionOpenAck],
   ["/ibc.core.connection.v1.MsgConnectionOpenConfirm", MsgConnectionOpenConfirm],
   ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
+  ["/aioz.aiozrc20.v1.MsgConvertCoin", MsgConvertCoin],
+  ["/aioz.aiozrc20.v1.MsgConvertAIOZRC20", MsgConvertAIOZRC20],
   ["/ethermint.types.v1.ExtensionOptionsWeb3Tx", ExtensionOptionsWeb3Tx],
 ];
 
@@ -401,9 +407,12 @@ export class SigningStargateClient extends StargateClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = accountFromSigner.algo == "eth_secp256k1" ?
-      encodePubkey(encodeEthSecp256k1Pubkey(accountFromSigner.pubkey)) :
-      encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
+    const newAccount = {
+      ...accountFromSigner, algo: "eth_secp256k1",
+    };
+    const pubkey = newAccount.algo == "eth_secp256k1" ?
+      encodePubkey(encodeEthSecp256k1Pubkey(newAccount.pubkey)) :
+      encodePubkey(encodeSecp256k1Pubkey(newAccount.pubkey));
     const txBodyEncodeObject: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {

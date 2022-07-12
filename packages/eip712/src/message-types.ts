@@ -24,6 +24,10 @@ export function getMsgTypes(type: string) {
         return MsgUndelegateTypes;
       case "cosmos-sdk/MsgTransfer":
         return MsgIbcTransferTypes;
+      case "aiozrc20/MsgConvertCoin":
+        return MsgConvertCoinTypes;
+      case "aiozrc20/MsgConvertAIOZRC20":
+        return MsgConvertAIOZRC20Types;
       default:
         throw new Error(`type '${type}' is not supported`);
     }
@@ -165,5 +169,26 @@ export function getMsgTypes(type: string) {
     TypeTimeoutHeight: [
       { name: 'revision_number', type: 'uint64' },
       { name: 'revision_height', type: 'uint64' },
+    ],
+  }
+
+  export const MsgConvertCoinTypes = {
+    MsgValue: [
+      { name: 'coin', type: 'TypeCoin' },
+      { name: 'receiver', type: 'string' },
+      { name: 'sender', type: 'string' },
+    ],
+    TypeCoin: [
+      { name: 'denom', type: 'string' },
+      { name: 'amount', type: 'string' },
+    ],
+  }
+
+  export const MsgConvertAIOZRC20Types = {
+    MsgValue: [
+      { name: 'contract_address', type: 'string' },
+      { name: 'amount', type: 'string' },
+      { name: 'receiver', type: 'string' },
+      { name: 'sender', type: 'string' },
     ],
   }

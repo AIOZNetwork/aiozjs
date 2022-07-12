@@ -19,6 +19,10 @@ import {
   MsgEditValidator,
   MsgUndelegate,
 } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import {
+  MsgConvertCoin,
+  MsgConvertAIOZRC20,
+} from "cosmjs-types/aioz/aiozrc20/v1/tx";
 import { Any } from "cosmjs-types/google/protobuf/any";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import Long from "long";
@@ -39,6 +43,8 @@ import {
   AminoMsgVote,
   AminoMsgWithdrawDelegatorReward,
   AminoMsgWithdrawValidatorCommission,
+  AminoMsgConvertCoin,
+  AminoMsgConvertAIOZRC20,
 } from "./aminomsgs";
 
 export interface AminoConverter {
@@ -484,6 +490,67 @@ function createDefaultTypes(prefix: string): Record<string, AminoConverter> {
         delegatorAddress: delegator_address,
         validatorAddress: validator_address,
         amount: amount,
+      }),
+    },
+
+    // aiozrc20
+
+    "/aioz.aiozrc20.v1.MsgConvertCoin": {
+      aminoType: "aiozrc20/MsgConvertCoin",
+      toAmino: ({
+        coin,
+        receiver,
+        sender,
+      }: MsgConvertCoin): AminoMsgConvertCoin["value"] => {
+        assertDefinedAndNotNull(coin, "missing coin");
+        assertDefinedAndNotNull(receiver, "missing receiver");
+        assertDefinedAndNotNull(sender, "missing sender");
+        return {
+          coin: coin,
+          receiver: receiver,
+          sender: sender,
+        };
+      },
+      fromAmino: ({
+        coin,
+        receiver,
+        sender,
+      }: AminoMsgConvertCoin["value"]): MsgConvertCoin => ({
+        coin: coin,
+        receiver: receiver,
+        sender: sender,
+      }),
+    },
+
+    "/aioz.aiozrc20.v1.MsgConvertAIOZRC20": {
+      aminoType: "aiozrc20/MsgConvertAIOZRC20",
+      toAmino: ({
+        contractAddress,
+        amount,
+        receiver,
+        sender,
+      }: MsgConvertAIOZRC20): AminoMsgConvertAIOZRC20["value"] => {
+        assertDefinedAndNotNull(contractAddress, "missing contract address");
+        assertDefinedAndNotNull(amount, "missing amount");
+        assertDefinedAndNotNull(receiver, "missing receiver");
+        assertDefinedAndNotNull(sender, "missing sender");
+        return {
+          contract_address: contractAddress,
+          amount: amount,
+          receiver: receiver,
+          sender: sender,
+        };
+      },
+      fromAmino: ({
+        contract_address,
+        amount,
+        receiver,
+        sender,
+      }: AminoMsgConvertAIOZRC20["value"]): MsgConvertAIOZRC20 => ({
+        contractAddress: contract_address,
+        amount: amount,
+        receiver: receiver,
+        sender: sender,
       }),
     },
 

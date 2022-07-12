@@ -1,0 +1,54 @@
+syntax = "proto3";
+package aioz.aiozrc20.v1;
+
+import "google/api/annotations.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "x/aiozrc20/types";
+
+// Msg defines the aiozrc20 Msg service.
+service Msg {
+  // ConvertCoin mints a AIOZRC20 representation of the SDK Coin denom that is
+  // registered on the token mapping.
+  rpc ConvertCoin(MsgConvertCoin) returns (MsgConvertCoinResponse) {
+    option (google.api.http).get = "/aioz/aiozrc20/v1/tx/convert_coin";
+  };
+  // ConvertAIOZRC20 mints a Cosmos coin representation of the AIOZRC20 token contract
+  // that is registered on the token mapping.
+  rpc ConvertAIOZRC20(MsgConvertAIOZRC20) returns (MsgConvertAIOZRC20Response) {
+    option (google.api.http).get = "/aioz/aiozrc20/v1/tx/convert_aiozrc20";
+  };
+}
+
+// MsgConvertCoin defines a Msg to convert a Cosmos Coin to a AIOZRC20 token
+message MsgConvertCoin {
+  // Cosmos coin which denomination is registered on aiozrc20 bridge.
+  // The coin amount defines the total AIOZRC20 tokens to convert.
+  cosmos.base.v1beta1.Coin coin = 1 [ (gogoproto.nullable) = false ];
+  // recipient hex address to receive AIOZRC20 token
+  string receiver = 2;
+  // cosmos bech32 address from the owner of the given AIOZRC20 tokens
+  string sender = 3;
+}
+
+// MsgConvertCoinResponse returns no fields
+message MsgConvertCoinResponse {}
+
+// MsgConvertAIOZRC20 defines a Msg to convert an AIOZRC20 token to a Cosmos SDK coin.
+message MsgConvertAIOZRC20 {
+  // AIOZRC20 token contract address registered on aiozrc20 bridge
+  string contract_address = 1;
+  // amount of AIOZRC20 tokens to mint
+  string amount = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // bech32 address to receive SDK coins.
+  string receiver = 3;
+  // sender hex address from the owner of the given AIOZRC20 tokens
+  string sender = 4;
+}
+
+// MsgConvertAIOZRC20Response returns no fields
+message MsgConvertAIOZRC20Response {}

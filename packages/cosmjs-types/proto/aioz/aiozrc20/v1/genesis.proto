@@ -1,0 +1,21 @@
+syntax = "proto3";
+package aioz.aiozrc20.v1;
+import "aioz/aiozrc20/v1/aiozrc20.proto";
+
+import "gogoproto/gogo.proto";
+
+option go_package = "x/aiozrc20/types";
+
+// GenesisState defines the module's genesis state.
+message GenesisState {
+  // module parameters
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  // registered token pairs
+  repeated TokenPair token_pairs = 2 [ (gogoproto.nullable) = false ];
+}
+
+// Params defines the aiozrc20 module params
+message Params {
+  // parameter to enable the conversion of Cosmos coins <--> AIOZRC20 tokens.
+  bool enabled = 1;
+}

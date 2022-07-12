@@ -12,7 +12,7 @@ import { toAscii } from "@cosmjs/encoding";
  * This reduces the scope of a potential rainbow attack to all CosmJS users.
  * Must be 16 bytes due to implementation limitations.
  */
-export const cosmjsSalt = toAscii("The AIOZJS salt.");
+const cosmjsSalt = toAscii("The AIOZJS salt.");
 
 export interface KdfConfiguration {
   /**

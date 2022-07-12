@@ -11,6 +11,7 @@ option go_package = "x/staking/types";
 
 // Query defines the gRPC querier service.
 service Query {
+
   // Validators queries all validators that match the given status.
   rpc Validators(cosmos.staking.v1beta1.QueryValidatorsRequest) returns (cosmos.staking.v1beta1.QueryValidatorsResponse) {
     option (google.api.http).get = "/aioz/staking/v1beta1/validators";
@@ -98,6 +99,7 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
+
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
 }
