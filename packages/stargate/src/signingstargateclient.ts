@@ -150,6 +150,7 @@ export interface SigningStargateClientOptions {
   readonly prefix?: string;
   readonly broadcastTimeoutMs?: number;
   readonly broadcastPollIntervalMs?: number;
+  readonly pubkeyAlgo?: string;
 }
 
 export class SigningStargateClient extends StargateClient {
@@ -160,6 +161,7 @@ export class SigningStargateClient extends StargateClient {
   private readonly signer: OfflineSigner;
   private readonly aminoTypes: AminoTypes;
   private readonly prefix: string;
+  private readonly pubkeyAlgo?: string;
 
   public static async connectWithSigner(
     endpoint: string,
@@ -200,6 +202,7 @@ export class SigningStargateClient extends StargateClient {
     this.signer = signer;
     this.broadcastTimeoutMs = options.broadcastTimeoutMs;
     this.broadcastPollIntervalMs = options.broadcastPollIntervalMs;
+    this.pubkeyAlgo = options.pubkeyAlgo;
   }
 
   public async sendTokens(
@@ -359,12 +362,17 @@ export class SigningStargateClient extends StargateClient {
   ): Promise<TxRaw> {
     assert(!isOfflineDirectSigner(this.signer) && !isOfflineEIP712Signer(this.signer));
     const accountFromSigner = (await this.signer.getAccounts()).find(
-      (account) => account.address === signerAddress,
+      (account: any) => account.address === signerAddress,
     );
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
+    const account = {
+      ...accountFromSigner, algo: this.pubkeyAlgo || accountFromSigner.algo,
+    };
+    const pubkey = account.algo == "eth_secp256k1" ?
+      encodePubkey(encodeEthSecp256k1Pubkey(account.pubkey)) :
+      encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     const msgs = messages.map((msg) => this.aminoTypes.toAmino(msg));
     const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence);
@@ -402,17 +410,17 @@ export class SigningStargateClient extends StargateClient {
   ): Promise<TxRaw> {
     assert(isOfflineDirectSigner(this.signer));
     const accountFromSigner = (await this.signer.getAccounts()).find(
-      (account) => account.address === signerAddress,
+      (account: any) => account.address === signerAddress,
     );
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const newAccount = {
-      ...accountFromSigner, algo: "eth_secp256k1",
+    const account = {
+      ...accountFromSigner, algo: this.pubkeyAlgo || accountFromSigner.algo,
     };
-    const pubkey = newAccount.algo == "eth_secp256k1" ?
-      encodePubkey(encodeEthSecp256k1Pubkey(newAccount.pubkey)) :
-      encodePubkey(encodeSecp256k1Pubkey(newAccount.pubkey));
+    const pubkey = account.algo == "eth_secp256k1" ?
+      encodePubkey(encodeEthSecp256k1Pubkey(account.pubkey)) :
+      encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const txBodyEncodeObject: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -441,7 +449,7 @@ export class SigningStargateClient extends StargateClient {
   ): Promise<TxRaw> {
     assert(isOfflineEIP712Signer(this.signer));
     const accountFromSigner = (await this.signer.getAccounts()).find(
-      (account) => account.address === signerAddress,
+      (account: any) => account.address === signerAddress,
     );
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
