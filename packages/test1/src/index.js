@@ -9,55 +9,11 @@ function show(a) {
 import { DirectEthSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import Web3 from "web3";
 import { Web3Wallet } from "@cosmjs/eip712";
-import { assertIsBroadcastTxSuccess, SigningStargateClient, StargateClient, calculateFee } from "@cosmjs/stargate";
+import { assertIsBroadcastTxSuccess, SigningStargateClient, StargateClient, parseChainId, calculateFee } from "@cosmjs/stargate";
 import { fromHex } from "@cosmjs/encoding";
 import { hexToAddress } from "@cosmjs/amino";
 import { MsgConvertCoin, MsgConvertAIOZRC20 } from "cosmjs-types/aioz/aiozrc20/v1/tx";
-
-// const keplrHandle = async () => {
-//   const chainId = "testnet_2-1";
-//   const rpc = "http://10.0.0.77:26657";
-//   await window.keplr.experimentalSuggestChain({
-//     chainId: chainId,
-//     chainName: "aioz-testnet",
-//     rpc: rpc,
-//     rest: "http://10.0.0.77:1317",
-//     bip44: { coinType: 60 },
-//     bech32Config: { bech32PrefixAccAddr: "aioz", bech32PrefixAccPub: "aioz" + "pub", bech32PrefixValAddr: "aioz" + "valoper", bech32PrefixValPub: "aioz" + "valoperpub", bech32PrefixConsAddr: "aioz" + "valcons", bech32PrefixConsPub: "aioz" + "valconspub" },
-//     currencies: [{ coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network", },],
-//     feeCurrencies: [{ coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network", },],
-//     stakeCurrency: { coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network", },
-//     coinType: 60,
-//     gasPriceStep: { low: 1000000000, average: 1000000000, high: 1000000000, },
-//     features: ["ibc-transfer", "stargate", "no-legacy-stdTx", "ibc-go"],
-//   });
-
-//   await window.keplr.enable(chainId);
-
-//   const offlineSigner = window.keplr.getOfflineSigner(chainId);
-//   const accounts = await offlineSigner.getAccounts();
-
-//   const client = await SigningStargateClient.connectWithSigner(
-//     rpc,
-//     offlineSigner
-//   )
-
-//   const amount = {
-//     denom: "attoaioz",
-//     amount: "1000000000000000000",
-//   };
-//   const fee = calculateFee(5500000, "1000000000attoaioz");
-//   const result = await client.signAndBroadcast(accounts[0].address, [msgConvertCoin], fee, "test keplr")
-//   assertIsBroadcastTxSuccess(result)
-
-//   if (result.code !== undefined &&
-//     result.code !== 0) {
-//     alert("Failed to send tx: " + result.log || result.rawLog);
-//   } else {
-//     alert("Succeed to send tx:" + result.transactionHash);
-//   }
-// }
-
+import Long from "long";
 
 
 async function main() {
@@ -79,27 +35,27 @@ async function main() {
 
   // const hexPriv = "1da6847600b0ee25e9ad9a52abbd786dd2502fa4005dd5af9310b7cc7a3b25db";
   // const wallet = await DirectEthSecp256k1Wallet.fromKey(fromHex(hexPriv));
-  // const wallet = new Web3Wallet(new Web3(window.ethereum));
-  // const [firstAccount] = await wallet.getAccounts();
-
-  const chainId = "testnet_2-1";
-  await window.keplr.experimentalSuggestChain({
-    chainId: chainId,
-    chainName: "aioz-testnet",
-    rpc: "http://10.0.0.77:56657",
-    rest: "http://10.0.0.77:51317",
-    bip44: { coinType: 60 },
-    bech32Config: { bech32PrefixAccAddr: "aioz", bech32PrefixAccPub: "aioz" + "pub", bech32PrefixValAddr: "aioz" + "valoper", bech32PrefixValPub: "aioz" + "valoperpub", bech32PrefixConsAddr: "aioz" + "valcons", bech32PrefixConsPub: "aioz" + "valconspub" },
-    currencies: [{ coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network", },],
-    feeCurrencies: [{ coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network", },],
-    stakeCurrency: { coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network", },
-    coinType: 60,
-    gasPriceStep: { low: 1000000000, average: 1000000000, high: 1000000000, },
-    features: ["ibc-transfer", "stargate", "no-legacy-stdTx", "ibc-go", "eth-address-gen", "eth-key-sign"],
-  });
-  await window.keplr.enable(chainId);
-  const wallet = window.keplr.getOfflineSigner(chainId);
+  const wallet = new Web3Wallet(new Web3(window.ethereum));
   const [firstAccount] = await wallet.getAccounts();
+
+  // const chainId = "testnet_2-1";
+  // await window.keplr.experimentalSuggestChain({
+  //   chainId: chainId,
+  //   chainName: "aioz-testnet",
+  //   rpc: "http://10.0.0.77:56657",
+  //   rest: "http://10.0.0.77:51317",
+  //   bip44: { coinType: 60 },
+  //   bech32Config: { bech32PrefixAccAddr: "aioz", bech32PrefixAccPub: "aioz" + "pub", bech32PrefixValAddr: "aioz" + "valoper", bech32PrefixValPub: "aioz" + "valoperpub", bech32PrefixConsAddr: "aioz" + "valcons", bech32PrefixConsPub: "aioz" + "valconspub" },
+  //   currencies: [{ coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network", },],
+  //   feeCurrencies: [{ coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network", },],
+  //   stakeCurrency: { coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network", },
+  //   coinType: 60,
+  //   gasPriceStep: { low: 1000000000, average: 1000000000, high: 1000000000, },
+  //   features: ["ibc-transfer", "stargate", "no-legacy-stdTx", "ibc-go", "eth-address-gen", "eth-key-sign"],
+  // });
+  // await window.keplr.enable(chainId);
+  // const wallet = window.keplr.getOfflineSigner(chainId);
+  // const [firstAccount] = await wallet.getAccounts();
 
 
   show(firstAccount.address);
@@ -117,13 +73,17 @@ async function main() {
   // const rpcEndpoint = "http://157.245.144.55:26657";
   const client = await SigningStargateClient.connectWithSigner(rpcEndpoint, wallet, {pubkeyAlgo: 'eth_secp256k1'});
 
+  const cpChainId = "gaia-1";
+  const cpRpcEndpoint = "http://10.0.0.77:46657";
+  const cpClient = await StargateClient.connect(cpRpcEndpoint);
+
   const recipient = "0x70207819eC28FB8cc692A4327C80282006E6476A";
   const ibcRecipient = "cosmos1davg4s96ulrya44njxgzdstlyau69fuvlyn2x4";
   const validator = "0xfFE6b1A63667c8c5BC4c804b898E20747C52C611";
 
   const amount = {
     denom: "attoaioz",
-    amount: "1000000000000000000000000000000000000",
+    amount: "1000000000000000000",
   };
   // const msg = {
   //   typeUrl: "/aioz.aiozrc20.v1.MsgConvertCoin",
@@ -143,18 +103,23 @@ async function main() {
     }),
   };
   const fee = calculateFee(200000, "1000000000attoaioz");
-  const result = await client.sendTokens(firstAccount.address, recipient, [amount], fee, "Have fun with your star coins");
-  // const result = await client.sendIbcTokens(
-  //   firstAccount.address,
-  //   ibcRecipient,
-  //   amount,
-  //   'transfer',
-  //   'channel-8',
-  //   0,
-  //   Math.trunc(Date.now()/1000) + 5000,
-  //   fee,
-  //   "send ibc",
-  // )
+  // const result = await client.sendTokens(firstAccount.address, recipient, [amount], fee, "Have fun with your star coins");
+  const cpHeight = await cpClient.getHeight();
+  const cpRevision = parseChainId(cpChainId);
+  const result = await client.sendIbcTokens(
+    firstAccount.address,
+    ibcRecipient,
+    amount,
+    'transfer',
+    'channel-14',
+    {
+      revisionNumber: Long.fromNumber(cpRevision),
+      revisionHeight: Long.fromNumber(cpHeight + 1000)
+    },
+    Math.trunc(Date.now()/1000) + 5000,
+    fee,
+    "send ibc",
+  )
   // const result = await client.delegateTokens(firstAccount.address, validator, amount, fee, "Have fun with your star coins");
   // const result = await client.signAndBroadcast(firstAccount.address, [msg], fee, "Have fun with your star coins");
   console.log(result)

@@ -24146,6 +24146,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["long", "npm:4.0.0"]
           ],
           "linkType": "HARD",
+        }],
+        ["npm:5.2.0", {
+          "packageLocation": "./.yarn/cache/long-npm-5.2.0-bbbd23a9e6-95aa5c2590.zip/node_modules/long/",
+          "packageDependencies": [
+            ["long", "npm:5.2.0"]
+          ],
+          "linkType": "HARD",
         }]
       ]],
       ["lower-case", [
@@ -30518,6 +30525,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./packages/test1/",
           "packageDependencies": [
             ["test1", "workspace:packages/test1"],
+            ["@cosmjs/amino", "workspace:packages/amino"],
             ["@cosmjs/crypto", "workspace:packages/crypto"],
             ["@cosmjs/eip712", "workspace:packages/eip712"],
             ["@cosmjs/encoding", "workspace:packages/encoding"],
@@ -30525,8 +30533,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@cosmjs/stargate", "workspace:packages/stargate"],
             ["@esbuild-plugins/node-globals-polyfill", "virtual:ecfd4703de8521a6be24eec9bfa1f7f4a282a33cd2a1b182ff4273c25203a4ab6994c4f9d43c1a8ed4e8444e6d83dcd54711bed28c376891795765a824c1e287#npm:0.1.1"],
             ["buffer", "npm:6.0.3"],
+            ["cosmjs-types", "workspace:packages/cosmjs-types"],
             ["crypto-browserify", "npm:3.12.0"],
             ["https-browserify", "npm:1.0.0"],
+            ["long", "npm:5.2.0"],
             ["node-polyfill-webpack-plugin", "virtual:ecfd4703de8521a6be24eec9bfa1f7f4a282a33cd2a1b182ff4273c25203a4ab6994c4f9d43c1a8ed4e8444e6d83dcd54711bed28c376891795765a824c1e287#npm:1.1.4"],
             ["os", "npm:0.1.2"],
             ["process", "npm:0.11.10"],

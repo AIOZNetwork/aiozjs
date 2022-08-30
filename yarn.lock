@@ -13772,6 +13772,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"long@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "long@npm:5.2.0"
+  checksum: 95aa5c25905f90d9018042f44217cc236709309ffb7b69de5b1242d798290b524f265cdf7d375fa2402e2d240bd9765914742406bb8cc37e64a3d4fe095b733a
+  languageName: node
+  linkType: hard
+
 "lower-case@npm:^1.1.1":
   version: 1.1.4
   resolution: "lower-case@npm:1.1.4"
@@ -19308,6 +19315,7 @@ fsevents@^1.2.7:
   version: 0.0.0-use.local
   resolution: "test1@workspace:packages/test1"
   dependencies:
+    "@cosmjs/amino": "workspace:packages/amino"
     "@cosmjs/crypto": "workspace:packages/crypto"
     "@cosmjs/eip712": "workspace:packages/eip712"
     "@cosmjs/encoding": "workspace:packages/encoding"
@@ -19315,8 +19323,10 @@ fsevents@^1.2.7:
     "@cosmjs/stargate": "workspace:packages/stargate"
     "@esbuild-plugins/node-globals-polyfill": ^0.1.1
     buffer: ^6.0.3
+    cosmjs-types: "workspace:packages/cosmjs-types"
     crypto-browserify: ^3.12.0
     https-browserify: ^1.0.0
+    long: ^5.2.0
     node-polyfill-webpack-plugin: ^1.1.4
     os: ^0.1.2
     process: ^0.11.10
