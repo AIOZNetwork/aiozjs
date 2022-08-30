@@ -112,3 +112,7 @@ export {
   SigningStargateClient,
   SigningStargateClientOptions,
 } from "./signingstargateclient";
+export {
+  isRevisionFormat,
+  parseChainId,
+} from "./utils";
