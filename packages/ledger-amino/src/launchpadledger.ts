@@ -87,6 +87,11 @@ export class LaunchpadLedger {
     return CosmosApp.getBech32FromPK(this.prefix, Buffer.from(pubkeyToUse));
   }
 
+  public async getEthAddress(pubkey?: Uint8Array): Promise<string> {
+    const pubkeyToUse = pubkey || (await this.getPubkey());
+    return CosmosApp.getBech32FromPK(this.prefix, Buffer.from(pubkeyToUse));
+  }
+
   public async sign(message: Uint8Array, hdPath?: HdPath): Promise<Uint8Array> {
     await this.verifyDeviceIsReady();
     assert(this.app, "Cosmos Ledger App is not connected");

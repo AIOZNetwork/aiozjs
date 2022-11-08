@@ -29,12 +29,13 @@ export class LedgerSigner implements OfflineAminoSigner {
         pubkeys.map(async (pubkey) => ({
           algo: "secp256k1" as const,
           address: await this.ledger.getCosmosAddress(pubkey),
+          addressHex: await this.ledger.getEthAddress(pubkey),
           pubkey: pubkey,
         })),
       );
     }
 
-    return this.accounts;
+    return this.accounts!;
   }
 
   public async signAmino(signerAddress: string, signDoc: StdSignDoc): Promise<AminoSignResponse> {

@@ -47,6 +47,7 @@
     "@cosmjs/launchpad": "workspace:packages/launchpad",
     "@cosmjs/proto-signing": "workspace:packages/proto-signing",
     "@cosmjs/stargate": "workspace:packages/stargate",
+    "@types/bn.js": "^5.1.1",
     "@types/jest": "^27.0.1",
     "cosmjs-types": "workspace:packages/cosmjs-types",
     "eslint": "^7.5",
@@ -57,8 +58,11 @@
     "test1": "portal:/Users/trieu/aioz/cosmjs/packages/test1"
   },
   "dependencies": {
+    "bignumber.js": "^9.1.0",
     "crypto-js": "^4.1.1",
-    "long": "^4.0.0"
+    "long": "^4.0.0",
+    "web3-eth": "^1.8.0",
+    "web3-eth-accounts": "^1.8.0"
   },
-  "packageManager": "yarn@2.4.2"
+  "packageManager": "yarn@3.2.4"
 }
