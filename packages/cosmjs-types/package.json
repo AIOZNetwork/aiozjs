@@ -30,7 +30,7 @@
   ],
   "scripts": {
     "format": "prettier --write --loglevel warn \"./src/**/*.ts\"",
-    "codegen": "rm -rf ./src && ./scripts/codegen.js && npm run format",
+    "define-proto": "./scripts/define-proto.sh && yarn format",
     "prepare-publishing": "./scripts/prepare-publishing.sh",
     "build": "rm -rf ./build && tsc && npm run prepare-publishing"
   },
