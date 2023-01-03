@@ -12,7 +12,7 @@ export interface EthAccount {
 }
 export declare const EthAccount: {
     encode(message: EthAccount, writer?: _m0.Writer): _m0.Writer;
-    decode(input: _m0.Reader | Uint8Array, length?: number | undefined): EthAccount;
+    decode(input: _m0.Reader | Uint8Array, length?: number): EthAccount;
     fromJSON(object: any): EthAccount;
     toJSON(message: EthAccount): unknown;
     fromPartial(object: DeepPartial<EthAccount>): EthAccount;

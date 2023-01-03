@@ -1,3 +1,4 @@
+import { addressToHex } from "@cosmjs/amino";
 import {
   AccountData,
   AminoSignResponse,
@@ -29,6 +30,7 @@ export class LedgerSigner implements OfflineAminoSigner {
         pubkeys.map(async (pubkey) => ({
           algo: "secp256k1" as const,
           address: await this.ledger.getCosmosAddress(pubkey),
+          addressHex: addressToHex(await this.ledger.getCosmosAddress(pubkey)),
           pubkey: pubkey,
         })),
       );
