@@ -1,12 +1,6 @@
 const webpack = require('webpack');
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
-const { alias, configPaths } = require('react-app-rewire-alias')
-
-const aliasMap = configPaths('./tsconfig.paths.json')
-
-module.exports = alias(aliasMap)
-module.exports.jest = aliasJest(aliasMap)
 
 module.exports = function override(config, env) {
     config.resolve.fallback = {
