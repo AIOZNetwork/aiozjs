@@ -1,9 +1,11 @@
 syntax = "proto3";
 package aioz.staking.v1beta1;
 
-option go_package = "x/staking/types";
+option go_package = "github.com/AIOZNetwork/go-aioz/x/staking/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/staking/v1beta1/genesis.proto";
 import "cosmos/staking/v1beta1/staking.proto";
 import "aioz/staking/v1beta1/staking.proto";
 
@@ -17,15 +19,14 @@ message GenesisState {
   // last_total_power tracks the total amounts of bonded tokens recorded during
   // the previous end block.
   bytes last_total_power = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags)   = "yaml:\"last_total_power\"",
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable)   = false
   ];
 
   // last_validator_powers is a special index that provides a historical list
   // of the last-block's bonded validators.
-  repeated LastValidatorPower last_validator_powers = 3
-      [(gogoproto.moretags) = "yaml:\"last_validator_powers\"", (gogoproto.nullable) = false];
+  repeated cosmos.staking.v1beta1.LastValidatorPower last_validator_powers = 3 [(gogoproto.nullable) = false];
 
   // delegations defines the validator set at genesis.
   repeated cosmos.staking.v1beta1.Validator validators = 4 [(gogoproto.nullable) = false];
@@ -41,16 +42,4 @@ message GenesisState {
   repeated cosmos.staking.v1beta1.Redelegation redelegations = 7 [(gogoproto.nullable) = false];
 
   bool exported = 8;
-}
-
-// LastValidatorPower required for validator set update logic.
-message LastValidatorPower {
-  option (gogoproto.equal)           = false;
-  option (gogoproto.goproto_getters) = false;
-
-  // address is the address of the validator.
-  string address = 1;
-
-  // power defines the power of the validator.
-  int64 power = 2;
 }

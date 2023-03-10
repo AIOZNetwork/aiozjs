@@ -58,6 +58,19 @@ describe("GasPrice", () => {
       expect(() => GasPrice.fromString("..utkn")).toThrowError(/More than one separator found/i);
     });
   });
+
+  describe("toString", () => {
+    it("works", () => {
+      const price1 = new GasPrice(Decimal.fromUserInput("3.14", 18), "utest");
+      expect(price1.toString()).toEqual("3.14utest");
+      const price2 = new GasPrice(Decimal.fromUserInput("0.14", 18), "utest");
+      expect(price2.toString()).toEqual("0.14utest");
+
+      // is normalized just like other Decimals
+      const price3 = new GasPrice(Decimal.fromUserInput("003.000", 18), "utest");
+      expect(price3.toString()).toEqual("3utest");
+    });
+  });
 });
 
 describe("calculateFee", () => {
@@ -78,6 +91,17 @@ describe("calculateFee", () => {
     expect(fee).toEqual({
       amount: [{ amount: "2000", denom: "ucosm" }],
       gas: "80000",
+    });
+  });
+
+  it("works with large gas price", () => {
+    // "The default gas price is 5000000000000 (5e^12), as the native coin has 18 decimals it is exceeding the max safe integer"
+    // https://github.com/cosmos/cosmjs/issues/1134
+    const gasPrice = GasPrice.fromString("5000000000000tiny");
+    const fee = calculateFee(500_000, gasPrice);
+    expect(fee).toEqual({
+      amount: [{ amount: "2500000000000000000", denom: "tiny" }],
+      gas: "500000",
     });
   });
 });

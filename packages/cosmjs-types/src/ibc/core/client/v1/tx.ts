@@ -1,11 +1,10 @@
 /* eslint-disable */
-import Long from "long";
-import _m0 from "protobufjs/minimal";
 import { Any } from "../../../../google/protobuf/any";
-
+import * as _m0 from "protobufjs/minimal";
+import { isSet, DeepPartial, Exact, bytesFromBase64, base64FromBytes, Rpc } from "../../../../helpers";
 export const protobufPackage = "ibc.core.client.v1";
-
 /** MsgCreateClient defines a message to create an IBC client */
+
 export interface MsgCreateClient {
   /** light client state */
   clientState?: Any;
@@ -13,123 +12,146 @@ export interface MsgCreateClient {
    * consensus state associated with the client that corresponds to a given
    * height.
    */
+
   consensusState?: Any;
   /** signer address */
+
   signer: string;
 }
-
 /** MsgCreateClientResponse defines the Msg/CreateClient response type. */
-export interface MsgCreateClientResponse {}
 
+export interface MsgCreateClientResponse {}
 /**
  * MsgUpdateClient defines an sdk.Msg to update a IBC client state using
  * the given header.
  */
+
 export interface MsgUpdateClient {
   /** client unique identifier */
   clientId: string;
   /** header to update the light client */
+
   header?: Any;
   /** signer address */
+
   signer: string;
 }
-
 /** MsgUpdateClientResponse defines the Msg/UpdateClient response type. */
-export interface MsgUpdateClientResponse {}
 
-/** MsgUpgradeClient defines an sdk.Msg to upgrade an IBC client to a new client state */
+export interface MsgUpdateClientResponse {}
+/**
+ * MsgUpgradeClient defines an sdk.Msg to upgrade an IBC client to a new client
+ * state
+ */
+
 export interface MsgUpgradeClient {
   /** client unique identifier */
   clientId: string;
   /** upgraded client state */
+
   clientState?: Any;
-  /** upgraded consensus state, only contains enough information to serve as a basis of trust in update logic */
+  /**
+   * upgraded consensus state, only contains enough information to serve as a
+   * basis of trust in update logic
+   */
+
   consensusState?: Any;
   /** proof that old chain committed to new client */
+
   proofUpgradeClient: Uint8Array;
   /** proof that old chain committed to new consensus state */
+
   proofUpgradeConsensusState: Uint8Array;
   /** signer address */
+
   signer: string;
 }
-
 /** MsgUpgradeClientResponse defines the Msg/UpgradeClient response type. */
-export interface MsgUpgradeClientResponse {}
 
+export interface MsgUpgradeClientResponse {}
 /**
  * MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
  * light client misbehaviour.
  */
+
 export interface MsgSubmitMisbehaviour {
   /** client unique identifier */
   clientId: string;
   /** misbehaviour used for freezing the light client */
+
   misbehaviour?: Any;
   /** signer address */
+
   signer: string;
 }
+/**
+ * MsgSubmitMisbehaviourResponse defines the Msg/SubmitMisbehaviour response
+ * type.
+ */
 
-/** MsgSubmitMisbehaviourResponse defines the Msg/SubmitMisbehaviour response type. */
 export interface MsgSubmitMisbehaviourResponse {}
 
-const baseMsgCreateClient: object = { signer: "" };
+function createBaseMsgCreateClient(): MsgCreateClient {
+  return {
+    clientState: undefined,
+    consensusState: undefined,
+    signer: "",
+  };
+}
 
 export const MsgCreateClient = {
   encode(message: MsgCreateClient, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.clientState !== undefined) {
       Any.encode(message.clientState, writer.uint32(10).fork()).ldelim();
     }
+
     if (message.consensusState !== undefined) {
       Any.encode(message.consensusState, writer.uint32(18).fork()).ldelim();
     }
+
     if (message.signer !== "") {
       writer.uint32(26).string(message.signer);
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgCreateClient {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgCreateClient } as MsgCreateClient;
+    const message = createBaseMsgCreateClient();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.clientState = Any.decode(reader, reader.uint32());
           break;
+
         case 2:
           message.consensusState = Any.decode(reader, reader.uint32());
           break;
+
         case 3:
           message.signer = reader.string();
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): MsgCreateClient {
-    const message = { ...baseMsgCreateClient } as MsgCreateClient;
-    if (object.clientState !== undefined && object.clientState !== null) {
-      message.clientState = Any.fromJSON(object.clientState);
-    } else {
-      message.clientState = undefined;
-    }
-    if (object.consensusState !== undefined && object.consensusState !== null) {
-      message.consensusState = Any.fromJSON(object.consensusState);
-    } else {
-      message.consensusState = undefined;
-    }
-    if (object.signer !== undefined && object.signer !== null) {
-      message.signer = String(object.signer);
-    } else {
-      message.signer = "";
-    }
-    return message;
+    return {
+      clientState: isSet(object.clientState) ? Any.fromJSON(object.clientState) : undefined,
+      consensusState: isSet(object.consensusState) ? Any.fromJSON(object.consensusState) : undefined,
+      signer: isSet(object.signer) ? String(object.signer) : "",
+    };
   },
 
   toJSON(message: MsgCreateClient): unknown {
@@ -142,28 +164,24 @@ export const MsgCreateClient = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgCreateClient>): MsgCreateClient {
-    const message = { ...baseMsgCreateClient } as MsgCreateClient;
-    if (object.clientState !== undefined && object.clientState !== null) {
-      message.clientState = Any.fromPartial(object.clientState);
-    } else {
-      message.clientState = undefined;
-    }
-    if (object.consensusState !== undefined && object.consensusState !== null) {
-      message.consensusState = Any.fromPartial(object.consensusState);
-    } else {
-      message.consensusState = undefined;
-    }
-    if (object.signer !== undefined && object.signer !== null) {
-      message.signer = object.signer;
-    } else {
-      message.signer = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgCreateClient>, I>>(object: I): MsgCreateClient {
+    const message = createBaseMsgCreateClient();
+    message.clientState =
+      object.clientState !== undefined && object.clientState !== null
+        ? Any.fromPartial(object.clientState)
+        : undefined;
+    message.consensusState =
+      object.consensusState !== undefined && object.consensusState !== null
+        ? Any.fromPartial(object.consensusState)
+        : undefined;
+    message.signer = object.signer ?? "";
     return message;
   },
 };
 
-const baseMsgCreateClientResponse: object = {};
+function createBaseMsgCreateClientResponse(): MsgCreateClientResponse {
+  return {};
+}
 
 export const MsgCreateClientResponse = {
   encode(_: MsgCreateClientResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -173,21 +191,23 @@ export const MsgCreateClientResponse = {
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgCreateClientResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgCreateClientResponse } as MsgCreateClientResponse;
+    const message = createBaseMsgCreateClientResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(_: any): MsgCreateClientResponse {
-    const message = { ...baseMsgCreateClientResponse } as MsgCreateClientResponse;
-    return message;
+    return {};
   },
 
   toJSON(_: MsgCreateClientResponse): unknown {
@@ -195,70 +215,73 @@ export const MsgCreateClientResponse = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgCreateClientResponse>): MsgCreateClientResponse {
-    const message = { ...baseMsgCreateClientResponse } as MsgCreateClientResponse;
+  fromPartial<I extends Exact<DeepPartial<MsgCreateClientResponse>, I>>(_: I): MsgCreateClientResponse {
+    const message = createBaseMsgCreateClientResponse();
     return message;
   },
 };
 
-const baseMsgUpdateClient: object = { clientId: "", signer: "" };
+function createBaseMsgUpdateClient(): MsgUpdateClient {
+  return {
+    clientId: "",
+    header: undefined,
+    signer: "",
+  };
+}
 
 export const MsgUpdateClient = {
   encode(message: MsgUpdateClient, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.clientId !== "") {
       writer.uint32(10).string(message.clientId);
     }
+
     if (message.header !== undefined) {
       Any.encode(message.header, writer.uint32(18).fork()).ldelim();
     }
+
     if (message.signer !== "") {
       writer.uint32(26).string(message.signer);
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateClient {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgUpdateClient } as MsgUpdateClient;
+    const message = createBaseMsgUpdateClient();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.clientId = reader.string();
           break;
+
         case 2:
           message.header = Any.decode(reader, reader.uint32());
           break;
+
         case 3:
           message.signer = reader.string();
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): MsgUpdateClient {
-    const message = { ...baseMsgUpdateClient } as MsgUpdateClient;
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
-    } else {
-      message.clientId = "";
-    }
-    if (object.header !== undefined && object.header !== null) {
-      message.header = Any.fromJSON(object.header);
-    } else {
-      message.header = undefined;
-    }
-    if (object.signer !== undefined && object.signer !== null) {
-      message.signer = String(object.signer);
-    } else {
-      message.signer = "";
-    }
-    return message;
+    return {
+      clientId: isSet(object.clientId) ? String(object.clientId) : "",
+      header: isSet(object.header) ? Any.fromJSON(object.header) : undefined,
+      signer: isSet(object.signer) ? String(object.signer) : "",
+    };
   },
 
   toJSON(message: MsgUpdateClient): unknown {
@@ -269,28 +292,19 @@ export const MsgUpdateClient = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgUpdateClient>): MsgUpdateClient {
-    const message = { ...baseMsgUpdateClient } as MsgUpdateClient;
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
-    } else {
-      message.clientId = "";
-    }
-    if (object.header !== undefined && object.header !== null) {
-      message.header = Any.fromPartial(object.header);
-    } else {
-      message.header = undefined;
-    }
-    if (object.signer !== undefined && object.signer !== null) {
-      message.signer = object.signer;
-    } else {
-      message.signer = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgUpdateClient>, I>>(object: I): MsgUpdateClient {
+    const message = createBaseMsgUpdateClient();
+    message.clientId = object.clientId ?? "";
+    message.header =
+      object.header !== undefined && object.header !== null ? Any.fromPartial(object.header) : undefined;
+    message.signer = object.signer ?? "";
     return message;
   },
 };
 
-const baseMsgUpdateClientResponse: object = {};
+function createBaseMsgUpdateClientResponse(): MsgUpdateClientResponse {
+  return {};
+}
 
 export const MsgUpdateClientResponse = {
   encode(_: MsgUpdateClientResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -300,21 +314,23 @@ export const MsgUpdateClientResponse = {
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateClientResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgUpdateClientResponse } as MsgUpdateClientResponse;
+    const message = createBaseMsgUpdateClientResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(_: any): MsgUpdateClientResponse {
-    const message = { ...baseMsgUpdateClientResponse } as MsgUpdateClientResponse;
-    return message;
+    return {};
   },
 
   toJSON(_: MsgUpdateClientResponse): unknown {
@@ -322,103 +338,107 @@ export const MsgUpdateClientResponse = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgUpdateClientResponse>): MsgUpdateClientResponse {
-    const message = { ...baseMsgUpdateClientResponse } as MsgUpdateClientResponse;
+  fromPartial<I extends Exact<DeepPartial<MsgUpdateClientResponse>, I>>(_: I): MsgUpdateClientResponse {
+    const message = createBaseMsgUpdateClientResponse();
     return message;
   },
 };
 
-const baseMsgUpgradeClient: object = { clientId: "", signer: "" };
+function createBaseMsgUpgradeClient(): MsgUpgradeClient {
+  return {
+    clientId: "",
+    clientState: undefined,
+    consensusState: undefined,
+    proofUpgradeClient: new Uint8Array(),
+    proofUpgradeConsensusState: new Uint8Array(),
+    signer: "",
+  };
+}
 
 export const MsgUpgradeClient = {
   encode(message: MsgUpgradeClient, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.clientId !== "") {
       writer.uint32(10).string(message.clientId);
     }
+
     if (message.clientState !== undefined) {
       Any.encode(message.clientState, writer.uint32(18).fork()).ldelim();
     }
+
     if (message.consensusState !== undefined) {
       Any.encode(message.consensusState, writer.uint32(26).fork()).ldelim();
     }
+
     if (message.proofUpgradeClient.length !== 0) {
       writer.uint32(34).bytes(message.proofUpgradeClient);
     }
+
     if (message.proofUpgradeConsensusState.length !== 0) {
       writer.uint32(42).bytes(message.proofUpgradeConsensusState);
     }
+
     if (message.signer !== "") {
       writer.uint32(50).string(message.signer);
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpgradeClient {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgUpgradeClient } as MsgUpgradeClient;
-    message.proofUpgradeClient = new Uint8Array();
-    message.proofUpgradeConsensusState = new Uint8Array();
+    const message = createBaseMsgUpgradeClient();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.clientId = reader.string();
           break;
+
         case 2:
           message.clientState = Any.decode(reader, reader.uint32());
           break;
+
         case 3:
           message.consensusState = Any.decode(reader, reader.uint32());
           break;
+
         case 4:
           message.proofUpgradeClient = reader.bytes();
           break;
+
         case 5:
           message.proofUpgradeConsensusState = reader.bytes();
           break;
+
         case 6:
           message.signer = reader.string();
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): MsgUpgradeClient {
-    const message = { ...baseMsgUpgradeClient } as MsgUpgradeClient;
-    message.proofUpgradeClient = new Uint8Array();
-    message.proofUpgradeConsensusState = new Uint8Array();
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
-    } else {
-      message.clientId = "";
-    }
-    if (object.clientState !== undefined && object.clientState !== null) {
-      message.clientState = Any.fromJSON(object.clientState);
-    } else {
-      message.clientState = undefined;
-    }
-    if (object.consensusState !== undefined && object.consensusState !== null) {
-      message.consensusState = Any.fromJSON(object.consensusState);
-    } else {
-      message.consensusState = undefined;
-    }
-    if (object.proofUpgradeClient !== undefined && object.proofUpgradeClient !== null) {
-      message.proofUpgradeClient = bytesFromBase64(object.proofUpgradeClient);
-    }
-    if (object.proofUpgradeConsensusState !== undefined && object.proofUpgradeConsensusState !== null) {
-      message.proofUpgradeConsensusState = bytesFromBase64(object.proofUpgradeConsensusState);
-    }
-    if (object.signer !== undefined && object.signer !== null) {
-      message.signer = String(object.signer);
-    } else {
-      message.signer = "";
-    }
-    return message;
+    return {
+      clientId: isSet(object.clientId) ? String(object.clientId) : "",
+      clientState: isSet(object.clientState) ? Any.fromJSON(object.clientState) : undefined,
+      consensusState: isSet(object.consensusState) ? Any.fromJSON(object.consensusState) : undefined,
+      proofUpgradeClient: isSet(object.proofUpgradeClient)
+        ? bytesFromBase64(object.proofUpgradeClient)
+        : new Uint8Array(),
+      proofUpgradeConsensusState: isSet(object.proofUpgradeConsensusState)
+        ? bytesFromBase64(object.proofUpgradeConsensusState)
+        : new Uint8Array(),
+      signer: isSet(object.signer) ? String(object.signer) : "",
+    };
   },
 
   toJSON(message: MsgUpgradeClient): unknown {
@@ -442,43 +462,27 @@ export const MsgUpgradeClient = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgUpgradeClient>): MsgUpgradeClient {
-    const message = { ...baseMsgUpgradeClient } as MsgUpgradeClient;
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
-    } else {
-      message.clientId = "";
-    }
-    if (object.clientState !== undefined && object.clientState !== null) {
-      message.clientState = Any.fromPartial(object.clientState);
-    } else {
-      message.clientState = undefined;
-    }
-    if (object.consensusState !== undefined && object.consensusState !== null) {
-      message.consensusState = Any.fromPartial(object.consensusState);
-    } else {
-      message.consensusState = undefined;
-    }
-    if (object.proofUpgradeClient !== undefined && object.proofUpgradeClient !== null) {
-      message.proofUpgradeClient = object.proofUpgradeClient;
-    } else {
-      message.proofUpgradeClient = new Uint8Array();
-    }
-    if (object.proofUpgradeConsensusState !== undefined && object.proofUpgradeConsensusState !== null) {
-      message.proofUpgradeConsensusState = object.proofUpgradeConsensusState;
-    } else {
-      message.proofUpgradeConsensusState = new Uint8Array();
-    }
-    if (object.signer !== undefined && object.signer !== null) {
-      message.signer = object.signer;
-    } else {
-      message.signer = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgUpgradeClient>, I>>(object: I): MsgUpgradeClient {
+    const message = createBaseMsgUpgradeClient();
+    message.clientId = object.clientId ?? "";
+    message.clientState =
+      object.clientState !== undefined && object.clientState !== null
+        ? Any.fromPartial(object.clientState)
+        : undefined;
+    message.consensusState =
+      object.consensusState !== undefined && object.consensusState !== null
+        ? Any.fromPartial(object.consensusState)
+        : undefined;
+    message.proofUpgradeClient = object.proofUpgradeClient ?? new Uint8Array();
+    message.proofUpgradeConsensusState = object.proofUpgradeConsensusState ?? new Uint8Array();
+    message.signer = object.signer ?? "";
     return message;
   },
 };
 
-const baseMsgUpgradeClientResponse: object = {};
+function createBaseMsgUpgradeClientResponse(): MsgUpgradeClientResponse {
+  return {};
+}
 
 export const MsgUpgradeClientResponse = {
   encode(_: MsgUpgradeClientResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -488,21 +492,23 @@ export const MsgUpgradeClientResponse = {
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpgradeClientResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgUpgradeClientResponse } as MsgUpgradeClientResponse;
+    const message = createBaseMsgUpgradeClientResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(_: any): MsgUpgradeClientResponse {
-    const message = { ...baseMsgUpgradeClientResponse } as MsgUpgradeClientResponse;
-    return message;
+    return {};
   },
 
   toJSON(_: MsgUpgradeClientResponse): unknown {
@@ -510,70 +516,73 @@ export const MsgUpgradeClientResponse = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgUpgradeClientResponse>): MsgUpgradeClientResponse {
-    const message = { ...baseMsgUpgradeClientResponse } as MsgUpgradeClientResponse;
+  fromPartial<I extends Exact<DeepPartial<MsgUpgradeClientResponse>, I>>(_: I): MsgUpgradeClientResponse {
+    const message = createBaseMsgUpgradeClientResponse();
     return message;
   },
 };
 
-const baseMsgSubmitMisbehaviour: object = { clientId: "", signer: "" };
+function createBaseMsgSubmitMisbehaviour(): MsgSubmitMisbehaviour {
+  return {
+    clientId: "",
+    misbehaviour: undefined,
+    signer: "",
+  };
+}
 
 export const MsgSubmitMisbehaviour = {
   encode(message: MsgSubmitMisbehaviour, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.clientId !== "") {
       writer.uint32(10).string(message.clientId);
     }
+
     if (message.misbehaviour !== undefined) {
       Any.encode(message.misbehaviour, writer.uint32(18).fork()).ldelim();
     }
+
     if (message.signer !== "") {
       writer.uint32(26).string(message.signer);
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgSubmitMisbehaviour {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgSubmitMisbehaviour } as MsgSubmitMisbehaviour;
+    const message = createBaseMsgSubmitMisbehaviour();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.clientId = reader.string();
           break;
+
         case 2:
           message.misbehaviour = Any.decode(reader, reader.uint32());
           break;
+
         case 3:
           message.signer = reader.string();
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): MsgSubmitMisbehaviour {
-    const message = { ...baseMsgSubmitMisbehaviour } as MsgSubmitMisbehaviour;
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = String(object.clientId);
-    } else {
-      message.clientId = "";
-    }
-    if (object.misbehaviour !== undefined && object.misbehaviour !== null) {
-      message.misbehaviour = Any.fromJSON(object.misbehaviour);
-    } else {
-      message.misbehaviour = undefined;
-    }
-    if (object.signer !== undefined && object.signer !== null) {
-      message.signer = String(object.signer);
-    } else {
-      message.signer = "";
-    }
-    return message;
+    return {
+      clientId: isSet(object.clientId) ? String(object.clientId) : "",
+      misbehaviour: isSet(object.misbehaviour) ? Any.fromJSON(object.misbehaviour) : undefined,
+      signer: isSet(object.signer) ? String(object.signer) : "",
+    };
   },
 
   toJSON(message: MsgSubmitMisbehaviour): unknown {
@@ -585,28 +594,21 @@ export const MsgSubmitMisbehaviour = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgSubmitMisbehaviour>): MsgSubmitMisbehaviour {
-    const message = { ...baseMsgSubmitMisbehaviour } as MsgSubmitMisbehaviour;
-    if (object.clientId !== undefined && object.clientId !== null) {
-      message.clientId = object.clientId;
-    } else {
-      message.clientId = "";
-    }
-    if (object.misbehaviour !== undefined && object.misbehaviour !== null) {
-      message.misbehaviour = Any.fromPartial(object.misbehaviour);
-    } else {
-      message.misbehaviour = undefined;
-    }
-    if (object.signer !== undefined && object.signer !== null) {
-      message.signer = object.signer;
-    } else {
-      message.signer = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgSubmitMisbehaviour>, I>>(object: I): MsgSubmitMisbehaviour {
+    const message = createBaseMsgSubmitMisbehaviour();
+    message.clientId = object.clientId ?? "";
+    message.misbehaviour =
+      object.misbehaviour !== undefined && object.misbehaviour !== null
+        ? Any.fromPartial(object.misbehaviour)
+        : undefined;
+    message.signer = object.signer ?? "";
     return message;
   },
 };
 
-const baseMsgSubmitMisbehaviourResponse: object = {};
+function createBaseMsgSubmitMisbehaviourResponse(): MsgSubmitMisbehaviourResponse {
+  return {};
+}
 
 export const MsgSubmitMisbehaviourResponse = {
   encode(_: MsgSubmitMisbehaviourResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -616,21 +618,23 @@ export const MsgSubmitMisbehaviourResponse = {
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgSubmitMisbehaviourResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgSubmitMisbehaviourResponse } as MsgSubmitMisbehaviourResponse;
+    const message = createBaseMsgSubmitMisbehaviourResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(_: any): MsgSubmitMisbehaviourResponse {
-    const message = { ...baseMsgSubmitMisbehaviourResponse } as MsgSubmitMisbehaviourResponse;
-    return message;
+    return {};
   },
 
   toJSON(_: MsgSubmitMisbehaviourResponse): unknown {
@@ -638,26 +642,31 @@ export const MsgSubmitMisbehaviourResponse = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgSubmitMisbehaviourResponse>): MsgSubmitMisbehaviourResponse {
-    const message = { ...baseMsgSubmitMisbehaviourResponse } as MsgSubmitMisbehaviourResponse;
+  fromPartial<I extends Exact<DeepPartial<MsgSubmitMisbehaviourResponse>, I>>(
+    _: I,
+  ): MsgSubmitMisbehaviourResponse {
+    const message = createBaseMsgSubmitMisbehaviourResponse();
     return message;
   },
 };
-
 /** Msg defines the ibc/client Msg service. */
+
 export interface Msg {
   /** CreateClient defines a rpc handler method for MsgCreateClient. */
   CreateClient(request: MsgCreateClient): Promise<MsgCreateClientResponse>;
   /** UpdateClient defines a rpc handler method for MsgUpdateClient. */
+
   UpdateClient(request: MsgUpdateClient): Promise<MsgUpdateClientResponse>;
   /** UpgradeClient defines a rpc handler method for MsgUpgradeClient. */
+
   UpgradeClient(request: MsgUpgradeClient): Promise<MsgUpgradeClientResponse>;
   /** SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour. */
+
   SubmitMisbehaviour(request: MsgSubmitMisbehaviour): Promise<MsgSubmitMisbehaviourResponse>;
 }
-
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.CreateClient = this.CreateClient.bind(this);
@@ -665,6 +674,7 @@ export class MsgClientImpl implements Msg {
     this.UpgradeClient = this.UpgradeClient.bind(this);
     this.SubmitMisbehaviour = this.SubmitMisbehaviour.bind(this);
   }
+
   CreateClient(request: MsgCreateClient): Promise<MsgCreateClientResponse> {
     const data = MsgCreateClient.encode(request).finish();
     const promise = this.rpc.request("ibc.core.client.v1.Msg", "CreateClient", data);
@@ -688,55 +698,4 @@ export class MsgClientImpl implements Msg {
     const promise = this.rpc.request("ibc.core.client.v1.Msg", "SubmitMisbehaviour", data);
     return promise.then((data) => MsgSubmitMisbehaviourResponse.decode(new _m0.Reader(data)));
   }
-}
-
-interface Rpc {
-  request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
-}
-
-declare var self: any | undefined;
-declare var window: any | undefined;
-var globalThis: any = (() => {
-  if (typeof globalThis !== "undefined") return globalThis;
-  if (typeof self !== "undefined") return self;
-  if (typeof window !== "undefined") return window;
-  if (typeof global !== "undefined") return global;
-  throw "Unable to locate global object";
-})();
-
-const atob: (b64: string) => string =
-  globalThis.atob || ((b64) => globalThis.Buffer.from(b64, "base64").toString("binary"));
-function bytesFromBase64(b64: string): Uint8Array {
-  const bin = atob(b64);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; ++i) {
-    arr[i] = bin.charCodeAt(i);
-  }
-  return arr;
-}
-
-const btoa: (bin: string) => string =
-  globalThis.btoa || ((bin) => globalThis.Buffer.from(bin, "binary").toString("base64"));
-function base64FromBytes(arr: Uint8Array): string {
-  const bin: string[] = [];
-  for (const byte of arr) {
-    bin.push(String.fromCharCode(byte));
-  }
-  return btoa(bin.join(""));
-}
-
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined | Long;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
 }

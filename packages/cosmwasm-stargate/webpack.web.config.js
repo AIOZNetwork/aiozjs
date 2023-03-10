@@ -18,9 +18,6 @@ module.exports = [
     plugins: [
       new webpack.EnvironmentPlugin({
         WASMD_ENABLED: "",
-        ERC20_ENABLED: "",
-        CW3_ENABLED: "",
-        CW1_ENABLED: "",
       }),
       new webpack.ProvidePlugin({
         Buffer: ["buffer", "Buffer"],
@@ -32,7 +29,7 @@ module.exports = [
         crypto: false,
         events: false,
         path: false,
-        stream: require.resolve("stream-browserify"),
+        stream: false,
         string_decoder: false,
       },
     },

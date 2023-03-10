@@ -1,7 +1,7 @@
 syntax = "proto3";
 package aioz.staking.client;
 
-option go_package            = "x/staking/client/utils";
+option go_package            = "github.com/AIOZNetwork/go-aioz/x/staking/client/utils";
 option (gogoproto.equal_all) = false;
 
 import "gogoproto/gogo.proto";

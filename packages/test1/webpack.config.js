@@ -1,3 +1,5 @@
+/* eslint-env es6 */
+
 const path = require('path');
 const webpack = require('webpack');
 // const GlobalsPolyfills = require('@esbuild-plugins/node-globals-polyfill');

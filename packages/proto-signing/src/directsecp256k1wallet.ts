@@ -1,7 +1,11 @@
-import { encodeSecp256k1Signature, rawSecp256k1PubkeyToRawAddress, ethAddressChecksumRaw } from "@cosmjs/amino";
+import {
+  encodeSecp256k1Signature,
+  ethAddressChecksumRaw,
+  rawSecp256k1PubkeyToRawAddress,
+} from "@cosmjs/amino";
 import { Secp256k1, sha256 } from "@cosmjs/crypto";
-import { Bech32, fromHex, fromBase64, fromUtf8, toHex, toBase64, toUtf8 } from "@cosmjs/encoding";
-import { assert, isNonNullObject } from "@cosmjs/utils/build";
+import { fromBase64, fromHex, fromUtf8, toBase64, toBech32, toHex, toUtf8 } from "@cosmjs/encoding";
+import { assert, isNonNullObject } from "@cosmjs/utils";
 import { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { AccountData, AccountDataWithPrivkey, DirectSignResponse, OfflineDirectSigner } from "./signer";
@@ -14,7 +18,6 @@ import {
   KdfConfiguration,
   supportedAlgorithms,
 } from "./wallet";
-
 
 const serializationTypeV1 = "secp256k1wallet-v1";
 
@@ -50,7 +53,7 @@ export interface DirectSecp256k1WalletSerialization {
  * The data of a wallet serialization that is encrypted.
  * All fields in here must be JSON types.
  */
- interface DirectSecp256k1WalletData {
+interface DirectSecp256k1WalletData {
   readonly privkey: string;
   readonly prefix: string;
 }
@@ -94,7 +97,7 @@ export class DirectSecp256k1Wallet implements OfflineDirectSigner {
    * @param password The user provided password used to generate an encryption key via a KDF.
    *                 This is not normalized internally (see "Unicode normalization" to learn more).
    */
-   public static async deserialize(serialization: string, password: string): Promise<DirectSecp256k1Wallet> {
+  public static async deserialize(serialization: string, password: string): Promise<DirectSecp256k1Wallet> {
     const root = JSON.parse(serialization);
     if (!isNonNullObject(root)) throw new Error("Root document is not an object.");
     switch ((root as any).type) {
@@ -159,7 +162,7 @@ export class DirectSecp256k1Wallet implements OfflineDirectSigner {
   }
 
   private get address(): string {
-    return Bech32.encode(this.prefix, rawSecp256k1PubkeyToRawAddress(this.pubkey));
+    return toBech32(this.prefix, rawSecp256k1PubkeyToRawAddress(this.pubkey));
   }
 
   private get addressHex(): string {
@@ -204,14 +207,13 @@ export class DirectSecp256k1Wallet implements OfflineDirectSigner {
     };
   }
 
-
   /**
    * Generates an encrypted serialization of this wallet.
    *
    * @param password The user provided password used to generate an encryption key via a KDF.
    *                 This is not normalized internally (see "Unicode normalization" to learn more).
    */
-   public async serialize(password: string): Promise<string> {
+  public async serialize(password: string): Promise<string> {
     const kdfConfiguration = basicPasswordHashingOptions;
     const encryptionKey = await executeKdf(password, kdfConfiguration);
     return this.serializeWithEncryptionKey(encryptionKey, kdfConfiguration);

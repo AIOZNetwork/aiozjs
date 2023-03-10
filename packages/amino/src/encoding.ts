@@ -1,18 +1,24 @@
-import { Bech32, fromBase64, fromHex, toBase64, toHex } from "@cosmjs/encoding";
+import { fromBase64, fromBech32, fromHex, toBase64, toBech32, toHex } from "@cosmjs/encoding";
 import { Uint53 } from "@cosmjs/math";
 import { arrayContentStartsWith } from "@cosmjs/utils";
 
 import {
+  Ed25519Pubkey,
+  EthSecp256k1Pubkey,
   isEd25519Pubkey,
+  isEthSecp256k1Pubkey,
   isMultisigThresholdPubkey,
   isSecp256k1Pubkey,
-  isEthSecp256k1Pubkey,
+  MultisigThresholdPubkey,
   Pubkey,
   pubkeyType,
   Secp256k1Pubkey,
-  EthSecp256k1Pubkey,
 } from "./pubkeys";
 
+/**
+ * Takes a Secp256k1 public key as raw bytes and returns the Amino JSON
+ * representation of it (the type/value wrapper object).
+ */
 export function encodeSecp256k1Pubkey(pubkey: Uint8Array): Secp256k1Pubkey {
   if (pubkey.length !== 33 || (pubkey[0] !== 0x02 && pubkey[0] !== 0x03)) {
     throw new Error("Public key must be compressed secp256k1, i.e. 33 bytes starting with 0x02 or 0x03");
@@ -29,6 +35,20 @@ export function encodeEthSecp256k1Pubkey(pubkey: Uint8Array): EthSecp256k1Pubkey
   }
   return {
     type: pubkeyType.ethsecp256k1,
+    value: toBase64(pubkey),
+  };
+}
+
+/**
+ * Takes an Edd25519 public key as raw bytes and returns the Amino JSON
+ * representation of it (the type/value wrapper object).
+ */
+export function encodeEd25519Pubkey(pubkey: Uint8Array): Ed25519Pubkey {
+  if (pubkey.length !== 32) {
+    throw new Error("Ed25519 public key must be 32 bytes long");
+  }
+  return {
+    type: pubkeyType.ed25519,
     value: toBase64(pubkey),
   };
 }
@@ -84,6 +104,9 @@ export function decodeAminoPubkey(data: Uint8Array): Pubkey {
       type: pubkeyType.sr25519,
       value: toBase64(rest),
     };
+  } else if (arrayContentStartsWith(data, pubkeyAminoPrefixMultisigThreshold)) {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    return decodeMultisigPubkey(data);
   } else {
     throw new Error("Unsupported public key type. Amino data starts with: " + toHex(data.slice(0, 5)));
   }
@@ -96,8 +119,81 @@ export function decodeAminoPubkey(data: Uint8Array): Pubkey {
  * @param bechEncoded the bech32 encoded pubkey
  */
 export function decodeBech32Pubkey(bechEncoded: string): Pubkey {
-  const { data } = Bech32.decode(bechEncoded);
+  const { data } = fromBech32(bechEncoded);
   return decodeAminoPubkey(data);
+}
+
+/**
+ * Uvarint decoder for Amino.
+ * @see https://github.com/tendermint/go-amino/blob/8e779b71f40d175/decoder.go#L64-76
+ * @returns varint as number, and bytes count occupied by varaint
+ */
+function decodeUvarint(reader: number[]): [number, number] {
+  if (reader.length < 1) {
+    throw new Error("Can't decode varint. EOF");
+  }
+  if (reader[0] > 127) {
+    throw new Error(
+      "Decoding numbers > 127 is not supported here. Please tell those lazy CosmJS maintainers to port the binary.Varint implementation from the Go standard library and write some tests.",
+    );
+  }
+  return [reader[0], 1];
+}
+
+/**
+ * Decodes a multisig pubkey to type object.
+ * Pubkey structure [ prefix + const + threshold + loop:(const + pubkeyLength + pubkey            ) ]
+ *                  [   4b   + 1b    +  varint   + loop:(1b    +    varint    + pubkeyLength bytes) ]
+ * @param data encoded pubkey
+ */
+function decodeMultisigPubkey(data: Uint8Array): MultisigThresholdPubkey {
+  const reader = Array.from(data);
+
+  // remove multisig amino prefix;
+  const prefixFromReader = reader.splice(0, pubkeyAminoPrefixMultisigThreshold.length);
+  if (!arrayContentStartsWith(prefixFromReader, pubkeyAminoPrefixMultisigThreshold)) {
+    throw new Error("Invalid multisig prefix.");
+  }
+
+  // remove 0x08 threshold prefix;
+  if (reader.shift() != 0x08) {
+    throw new Error("Invalid multisig data. Expecting 0x08 prefix before threshold.");
+  }
+
+  // read threshold
+  const [threshold, thresholdBytesLength] = decodeUvarint(reader);
+  reader.splice(0, thresholdBytesLength);
+
+  // read participants pubkeys
+  const pubkeys = [];
+  while (reader.length > 0) {
+    // remove 0x12 threshold prefix;
+    if (reader.shift() != 0x12) {
+      throw new Error("Invalid multisig data. Expecting 0x12 prefix before participant pubkey length.");
+    }
+
+    // read pubkey length
+    const [pubkeyLength, pubkeyLengthBytesSize] = decodeUvarint(reader);
+    reader.splice(0, pubkeyLengthBytesSize);
+
+    // verify that we can read pubkey
+    if (reader.length < pubkeyLength) {
+      throw new Error("Invalid multisig data length.");
+    }
+
+    // read and decode participant pubkey
+    const encodedPubkey = reader.splice(0, pubkeyLength);
+    const pubkey = decodeAminoPubkey(Uint8Array.from(encodedPubkey));
+    pubkeys.push(pubkey);
+  }
+
+  return {
+    type: pubkeyType.multisigThreshold,
+    value: {
+      threshold: threshold.toString(),
+      pubkeys: pubkeys,
+    },
+  };
 }
 
 /**
@@ -148,5 +244,5 @@ export function encodeAminoPubkey(pubkey: Pubkey): Uint8Array {
  * @param prefix the bech32 prefix (human readable part)
  */
 export function encodeBech32Pubkey(pubkey: Pubkey, prefix: string): string {
-  return Bech32.encode(prefix, encodeAminoPubkey(pubkey));
+  return toBech32(prefix, encodeAminoPubkey(pubkey));
 }

@@ -7,10 +7,15 @@ import "aioz/aiozrc20/v1/aiozrc20.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "x/aiozrc20/types";
+option go_package = "github.com/AIOZNetwork/go-aioz/x/aiozrc20/types";
 
 // Query defines the gRPC querier service.
 service Query {
+  // Retrieves registered converter address
+  rpc ConverterAddress(QueryConverterAddressRequest) returns (QueryConverterAddressResponse) {
+    option (google.api.http).get = "/aioz/aiozrc20/v1/converter_address";
+  }
+
   // Retrieves registered token pairs
   rpc TokenPairs(QueryTokenPairsRequest) returns (QueryTokenPairsResponse) {
     option (google.api.http).get = "/aioz/aiozrc20/v1/token_pairs";
@@ -62,4 +67,13 @@ message QueryParamsRequest {}
 // method.
 message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryConverterAddressRequest is the request type for the Query/ConverterAddress RPC method.
+message QueryConverterAddressRequest {}
+
+// QueryConverterAddressResponse is the response type for the Query/ConverterAddress RPC
+// method.
+message QueryConverterAddressResponse {
+  string converter_address = 1;
 }

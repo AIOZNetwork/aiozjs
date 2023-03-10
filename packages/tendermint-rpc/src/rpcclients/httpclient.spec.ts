@@ -4,13 +4,13 @@ import { HttpClient } from "./httpclient";
 
 function pendingWithoutTendermint(): void {
   if (!process.env.TENDERMINT_ENABLED) {
-    pending("Set TENDERMINT_ENABLED to enable tendermint rpc tests");
+    pending("Set TENDERMINT_ENABLED to enable Tendermint RPC tests");
   }
 }
 
-describe("HttpClient", () => {
-  const tendermintUrl = defaultInstance.url;
+const tendermintUrl = defaultInstance.url;
 
+describe("HttpClient", () => {
   it("can make a simple call", async () => {
     pendingWithoutTendermint();
     const client = new HttpClient(tendermintUrl);

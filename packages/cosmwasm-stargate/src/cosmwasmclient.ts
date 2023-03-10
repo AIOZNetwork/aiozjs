@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { fromAscii, toHex } from "@cosmjs/encoding";
+import { fromUtf8, toHex } from "@cosmjs/encoding";
 import { Uint53 } from "@cosmjs/math";
 import {
   Account,
@@ -7,8 +7,10 @@ import {
   AuthExtension,
   BankExtension,
   Block,
-  BroadcastTxResponse,
+  BroadcastTxError,
   Coin,
+  DeliverTxResponse,
+  fromTendermint34Event,
   IndexedTx,
   isSearchByHeightQuery,
   isSearchBySentFromOrToQuery,
@@ -19,19 +21,20 @@ import {
   SequenceResponse,
   setupAuthExtension,
   setupBankExtension,
+  setupTxExtension,
   TimeoutError,
+  TxExtension,
 } from "@cosmjs/stargate";
-import { Tendermint34Client, toRfc3339WithNanoseconds } from "@cosmjs/tendermint-rpc";
+import { HttpEndpoint, Tendermint34Client, toRfc3339WithNanoseconds } from "@cosmjs/tendermint-rpc";
 import { assert, sleep } from "@cosmjs/utils";
-import { CodeInfoResponse } from "cosmjs-types/cosmwasm/wasm/v1/query";
+import {
+  CodeInfoResponse,
+  QueryCodesResponse,
+  QueryContractsByCodeResponse,
+} from "cosmjs-types/cosmwasm/wasm/v1/query";
 import { ContractCodeHistoryOperationType } from "cosmjs-types/cosmwasm/wasm/v1/types";
 
-import { JsonObject, setupWasmExtension, WasmExtension } from "./queries";
-
-// Re-exports that belong to public CosmWasmClient interfaces
-export {
-  JsonObject, // returned by CosmWasmClient.queryContractSmart
-};
+import { JsonObject, setupWasmExtension, WasmExtension } from "./modules";
 
 export interface Code {
   readonly id: number;
@@ -69,22 +72,26 @@ export interface ContractCodeHistoryEntry {
   /** The source of this history entry */
   readonly operation: "Genesis" | "Init" | "Migrate";
   readonly codeId: number;
-  readonly msg: Record<string, unknown>;
+  readonly msg: JsonObject;
 }
 
 /** Use for testing only */
 export interface PrivateCosmWasmClient {
   readonly tmClient: Tendermint34Client | undefined;
-  readonly queryClient: (QueryClient & AuthExtension & BankExtension & WasmExtension) | undefined;
+  readonly queryClient:
+    | (QueryClient & AuthExtension & BankExtension & TxExtension & WasmExtension)
+    | undefined;
 }
 
 export class CosmWasmClient {
   private readonly tmClient: Tendermint34Client | undefined;
-  private readonly queryClient: (QueryClient & AuthExtension & BankExtension & WasmExtension) | undefined;
+  private readonly queryClient:
+    | (QueryClient & AuthExtension & BankExtension & TxExtension & WasmExtension)
+    | undefined;
   private readonly codesCache = new Map<number, CodeDetails>();
   private chainId: string | undefined;
 
-  public static async connect(endpoint: string): Promise<CosmWasmClient> {
+  public static async connect(endpoint: string | HttpEndpoint): Promise<CosmWasmClient> {
     const tmClient = await Tendermint34Client.connect(endpoint);
     return new CosmWasmClient(tmClient);
   }
@@ -97,6 +104,7 @@ export class CosmWasmClient {
         setupAuthExtension,
         setupBankExtension,
         setupWasmExtension,
+        setupTxExtension,
       );
     }
   }
@@ -114,11 +122,13 @@ export class CosmWasmClient {
     return this.tmClient;
   }
 
-  protected getQueryClient(): (QueryClient & AuthExtension & BankExtension & WasmExtension) | undefined {
+  protected getQueryClient():
+    | (QueryClient & AuthExtension & BankExtension & TxExtension & WasmExtension)
+    | undefined {
     return this.queryClient;
   }
 
-  protected forceGetQueryClient(): QueryClient & AuthExtension & BankExtension & WasmExtension {
+  protected forceGetQueryClient(): QueryClient & AuthExtension & BankExtension & TxExtension & WasmExtension {
     if (!this.queryClient) {
       throw new Error("Query client not available. You cannot use online functionality in offline mode.");
     }
@@ -145,8 +155,8 @@ export class CosmWasmClient {
     try {
       const account = await this.forceGetQueryClient().auth.account(searchAddress);
       return account ? accountFromAny(account) : null;
-    } catch (error) {
-      if (/rpc error: code = NotFound/i.test(error)) {
+    } catch (error: any) {
+      if (/rpc error: code = NotFound/i.test(error.toString())) {
         return null;
       }
       throw error;
@@ -157,7 +167,7 @@ export class CosmWasmClient {
     const account = await this.getAccount(address);
     if (!account) {
       throw new Error(
-        "Account does not exist on chain. Send some tokens there before trying to query sequence.",
+        `Account '${address}' does not exist on chain. Send some tokens there before trying to query sequence.`,
       );
     }
     return {
@@ -242,7 +252,7 @@ export class CosmWasmClient {
    *
    * If the transaction is not included in a block before the provided timeout, this errors with a `TimeoutError`.
    *
-   * If the transaction is included in a block, a `BroadcastTxResponse` is returned. The caller then
+   * If the transaction is included in a block, a `DeliverTxResponse` is returned. The caller then
    * usually needs to check for execution success or failure.
    */
   // NOTE: This method is tested against slow chains and timeouts in the @cosmjs/stargate package.
@@ -251,16 +261,18 @@ export class CosmWasmClient {
     tx: Uint8Array,
     timeoutMs = 60_000,
     pollIntervalMs = 3_000,
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     let timedOut = false;
     const txPollTimeout = setTimeout(() => {
       timedOut = true;
     }, timeoutMs);
 
-    const pollForTx = async (txId: string): Promise<BroadcastTxResponse> => {
+    const pollForTx = async (txId: string): Promise<DeliverTxResponse> => {
       if (timedOut) {
         throw new TimeoutError(
-          `Transaction with ID ${txId} was submitted but was not yet found on the chain. You might want to check later.`,
+          `Transaction with ID ${txId} was submitted but was not yet found on the chain. You might want to check later. There was a wait of ${
+            timeoutMs / 1000
+          } seconds.`,
           txId,
         );
       }
@@ -272,6 +284,7 @@ export class CosmWasmClient {
             height: result.height,
             rawLog: result.rawLog,
             transactionHash: txId,
+            events: result.events,
             gasUsed: result.gasUsed,
             gasWanted: result.gasWanted,
           }
@@ -280,8 +293,8 @@ export class CosmWasmClient {
 
     const broadcasted = await this.forceGetTmClient().broadcastTxSync({ tx });
     if (broadcasted.code) {
-      throw new Error(
-        `Broadcasting transaction failed with code ${broadcasted.code} (codespace: ${broadcasted.codeSpace}). Log: ${broadcasted.log}`,
+      return Promise.reject(
+        new BroadcastTxError(broadcasted.code, broadcasted.codespace ?? "", broadcasted.log),
       );
     }
     const transactionId = toHex(broadcasted.hash).toUpperCase();
@@ -299,9 +312,25 @@ export class CosmWasmClient {
     );
   }
 
+  /**
+   * getCodes() returns all codes and is just looping through all pagination pages.
+   *
+   * This is potentially inefficient and advanced apps should consider creating
+   * their own query client to handle pagination together with the app's screens.
+   */
   public async getCodes(): Promise<readonly Code[]> {
-    const { codeInfos } = await this.forceGetQueryClient().wasm.listCodeInfo();
-    return (codeInfos || []).map((entry: CodeInfoResponse): Code => {
+    const allCodes = [];
+
+    let startAtKey: Uint8Array | undefined = undefined;
+    do {
+      const { codeInfos, pagination }: QueryCodesResponse =
+        await this.forceGetQueryClient().wasm.listCodeInfo(startAtKey);
+      const loadedCodes = codeInfos || [];
+      allCodes.push(...loadedCodes);
+      startAtKey = pagination?.nextKey;
+    } while (startAtKey?.length !== 0);
+
+    return allCodes.map((entry: CodeInfoResponse): Code => {
       assert(entry.creator && entry.codeId && entry.dataHash, "entry incomplete");
       return {
         id: entry.codeId.toNumber(),
@@ -330,10 +359,24 @@ export class CosmWasmClient {
     return codeDetails;
   }
 
+  /**
+   * getContracts() returns all contract instances for one code and is just looping through all pagination pages.
+   *
+   * This is potentially inefficient and advanced apps should consider creating
+   * their own query client to handle pagination together with the app's screens.
+   */
   public async getContracts(codeId: number): Promise<readonly string[]> {
-    // TODO: handle pagination - accept as arg or auto-loop
-    const { contracts } = await this.forceGetQueryClient().wasm.listContractsByCodeId(codeId);
-    return contracts;
+    const allContracts = [];
+    let startAtKey: Uint8Array | undefined = undefined;
+    do {
+      const { contracts, pagination }: QueryContractsByCodeResponse =
+        await this.forceGetQueryClient().wasm.listContractsByCodeId(codeId, startAtKey);
+      const loadedContracts = contracts || [];
+      allContracts.push(...loadedContracts);
+      startAtKey = pagination?.nextKey;
+    } while (startAtKey?.length !== 0 && startAtKey !== undefined);
+
+    return allContracts;
   }
 
   /**
@@ -372,7 +415,7 @@ export class CosmWasmClient {
       return {
         operation: operations[entry.operation],
         codeId: entry.codeId.toNumber(),
-        msg: JSON.parse(fromAscii(entry.msg)),
+        msg: JSON.parse(fromUtf8(entry.msg)),
       };
     });
   }
@@ -398,7 +441,7 @@ export class CosmWasmClient {
    * Promise is rejected for invalid query format.
    * Promise is rejected for invalid response format.
    */
-  public async queryContractSmart(address: string, queryMsg: Record<string, unknown>): Promise<JsonObject> {
+  public async queryContractSmart(address: string, queryMsg: JsonObject): Promise<JsonObject> {
     try {
       return await this.forceGetQueryClient().wasm.queryContractSmart(address, queryMsg);
     } catch (error) {
@@ -421,6 +464,7 @@ export class CosmWasmClient {
         height: tx.height,
         hash: toHex(tx.hash).toUpperCase(),
         code: tx.result.code,
+        events: tx.result.events.map(fromTendermint34Event),
         rawLog: tx.result.log || "",
         tx: tx.tx,
         gasUsed: tx.result.gasUsed,

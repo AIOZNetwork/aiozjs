@@ -4,43 +4,36 @@ import {
   JsonRpcSuccessResponse,
   parseJsonRpcResponse,
 } from "@cosmjs/json-rpc";
-import axios from "axios";
 
+import { http } from "./http";
 import { hasProtocol, RpcClient } from "./rpcclient";
 
-// Global symbols in some environments
-// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-declare const fetch: any | undefined;
-
-function filterBadStatus(res: any): any {
-  if (res.status >= 400) {
-    throw new Error(`Bad status on response: ${res.status}`);
-  }
-  return res;
-}
-
-/**
- * Helper to work around missing CORS support in Tendermint (https://github.com/tendermint/tendermint/pull/2800)
- *
- * For some reason, fetch does not complain about missing server-side CORS support.
- */
-async function http(method: "POST", url: string, request?: any): Promise<any> {
-  if (typeof fetch !== "undefined") {
-    const body = request ? JSON.stringify(request) : undefined;
-    return fetch(url, { method: method, body: body })
-      .then(filterBadStatus)
-      .then((res: any) => res.json());
-  } else {
-    return axios.request({ url: url, method: method, data: request }).then((res) => res.data);
-  }
+export interface HttpEndpoint {
+  /**
+   * The URL of the HTTP endpoint.
+   *
+   * For POST APIs like Tendermint RPC in CosmJS,
+   * this is without the method specific paths (e.g. https://cosmoshub-4--rpc--full.datahub.figment.io/)
+   */
+  readonly url: string;
+  /**
+   * HTTP headers that are sent with every request, such as authorization information.
+   */
+  readonly headers: Record<string, string>;
 }
 
 export class HttpClient implements RpcClient {
   protected readonly url: string;
+  protected readonly headers: Record<string, string> | undefined;
 
-  public constructor(url = "http://localhost:46657") {
-    // accept host.name:port and assume http protocol
-    this.url = hasProtocol(url) ? url : "http://" + url;
+  public constructor(endpoint: string | HttpEndpoint) {
+    if (typeof endpoint === "string") {
+      // accept host.name:port and assume http protocol
+      this.url = hasProtocol(endpoint) ? endpoint : "http://" + endpoint;
+    } else {
+      this.url = endpoint.url;
+      this.headers = endpoint.headers;
+    }
   }
 
   public disconnect(): void {
@@ -48,7 +41,7 @@ export class HttpClient implements RpcClient {
   }
 
   public async execute(request: JsonRpcRequest): Promise<JsonRpcSuccessResponse> {
-    const response = parseJsonRpcResponse(await http("POST", this.url, request));
+    const response = parseJsonRpcResponse(await http("POST", this.url, this.headers, request));
     if (isJsonRpcErrorResponse(response)) {
       throw new Error(JSON.stringify(response.error));
     }

@@ -1,0 +1,22 @@
+syntax = "proto3";
+package aioz.bonus.v1;
+
+option go_package = "github.com/AIOZNetwork/go-aioz/x/bonus/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+// Params holds parameters for the bonus module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  // type of coin for bonus
+  string bonus_denom = 1;
+
+  // bonus amount per block
+  string bonus_amount = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable)   = false
+  ];
+}

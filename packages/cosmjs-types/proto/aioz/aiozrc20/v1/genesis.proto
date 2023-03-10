@@ -4,7 +4,7 @@ import "aioz/aiozrc20/v1/aiozrc20.proto";
 
 import "gogoproto/gogo.proto";
 
-option go_package = "x/aiozrc20/types";
+option go_package = "github.com/AIOZNetwork/go-aioz/x/aiozrc20/types";
 
 // GenesisState defines the module's genesis state.
 message GenesisState {
@@ -14,8 +14,12 @@ message GenesisState {
   repeated TokenPair token_pairs = 2 [ (gogoproto.nullable) = false ];
 }
 
-// Params defines the aiozrc20 module params
+// Params defines the aiozrc20 module params.
 message Params {
   // parameter to enable the conversion of Cosmos coins <--> AIOZRC20 tokens.
   bool enabled = 1;
+  // parameter to enable the EVM hook that converts an AIOZRC20 token to a Cosmos
+  // Coin by transferring the Tokens through a MsgEthereumTx to the
+  // ModuleAddress Ethereum address.
+  bool evm_hook_enabled = 2 [ (gogoproto.customname) = "EVMHookEnabled" ];
 }

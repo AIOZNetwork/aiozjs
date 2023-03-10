@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { AminoSignResponse, Secp256k1HdWallet, Secp256k1HdWalletOptions, StdSignDoc } from "@cosmjs/amino";
 import { Bip39, EnglishMnemonic, Random } from "@cosmjs/crypto";
-import { Bech32, fromBase64 } from "@cosmjs/encoding";
+import { fromBase64, toBech32 } from "@cosmjs/encoding";
 import {
   DirectSecp256k1HdWallet,
   DirectSecp256k1HdWalletOptions,
@@ -22,12 +22,12 @@ import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { AuthInfo, SignDoc, TxBody } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
-import { setupWasmExtension, WasmExtension } from "./queries";
+import { setupWasmExtension, WasmExtension } from "./modules";
 import { SigningCosmWasmClientOptions } from "./signingcosmwasmclient";
 import hackatom from "./testdata/contract.json";
 
 export const defaultGasPrice = GasPrice.fromString("0.025ucosm");
-export const defaultSendFee = calculateFee(80_000, defaultGasPrice);
+export const defaultSendFee = calculateFee(100_000, defaultGasPrice);
 export const defaultUploadFee = calculateFee(1_500_000, defaultGasPrice);
 export const defaultInstantiateFee = calculateFee(500_000, defaultGasPrice);
 export const defaultExecuteFee = calculateFee(200_000, defaultGasPrice);
@@ -55,6 +55,7 @@ export const wasmd = {
 export const defaultSigningClientOptions: SigningCosmWasmClientOptions = {
   broadcastPollIntervalMs: 300,
   broadcastTimeoutMs: 8_000,
+  gasPrice: defaultGasPrice,
 };
 
 export function getHackatom(): ContractUploadInstructions {
@@ -64,7 +65,7 @@ export function getHackatom(): ContractUploadInstructions {
 }
 
 export function makeRandomAddress(): string {
-  return Bech32.encode("wasm", Random.getBytes(20));
+  return toBech32("wasm", Random.getBytes(20));
 }
 
 export const tendermintIdMatcher = /^[0-9A-F]{64}$/;
@@ -72,7 +73,7 @@ export const tendermintIdMatcher = /^[0-9A-F]{64}$/;
 export const base64Matcher =
   /^(?:[a-zA-Z0-9+/]{4})*(?:|(?:[a-zA-Z0-9+/]{3}=)|(?:[a-zA-Z0-9+/]{2}==)|(?:[a-zA-Z0-9+/]{1}===))$/;
 // https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki#bech32
-export const bech32AddressMatcher = /^[\x21-\x7e]{1,83}1[02-9ac-hj-np-z]{38}$/;
+export const bech32AddressMatcher = /^[\x21-\x7e]{1,83}1[02-9ac-hj-np-z]{38,58}$/;
 
 export const alice = {
   mnemonic: "enlist hip relief stomach skate base shallow young switch frequent cry park",
@@ -118,21 +119,21 @@ export const validator = {
 /** Deployed as part of scripts/wasmd/init.sh */
 export const deployedHackatom = {
   codeId: 1,
-  checksum: "716a97b1c086e0d7769ae7887edaa0e34faba2d7b8cda07f741f9fbf95706e8c",
+  checksum: "13a1fc994cc6d1c81b746ee0c0ff6f90043875e0bf1d9be6b7d779fc978dc2a5",
   instances: [
     {
       beneficiary: alice.address0,
-      address: "wasm14hj2tavq8fpesdwxxcu44rty3hh90vhujgqwg3",
+      address: "wasm14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s0phg4d",
       label: "From deploy_hackatom.js (0)",
     },
     {
       beneficiary: alice.address1,
-      address: "wasm1suhgf5svhu4usrurvxzlgn54ksxmn8glszahxx",
+      address: "wasm1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrss5maay",
       label: "From deploy_hackatom.js (1)",
     },
     {
       beneficiary: alice.address2,
-      address: "wasm1yyca08xqdgvjz0psg56z67ejh9xms6l49ntww0",
+      address: "wasm1yyca08xqdgvjz0psg56z67ejh9xms6l436u8y58m82npdqqhmmtqas0cl7",
       label: "From deploy_hackatom.js (2)",
     },
   ],
@@ -143,26 +144,10 @@ export const deployedIbcReflect = {
   codeId: 2,
   instances: [
     {
-      address: "wasm1aakfpghcanxtc45gpqlx8j3rq0zcpyf4duy76f",
-      ibcPortId: "wasm.wasm1aakfpghcanxtc45gpqlx8j3rq0zcpyf4duy76f",
+      address: "wasm1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5se0hfnq",
+      ibcPortId: "wasm.wasm1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5se0hfnq",
     },
   ],
-};
-
-/** Deployed as part of scripts/wasmd/init.sh */
-export const deployedCw3 = {
-  codeId: 3,
-  instances: [
-    "wasm1xqeym28j9xgv0p93pwwt6qcxf9tdvf9z83duy9", // Multisig (1/3)
-    "wasm1jka38ckju8cpjap00jf9xdvdyttz9cauchu0zl", // Multisig (2/3)
-    "wasm12dnl585uxzddjw9hw4ca694f054shgpgffnawy", // Multisig (uneven weights)
-  ],
-};
-
-/** Deployed as part of scripts/wasmd/init.sh */
-export const deployedCw1 = {
-  codeId: 4,
-  instances: ["wasm1vs2vuks65rq7xj78mwtvn7vvnm2gn7ad78g6yp"],
 };
 
 export function wasmdEnabled(): boolean {
@@ -172,26 +157,6 @@ export function wasmdEnabled(): boolean {
 export function pendingWithoutWasmd(): void {
   if (!wasmdEnabled()) {
     return pending("Set WASMD_ENABLED to enable Wasmd-based tests");
-  }
-}
-
-export function cw3Enabled(): boolean {
-  return !!process.env.CW3_ENABLED;
-}
-
-export function pendingWithoutCw3(): void {
-  if (!cw3Enabled()) {
-    return pending("Set CW3_ENABLED to enable CW3-based tests");
-  }
-}
-
-export function cw1Enabled(): boolean {
-  return !!process.env.CW1_ENABLED;
-}
-
-export function pendingWithoutCw1(): void {
-  if (!cw1Enabled()) {
-    return pending("Set CW1_ENABLED to enable CW1-based tests");
   }
 }
 
@@ -260,6 +225,8 @@ export class ModifyingDirectSecp256k1HdWallet extends DirectSecp256k1HdWallet {
     }));
     const modifiedFeeAmount = coins(3000, "ucosm");
     const modifiedGasLimit = 333333;
+    const modifiedFeeGranter = undefined;
+    const modifiedFeePayer = undefined;
     const modifiedSignDoc = {
       ...signDoc,
       bodyBytes: Uint8Array.from(TxBody.encode(modifiedTxBody).finish()),
@@ -267,6 +234,8 @@ export class ModifyingDirectSecp256k1HdWallet extends DirectSecp256k1HdWallet {
         signers,
         modifiedFeeAmount,
         modifiedGasLimit,
+        modifiedFeeGranter,
+        modifiedFeePayer,
         SignMode.SIGN_MODE_DIRECT,
       ),
     };

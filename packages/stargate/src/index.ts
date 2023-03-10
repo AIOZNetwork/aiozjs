@@ -1,10 +1,12 @@
-export { StdFee } from "@cosmjs/amino";
-export { Coin, coin, coins, makeCosmoshubPath, parseCoins } from "@cosmjs/proto-signing";
-
-export { Account, accountFromAny } from "./accounts";
+export { Account, accountFromAny, AccountParser } from "./accounts";
+export { AminoConverter, AminoConverters, AminoTypes } from "./aminotypes";
+export { Attribute, Event, fromTendermint34Event } from "./events";
+export { calculateFee, GasPrice } from "./fee";
+export * as logs from "./logs";
 export {
   AminoMsgBeginRedelegate,
   AminoMsgCreateValidator,
+  AminoMsgCreateVestingAccount,
   AminoMsgDelegate,
   AminoMsgDeposit,
   AminoMsgEditValidator,
@@ -14,14 +16,35 @@ export {
   AminoMsgSetWithdrawAddress,
   AminoMsgSubmitEvidence,
   AminoMsgSubmitProposal,
+  AminoMsgTransfer,
   AminoMsgUndelegate,
   AminoMsgUnjail,
   AminoMsgVerifyInvariant,
   AminoMsgVote,
+  AminoMsgVoteWeighted,
   AminoMsgWithdrawDelegatorReward,
   AminoMsgWithdrawValidatorCommission,
+  AuthExtension,
+  BankExtension,
+  createAuthzAminoConverters,
+  createBankAminoConverters,
+  createCrysisAminoConverters,
+  createDistributionAminoConverters,
+  createEvidenceAminoConverters,
+  createFeegrantAminoConverters,
+  createGovAminoConverters,
+  createIbcAminoConverters,
+  createSdkStakingAminoConverters,
+  createSlashingAminoConverters,
+  createVestingAminoConverters,
+  DistributionExtension,
+  GovExtension,
+  GovParamsType,
+  GovProposalId,
+  IbcExtension,
   isAminoMsgBeginRedelegate,
   isAminoMsgCreateValidator,
+  isAminoMsgCreateVestingAccount,
   isAminoMsgDelegate,
   isAminoMsgDeposit,
   isAminoMsgEditValidator,
@@ -31,81 +54,77 @@ export {
   isAminoMsgSetWithdrawAddress,
   isAminoMsgSubmitEvidence,
   isAminoMsgSubmitProposal,
+  isAminoMsgTransfer,
   isAminoMsgUndelegate,
   isAminoMsgUnjail,
   isAminoMsgVerifyInvariant,
   isAminoMsgVote,
+  isAminoMsgVoteWeighted,
   isAminoMsgWithdrawDelegatorReward,
   isAminoMsgWithdrawValidatorCommission,
-} from "./aminomsgs";
-export { AminoConverter, AminoTypes } from "./aminotypes";
-export {
+  isMsgBeginRedelegateEncodeObject,
+  isMsgCreateValidatorEncodeObject,
   isMsgDelegateEncodeObject,
   isMsgDepositEncodeObject,
+  isMsgEditValidatorEncodeObject,
   isMsgSendEncodeObject,
   isMsgSubmitProposalEncodeObject,
   isMsgTransferEncodeObject,
   isMsgUndelegateEncodeObject,
   isMsgVoteEncodeObject,
+  isMsgVoteWeightedEncodeObject,
   isMsgWithdrawDelegatorRewardEncodeObject,
+  MintExtension,
+  MintParams,
+  MsgBeginRedelegateEncodeObject,
+  MsgCreateValidatorEncodeObject,
   MsgDelegateEncodeObject,
   MsgDepositEncodeObject,
+  MsgEditValidatorEncodeObject,
   MsgSendEncodeObject,
   MsgSubmitProposalEncodeObject,
   MsgTransferEncodeObject,
   MsgUndelegateEncodeObject,
   MsgVoteEncodeObject,
+  MsgVoteWeightedEncodeObject,
   MsgWithdrawDelegatorRewardEncodeObject,
-} from "./encodeobjects";
-export { calculateFee, GasPrice } from "./fee";
-export * as logs from "./logs";
-export { makeMultisignedTx } from "./multisignature";
-export {
-  AuthExtension,
-  BankExtension,
-  createPagination,
-  createProtobufRpcClient,
-  DistributionExtension,
-  GovExtension,
-  GovParamsType,
-  GovProposalId,
-  IbcExtension,
-  ProtobufRpcClient,
-  QueryClient,
+  SdkStakingExtension,
   setupAuthExtension,
+  setupAuthzExtension,
   setupBankExtension,
+  setupBech32ibcExtension,
   setupDistributionExtension,
+  setupFeegrantExtension,
   setupGovExtension,
   setupIbcExtension,
+  setupMintExtension,
+  setupSdkStakingExtension,
+  setupSlashingExtension,
   setupStakingExtension,
+  setupTxExtension,
   StakingExtension,
-  setupCosmosStakingExtension,
-  CosmosStakingExtension,
-} from "./queries";
+  TxExtension,
+} from "./modules";
+export { makeMultisignedTx, makeMultisignedTxBytes } from "./multisignature";
 export {
-  SearchByHeightQuery,
-  SearchBySentFromOrToQuery,
-  SearchByTagsQuery,
-  SearchTxQuery,
-  SearchTxFilter,
+  createPagination,
+  createProtobufRpcClient,
+  decodeCosmosSdkDecFromProto,
+  ProtobufRpcClient,
+  QueryAbciResponse,
+  QueryClient,
+  QueryStoreResponse,
+} from "./queryclient";
+export {
   isSearchByHeightQuery,
   isSearchBySentFromOrToQuery,
   isSearchByTagsQuery,
+  SearchByHeightQuery,
+  SearchBySentFromOrToQuery,
+  SearchByTagsQuery,
+  SearchTxFilter,
+  SearchTxQuery,
 } from "./search";
-export {
-  assertIsBroadcastTxSuccess,
-  Block,
-  BlockHeader,
-  BroadcastTxFailure,
-  BroadcastTxResponse,
-  BroadcastTxSuccess,
-  IndexedTx,
-  isBroadcastTxFailure,
-  isBroadcastTxSuccess,
-  SequenceResponse,
-  StargateClient,
-  TimeoutError,
-} from "./stargateclient";
 export {
   defaultRegistryTypes,
   SignerData,
@@ -113,6 +132,22 @@ export {
   SigningStargateClientOptions,
 } from "./signingstargateclient";
 export {
-  isRevisionFormat,
-  parseChainId,
-} from "./utils";
+  assertIsDeliverTxFailure,
+  assertIsDeliverTxSuccess,
+  Block,
+  BlockHeader,
+  BroadcastTxError,
+  DeliverTxResponse,
+  IndexedTx,
+  isDeliverTxFailure,
+  isDeliverTxSuccess,
+  SequenceResponse,
+  StargateClient,
+  StargateClientOptions,
+  TimeoutError,
+} from "./stargateclient";
+export { StdFee } from "@cosmjs/amino";
+export { Coin, coin, coins, makeCosmoshubPath, parseCoins } from "@cosmjs/proto-signing";
+
+// Re-exported because this is part of the StargateClient/SigningStargateClient APIs
+export { HttpEndpoint } from "@cosmjs/tendermint-rpc";

@@ -1,28 +1,27 @@
-export { cosmWasmTypes } from "./aminotypes";
+export { Code, CodeDetails, Contract, ContractCodeHistoryEntry, CosmWasmClient } from "./cosmwasmclient";
+export { fromBinary, toBinary } from "./encoding";
 export {
-  Code,
-  CodeDetails,
-  Contract,
-  ContractCodeHistoryEntry,
-  CosmWasmClient,
-  JsonObject,
-} from "./cosmwasmclient";
-export {
+  cosmWasmTypes,
+  createWasmAminoConverters,
   isMsgClearAdminEncodeObject,
   isMsgExecuteEncodeObject,
   isMsgInstantiateContractEncodeObject,
   isMsgMigrateEncodeObject,
   isMsgStoreCodeEncodeObject,
   isMsgUpdateAdminEncodeObject,
+  JsonObject,
   MsgClearAdminEncodeObject,
   MsgExecuteContractEncodeObject,
   MsgInstantiateContractEncodeObject,
   MsgMigrateContractEncodeObject,
   MsgStoreCodeEncodeObject,
   MsgUpdateAdminEncodeObject,
-} from "./encodeobjects";
+  setupWasmExtension,
+  WasmExtension,
+} from "./modules";
 export {
   ChangeAdminResult,
+  ExecuteInstruction,
   ExecuteResult,
   InstantiateOptions,
   InstantiateResult,
@@ -31,3 +30,7 @@ export {
   SigningCosmWasmClientOptions,
   UploadResult,
 } from "./signingcosmwasmclient";
+
+// Re-exported because this is part of the CosmWasmClient/SigningCosmWasmClient APIs
+export { Attribute, DeliverTxResponse, Event, IndexedTx } from "@cosmjs/stargate";
+export { HttpEndpoint } from "@cosmjs/tendermint-rpc";

@@ -4,6 +4,7 @@ import { Stream } from "xstream";
 import { createJsonRpcRequest } from "../jsonrpc";
 import {
   HttpClient,
+  HttpEndpoint,
   instanceOfRpcStreamingClient,
   RpcClient,
   SubscriptionEvent,
@@ -19,10 +20,14 @@ export class Tendermint34Client {
    *
    * Uses HTTP when the URL schema is http or https. Uses WebSockets otherwise.
    */
-  public static async connect(url: string): Promise<Tendermint34Client> {
-    const useHttp = url.startsWith("http://") || url.startsWith("https://");
-    const rpcClient = useHttp ? new HttpClient(url) : new WebsocketClient(url);
-    return Tendermint34Client.create(rpcClient);
+  public static async connect(endpoint: string | HttpEndpoint): Promise<Tendermint34Client> {
+    if (typeof endpoint === "object") {
+      return Tendermint34Client.create(new HttpClient(endpoint));
+    } else {
+      const useHttp = endpoint.startsWith("http://") || endpoint.startsWith("https://");
+      const rpcClient = useHttp ? new HttpClient(endpoint) : new WebsocketClient(endpoint);
+      return Tendermint34Client.create(rpcClient);
+    }
   }
 
   /**
@@ -206,6 +211,11 @@ export class Tendermint34Client {
   public async health(): Promise<responses.HealthResponse> {
     const query: requests.HealthRequest = { method: requests.Method.Health };
     return this.doCall(query, this.p.encodeHealth, this.r.decodeHealth);
+  }
+
+  public async numUnconfirmedTxs(): Promise<responses.NumUnconfirmedTxsResponse> {
+    const query: requests.NumUnconfirmedTxsRequest = { method: requests.Method.NumUnconfirmedTxs };
+    return this.doCall(query, this.p.encodeNumUnconfirmedTxs, this.r.decodeNumUnconfirmedTxs);
   }
 
   public async status(): Promise<responses.StatusResponse> {

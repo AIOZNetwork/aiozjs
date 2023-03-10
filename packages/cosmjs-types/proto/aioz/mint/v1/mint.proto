@@ -1,28 +1,47 @@
 syntax = "proto3";
 package aioz.mint.v1;
 
-option go_package = "x/mint/types";
+option go_package = "github.com/AIOZNetwork/go-aioz/x/mint/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+message Allocation {
+  option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  // address is the bech32-encoded address of the allocation.
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  
+  // rate is the rate of the allocation.
+  string rate = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}
 
 // Params holds parameters for the mint module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
 
-  // type of coin to mint
-  string mint_denom = 1 [(gogoproto.moretags) = "yaml:\"mint_denom\""];
+  // type of coin to mint.
+  string mint_denom = 1;
 
-  // expected blocks per year
-  uint64 blocks_per_year = 2 [(gogoproto.moretags) = "yaml:\"blocks_per_year\""];
+  // expected blocks per year.
+  uint64 blocks_per_year = 2;
 
-  // expected start minting block height
-  int64 start_height = 3 [(gogoproto.moretags) = "yaml:\"start_height\""];
+  // expected start minting block height.
+  int64 start_height = 3;
 
-  // current block inflation rate
-  string inflation = 4
-  [
+  // current block inflation rate.
+  string inflation = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"inflation\""
+    (gogoproto.nullable)   = false
   ];
+
+  // list of additional allocations for minting.
+  repeated Allocation additional_allocations = 5 [(gogoproto.nullable) = false];
 }

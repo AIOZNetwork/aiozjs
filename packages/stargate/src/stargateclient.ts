@@ -1,21 +1,29 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import { addCoins } from "@cosmjs/amino";
 import { toHex } from "@cosmjs/encoding";
 import { Uint53 } from "@cosmjs/math";
-import { Tendermint34Client, toRfc3339WithNanoseconds } from "@cosmjs/tendermint-rpc";
-import { sleep } from "@cosmjs/utils";
+import { HttpEndpoint, Tendermint34Client, toRfc3339WithNanoseconds } from "@cosmjs/tendermint-rpc";
+import { assert, sleep } from "@cosmjs/utils";
 import { MsgData } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
+import { QueryDelegatorDelegationsResponse } from "cosmjs-types/cosmos/staking/v1beta1/query";
+import { DelegationResponse } from "cosmjs-types/cosmos/staking/v1beta1/staking";
 
-import { Account, accountFromAny } from "./accounts";
+import { Account, accountFromAny, AccountParser } from "./accounts";
+import { Event, fromTendermint34Event } from "./events";
 import {
   AuthExtension,
   BankExtension,
-  QueryClient,
+  SdkStakingExtension,
   setupAuthExtension,
   setupBankExtension,
+  setupSdkStakingExtension,
   setupStakingExtension,
+  setupTxExtension,
   StakingExtension,
-} from "./queries";
+  TxExtension,
+} from "./modules";
+import { QueryClient } from "./queryclient";
 import {
   isSearchByHeightQuery,
   isSearchBySentFromOrToQuery,
@@ -33,9 +41,6 @@ export class TimeoutError extends Error {
   }
 }
 
-/**
- * This is the same as BlockHeader from @cosmjs/launchpad but those might diverge in the future.
- */
 export interface BlockHeader {
   readonly version: {
     readonly block: string;
@@ -47,9 +52,6 @@ export interface BlockHeader {
   readonly time: string;
 }
 
-/**
- * This is the same as Block from @cosmjs/launchpad but those might diverge in the future.
- */
 export interface Block {
   /** The ID is a hash of the block header (uppercase hex) */
   readonly id: string;
@@ -65,6 +67,14 @@ export interface IndexedTx {
   readonly hash: string;
   /** Transaction execution error code. 0 on success. */
   readonly code: number;
+  readonly events: readonly Event[];
+  /**
+   * A string-based log document.
+   *
+   * This currently seems to merge attributes of multiple events into one event per type
+   * (https://github.com/tendermint/tendermint/issues/9595). You might want to use the `events`
+   * field instead.
+   */
   readonly rawLog: string;
   /**
    * Raw transaction bytes stored in Tendermint.
@@ -90,52 +100,74 @@ export interface SequenceResponse {
   readonly sequence: number;
 }
 
-export interface BroadcastTxFailure {
+/**
+ * The response after successfully broadcasting a transaction.
+ * Success or failure refer to the execution result.
+ */
+export interface DeliverTxResponse {
   readonly height: number;
+  /** Error code. The transaction suceeded iff code is 0. */
   readonly code: number;
   readonly transactionHash: string;
-  readonly rawLog?: string;
-  readonly data?: readonly MsgData[];
-}
-
-export interface BroadcastTxSuccess {
-  readonly height: number;
-  readonly transactionHash: string;
+  readonly events: readonly Event[];
+  /**
+   * A string-based log document.
+   *
+   * This currently seems to merge attributes of multiple events into one event per type
+   * (https://github.com/tendermint/tendermint/issues/9595). You might want to use the `events`
+   * field instead.
+   */
   readonly rawLog?: string;
   readonly data?: readonly MsgData[];
   readonly gasUsed: number;
   readonly gasWanted: number;
 }
 
-/**
- * The response after successfully broadcasting a transaction.
- * Success or failure refer to the execution result.
- *
- * The name is a bit misleading as this contains the result of the execution
- * in a block. Both `BroadcastTxSuccess` and `BroadcastTxFailure` contain a height
- * field, which is the height of the block that contains the transaction. This means
- * transactions that were never included in a block cannot be expressed with this type.
- */
-export type BroadcastTxResponse = BroadcastTxSuccess | BroadcastTxFailure;
-
-export function isBroadcastTxFailure(result: BroadcastTxResponse): result is BroadcastTxFailure {
-  return !!(result as BroadcastTxFailure).code;
+export function isDeliverTxFailure(result: DeliverTxResponse): boolean {
+  return !!result.code;
 }
 
-export function isBroadcastTxSuccess(result: BroadcastTxResponse): result is BroadcastTxSuccess {
-  return !isBroadcastTxFailure(result);
+export function isDeliverTxSuccess(result: DeliverTxResponse): boolean {
+  return !isDeliverTxFailure(result);
 }
 
 /**
  * Ensures the given result is a success. Throws a detailed error message otherwise.
  */
-export function assertIsBroadcastTxSuccess(
-  result: BroadcastTxResponse,
-): asserts result is BroadcastTxSuccess {
-  if (isBroadcastTxFailure(result)) {
+export function assertIsDeliverTxSuccess(result: DeliverTxResponse): void {
+  if (isDeliverTxFailure(result)) {
     throw new Error(
       `Error when broadcasting tx ${result.transactionHash} at height ${result.height}. Code: ${result.code}; Raw log: ${result.rawLog}`,
     );
+  }
+}
+
+/**
+ * Ensures the given result is a failure. Throws a detailed error message otherwise.
+ */
+export function assertIsDeliverTxFailure(result: DeliverTxResponse): void {
+  if (isDeliverTxSuccess(result)) {
+    throw new Error(
+      `Transaction ${result.transactionHash} did not fail at height ${result.height}. Code: ${result.code}; Raw log: ${result.rawLog}`,
+    );
+  }
+}
+
+/**
+ * An error when broadcasting the transaction. This contains the CheckTx errors
+ * from the blockchain. Once a transaction is included in a block no BroadcastTxError
+ * is thrown, even if the execution fails (DeliverTx errors).
+ */
+export class BroadcastTxError extends Error {
+  public readonly code: number;
+  public readonly codespace: string;
+  public readonly log: string | undefined;
+
+  public constructor(code: number, codespace: string, log: string | undefined) {
+    super(`Broadcasting transaction failed with code ${code} (codespace: ${codespace}). Log: ${log}`);
+    this.code = code;
+    this.codespace = codespace;
+    this.log = log;
   }
 }
 
@@ -144,26 +176,40 @@ export interface PrivateStargateClient {
   readonly tmClient: Tendermint34Client | undefined;
 }
 
+export interface StargateClientOptions {
+  readonly accountParser?: AccountParser;
+}
+
 export class StargateClient {
   private readonly tmClient: Tendermint34Client | undefined;
-  private readonly queryClient: (QueryClient & AuthExtension & BankExtension & StakingExtension) | undefined;
+  private readonly queryClient:
+    | (QueryClient & AuthExtension & BankExtension & SdkStakingExtension & StakingExtension & TxExtension)
+    | undefined;
   private chainId: string | undefined;
+  private readonly accountParser: AccountParser;
 
-  public static async connect(endpoint: string): Promise<StargateClient> {
+  public static async connect(
+    endpoint: string | HttpEndpoint,
+    options: StargateClientOptions = {},
+  ): Promise<StargateClient> {
     const tmClient = await Tendermint34Client.connect(endpoint);
-    return new StargateClient(tmClient);
+    return new StargateClient(tmClient, options);
   }
 
-  protected constructor(tmClient: Tendermint34Client | undefined) {
+  protected constructor(tmClient: Tendermint34Client | undefined, options: StargateClientOptions) {
     if (tmClient) {
       this.tmClient = tmClient;
       this.queryClient = QueryClient.withExtensions(
         tmClient,
         setupAuthExtension,
         setupBankExtension,
+        setupSdkStakingExtension,
         setupStakingExtension,
+        setupTxExtension,
       );
     }
+    const { accountParser = accountFromAny } = options;
+    this.accountParser = accountParser;
   }
 
   protected getTmClient(): Tendermint34Client | undefined {
@@ -179,11 +225,18 @@ export class StargateClient {
     return this.tmClient;
   }
 
-  protected getQueryClient(): (QueryClient & AuthExtension & BankExtension & StakingExtension) | undefined {
+  protected getQueryClient():
+    | (QueryClient & AuthExtension & BankExtension & SdkStakingExtension & StakingExtension & TxExtension)
+    | undefined {
     return this.queryClient;
   }
 
-  protected forceGetQueryClient(): QueryClient & AuthExtension & BankExtension & StakingExtension {
+  protected forceGetQueryClient(): QueryClient &
+    AuthExtension &
+    BankExtension &
+    SdkStakingExtension &
+    StakingExtension &
+    TxExtension {
     if (!this.queryClient) {
       throw new Error("Query client not available. You cannot use online functionality in offline mode.");
     }
@@ -209,25 +262,20 @@ export class StargateClient {
   public async getAccount(searchAddress: string): Promise<Account | null> {
     try {
       const account = await this.forceGetQueryClient().auth.account(searchAddress);
-      return account ? accountFromAny(account) : null;
-    } catch (error) {
-      if (/rpc error: code = NotFound/i.test(error)) {
+      return account ? this.accountParser(account) : null;
+    } catch (error: any) {
+      if (/rpc error: code = NotFound/i.test(error.toString())) {
         return null;
       }
       throw error;
     }
   }
 
-  public async getAccountVerified(searchAddress: string): Promise<Account | null> {
-    const account = await this.forceGetQueryClient().auth.verified.account(searchAddress);
-    return account ? accountFromAny(account) : null;
-  }
-
   public async getSequence(address: string): Promise<SequenceResponse> {
     const account = await this.getAccount(address);
     if (!account) {
       throw new Error(
-        "Account does not exist on chain. Send some tokens there before trying to query sequence.",
+        `Account '${address}' does not exist on chain. Send some tokens there before trying to query sequence.`,
       );
     }
     return {
@@ -267,13 +315,37 @@ export class StargateClient {
     return this.forceGetQueryClient().bank.allBalances(address);
   }
 
+  public async getBalanceStaked(address: string): Promise<Coin | null> {
+    const allDelegations = [];
+    let startAtKey: Uint8Array | undefined = undefined;
+    do {
+      const { delegationResponses, pagination }: QueryDelegatorDelegationsResponse =
+        await this.forceGetQueryClient().staking.delegatorDelegations(address, startAtKey);
+
+      const loadedDelegations = delegationResponses || [];
+      allDelegations.push(...loadedDelegations);
+      startAtKey = pagination?.nextKey;
+    } while (startAtKey !== undefined && startAtKey.length !== 0);
+
+    const sumValues = allDelegations.reduce(
+      (previousValue: Coin | null, currentValue: DelegationResponse): Coin => {
+        // Safe because field is set to non-nullable (https://github.com/cosmos/cosmos-sdk/blob/v0.45.3/proto/cosmos/staking/v1beta1/staking.proto#L295)
+        assert(currentValue.balance);
+        return previousValue !== null ? addCoins(previousValue, currentValue.balance) : currentValue.balance;
+      },
+      null,
+    );
+
+    return sumValues;
+  }
+
   public async getDelegation(delegatorAddress: string, validatorAddress: string): Promise<Coin | null> {
     let delegatedAmount: Coin | undefined;
     try {
       delegatedAmount = (
         await this.forceGetQueryClient().staking.delegation(delegatorAddress, validatorAddress)
       ).delegationResponse?.balance;
-    } catch (e) {
+    } catch (e: any) {
       if (e.toString().includes("key not found")) {
         // ignore, `delegatedAmount` remains undefined
       } else {
@@ -338,23 +410,25 @@ export class StargateClient {
    *
    * If the transaction is not included in a block before the provided timeout, this errors with a `TimeoutError`.
    *
-   * If the transaction is included in a block, a `BroadcastTxResponse` is returned. The caller then
+   * If the transaction is included in a block, a `DeliverTxResponse` is returned. The caller then
    * usually needs to check for execution success or failure.
    */
   public async broadcastTx(
     tx: Uint8Array,
     timeoutMs = 60_000,
     pollIntervalMs = 3_000,
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     let timedOut = false;
     const txPollTimeout = setTimeout(() => {
       timedOut = true;
     }, timeoutMs);
 
-    const pollForTx = async (txId: string): Promise<BroadcastTxResponse> => {
+    const pollForTx = async (txId: string): Promise<DeliverTxResponse> => {
       if (timedOut) {
         throw new TimeoutError(
-          `Transaction with ID ${txId} was submitted but was not yet found on the chain. You might want to check later.`,
+          `Transaction with ID ${txId} was submitted but was not yet found on the chain. You might want to check later. There was a wait of ${
+            timeoutMs / 1000
+          } seconds.`,
           txId,
         );
       }
@@ -364,6 +438,7 @@ export class StargateClient {
         ? {
             code: result.code,
             height: result.height,
+            events: result.events,
             rawLog: result.rawLog,
             transactionHash: txId,
             gasUsed: result.gasUsed,
@@ -374,8 +449,8 @@ export class StargateClient {
 
     const broadcasted = await this.forceGetTmClient().broadcastTxSync({ tx });
     if (broadcasted.code) {
-      throw new Error(
-        `Broadcasting transaction failed with code ${broadcasted.code} (codespace: ${broadcasted.codeSpace}). Log: ${broadcasted.log}`,
+      return Promise.reject(
+        new BroadcastTxError(broadcasted.code, broadcasted.codespace ?? "", broadcasted.log),
       );
     }
     const transactionId = toHex(broadcasted.hash).toUpperCase();
@@ -400,6 +475,7 @@ export class StargateClient {
         height: tx.height,
         hash: toHex(tx.hash).toUpperCase(),
         code: tx.result.code,
+        events: tx.result.events.map(fromTendermint34Event),
         rawLog: tx.result.log || "",
         tx: tx.tx,
         gasUsed: tx.result.gasUsed,

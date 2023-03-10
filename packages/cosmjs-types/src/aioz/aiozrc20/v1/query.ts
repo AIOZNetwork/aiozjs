@@ -1,32 +1,32 @@
 /* eslint-disable */
-import Long from "long";
-import _m0 from "protobufjs/minimal";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
-import { TokenPair } from "../../../aioz/aiozrc20/v1/aiozrc20";
-import { Params } from "../../../aioz/aiozrc20/v1/genesis";
-
+import { TokenPair } from "./aiozrc20";
+import { Params } from "./genesis";
+import * as _m0 from "protobufjs/minimal";
+import { isSet, DeepPartial, Exact, Rpc } from "../../../helpers";
 export const protobufPackage = "aioz.aiozrc20.v1";
-
 /**
  * QueryTokenPairsRequest is the request type for the Query/TokenPairs RPC
  * method.
  */
+
 export interface QueryTokenPairsRequest {
   /** pagination defines an optional pagination for the request. */
   pagination?: PageRequest;
 }
-
 /**
  * QueryTokenPairsResponse is the response type for the Query/TokenPairs RPC
  * method.
  */
+
 export interface QueryTokenPairsResponse {
   tokenPairs: TokenPair[];
   /** pagination defines the pagination in the response. */
+
   pagination?: PageResponse;
 }
-
 /** QueryTokenPairRequest is the request type for the Query/TokenPair RPC method. */
+
 export interface QueryTokenPairRequest {
   /**
    * token identifier can be either the hex contract address of the AIOZRC20 or the
@@ -34,62 +34,78 @@ export interface QueryTokenPairRequest {
    */
   token: string;
 }
-
 /**
  * QueryTokenPairResponse is the response type for the Query/TokenPair RPC
  * method.
  */
+
 export interface QueryTokenPairResponse {
   tokenPair?: TokenPair;
 }
-
 /** QueryParamsRequest is the request type for the Query/Params RPC method. */
-export interface QueryParamsRequest {}
 
+export interface QueryParamsRequest {}
 /**
  * QueryParamsResponse is the response type for the Query/Params RPC
  * method.
  */
+
 export interface QueryParamsResponse {
   params?: Params;
 }
+/** QueryConverterAddressRequest is the request type for the Query/ConverterAddress RPC method. */
 
-const baseQueryTokenPairsRequest: object = {};
+export interface QueryConverterAddressRequest {}
+/**
+ * QueryConverterAddressResponse is the response type for the Query/ConverterAddress RPC
+ * method.
+ */
+
+export interface QueryConverterAddressResponse {
+  converterAddress: string;
+}
+
+function createBaseQueryTokenPairsRequest(): QueryTokenPairsRequest {
+  return {
+    pagination: undefined,
+  };
+}
 
 export const QueryTokenPairsRequest = {
   encode(message: QueryTokenPairsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): QueryTokenPairsRequest {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryTokenPairsRequest } as QueryTokenPairsRequest;
+    const message = createBaseQueryTokenPairsRequest();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.pagination = PageRequest.decode(reader, reader.uint32());
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): QueryTokenPairsRequest {
-    const message = { ...baseQueryTokenPairsRequest } as QueryTokenPairsRequest;
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageRequest.fromJSON(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
+    return {
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+    };
   },
 
   toJSON(message: QueryTokenPairsRequest): unknown {
@@ -99,133 +115,137 @@ export const QueryTokenPairsRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryTokenPairsRequest>): QueryTokenPairsRequest {
-    const message = { ...baseQueryTokenPairsRequest } as QueryTokenPairsRequest;
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageRequest.fromPartial(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryTokenPairsRequest>, I>>(object: I): QueryTokenPairsRequest {
+    const message = createBaseQueryTokenPairsRequest();
+    message.pagination =
+      object.pagination !== undefined && object.pagination !== null
+        ? PageRequest.fromPartial(object.pagination)
+        : undefined;
     return message;
   },
 };
 
-const baseQueryTokenPairsResponse: object = {};
+function createBaseQueryTokenPairsResponse(): QueryTokenPairsResponse {
+  return {
+    tokenPairs: [],
+    pagination: undefined,
+  };
+}
 
 export const QueryTokenPairsResponse = {
   encode(message: QueryTokenPairsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.tokenPairs) {
       TokenPair.encode(v!, writer.uint32(10).fork()).ldelim();
     }
+
     if (message.pagination !== undefined) {
       PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): QueryTokenPairsResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryTokenPairsResponse } as QueryTokenPairsResponse;
-    message.tokenPairs = [];
+    const message = createBaseQueryTokenPairsResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.tokenPairs.push(TokenPair.decode(reader, reader.uint32()));
           break;
+
         case 2:
           message.pagination = PageResponse.decode(reader, reader.uint32());
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): QueryTokenPairsResponse {
-    const message = { ...baseQueryTokenPairsResponse } as QueryTokenPairsResponse;
-    message.tokenPairs = [];
-    if (object.tokenPairs !== undefined && object.tokenPairs !== null) {
-      for (const e of object.tokenPairs) {
-        message.tokenPairs.push(TokenPair.fromJSON(e));
-      }
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageResponse.fromJSON(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
-    return message;
+    return {
+      tokenPairs: Array.isArray(object?.tokenPairs)
+        ? object.tokenPairs.map((e: any) => TokenPair.fromJSON(e))
+        : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
   },
 
   toJSON(message: QueryTokenPairsResponse): unknown {
     const obj: any = {};
+
     if (message.tokenPairs) {
       obj.tokenPairs = message.tokenPairs.map((e) => (e ? TokenPair.toJSON(e) : undefined));
     } else {
       obj.tokenPairs = [];
     }
+
     message.pagination !== undefined &&
       (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryTokenPairsResponse>): QueryTokenPairsResponse {
-    const message = { ...baseQueryTokenPairsResponse } as QueryTokenPairsResponse;
-    message.tokenPairs = [];
-    if (object.tokenPairs !== undefined && object.tokenPairs !== null) {
-      for (const e of object.tokenPairs) {
-        message.tokenPairs.push(TokenPair.fromPartial(e));
-      }
-    }
-    if (object.pagination !== undefined && object.pagination !== null) {
-      message.pagination = PageResponse.fromPartial(object.pagination);
-    } else {
-      message.pagination = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryTokenPairsResponse>, I>>(object: I): QueryTokenPairsResponse {
+    const message = createBaseQueryTokenPairsResponse();
+    message.tokenPairs = object.tokenPairs?.map((e) => TokenPair.fromPartial(e)) || [];
+    message.pagination =
+      object.pagination !== undefined && object.pagination !== null
+        ? PageResponse.fromPartial(object.pagination)
+        : undefined;
     return message;
   },
 };
 
-const baseQueryTokenPairRequest: object = { token: "" };
+function createBaseQueryTokenPairRequest(): QueryTokenPairRequest {
+  return {
+    token: "",
+  };
+}
 
 export const QueryTokenPairRequest = {
   encode(message: QueryTokenPairRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.token !== "") {
       writer.uint32(10).string(message.token);
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): QueryTokenPairRequest {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryTokenPairRequest } as QueryTokenPairRequest;
+    const message = createBaseQueryTokenPairRequest();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.token = reader.string();
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): QueryTokenPairRequest {
-    const message = { ...baseQueryTokenPairRequest } as QueryTokenPairRequest;
-    if (object.token !== undefined && object.token !== null) {
-      message.token = String(object.token);
-    } else {
-      message.token = "";
-    }
-    return message;
+    return {
+      token: isSet(object.token) ? String(object.token) : "",
+    };
   },
 
   toJSON(message: QueryTokenPairRequest): unknown {
@@ -234,53 +254,54 @@ export const QueryTokenPairRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryTokenPairRequest>): QueryTokenPairRequest {
-    const message = { ...baseQueryTokenPairRequest } as QueryTokenPairRequest;
-    if (object.token !== undefined && object.token !== null) {
-      message.token = object.token;
-    } else {
-      message.token = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryTokenPairRequest>, I>>(object: I): QueryTokenPairRequest {
+    const message = createBaseQueryTokenPairRequest();
+    message.token = object.token ?? "";
     return message;
   },
 };
 
-const baseQueryTokenPairResponse: object = {};
+function createBaseQueryTokenPairResponse(): QueryTokenPairResponse {
+  return {
+    tokenPair: undefined,
+  };
+}
 
 export const QueryTokenPairResponse = {
   encode(message: QueryTokenPairResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.tokenPair !== undefined) {
       TokenPair.encode(message.tokenPair, writer.uint32(10).fork()).ldelim();
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): QueryTokenPairResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryTokenPairResponse } as QueryTokenPairResponse;
+    const message = createBaseQueryTokenPairResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.tokenPair = TokenPair.decode(reader, reader.uint32());
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): QueryTokenPairResponse {
-    const message = { ...baseQueryTokenPairResponse } as QueryTokenPairResponse;
-    if (object.tokenPair !== undefined && object.tokenPair !== null) {
-      message.tokenPair = TokenPair.fromJSON(object.tokenPair);
-    } else {
-      message.tokenPair = undefined;
-    }
-    return message;
+    return {
+      tokenPair: isSet(object.tokenPair) ? TokenPair.fromJSON(object.tokenPair) : undefined,
+    };
   },
 
   toJSON(message: QueryTokenPairResponse): unknown {
@@ -290,18 +311,19 @@ export const QueryTokenPairResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryTokenPairResponse>): QueryTokenPairResponse {
-    const message = { ...baseQueryTokenPairResponse } as QueryTokenPairResponse;
-    if (object.tokenPair !== undefined && object.tokenPair !== null) {
-      message.tokenPair = TokenPair.fromPartial(object.tokenPair);
-    } else {
-      message.tokenPair = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryTokenPairResponse>, I>>(object: I): QueryTokenPairResponse {
+    const message = createBaseQueryTokenPairResponse();
+    message.tokenPair =
+      object.tokenPair !== undefined && object.tokenPair !== null
+        ? TokenPair.fromPartial(object.tokenPair)
+        : undefined;
     return message;
   },
 };
 
-const baseQueryParamsRequest: object = {};
+function createBaseQueryParamsRequest(): QueryParamsRequest {
+  return {};
+}
 
 export const QueryParamsRequest = {
   encode(_: QueryParamsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -311,21 +333,23 @@ export const QueryParamsRequest = {
   decode(input: _m0.Reader | Uint8Array, length?: number): QueryParamsRequest {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryParamsRequest } as QueryParamsRequest;
+    const message = createBaseQueryParamsRequest();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(_: any): QueryParamsRequest {
-    const message = { ...baseQueryParamsRequest } as QueryParamsRequest;
-    return message;
+    return {};
   },
 
   toJSON(_: QueryParamsRequest): unknown {
@@ -333,48 +357,53 @@ export const QueryParamsRequest = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<QueryParamsRequest>): QueryParamsRequest {
-    const message = { ...baseQueryParamsRequest } as QueryParamsRequest;
+  fromPartial<I extends Exact<DeepPartial<QueryParamsRequest>, I>>(_: I): QueryParamsRequest {
+    const message = createBaseQueryParamsRequest();
     return message;
   },
 };
 
-const baseQueryParamsResponse: object = {};
+function createBaseQueryParamsResponse(): QueryParamsResponse {
+  return {
+    params: undefined,
+  };
+}
 
 export const QueryParamsResponse = {
   encode(message: QueryParamsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.params !== undefined) {
       Params.encode(message.params, writer.uint32(10).fork()).ldelim();
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): QueryParamsResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseQueryParamsResponse } as QueryParamsResponse;
+    const message = createBaseQueryParamsResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.params = Params.decode(reader, reader.uint32());
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): QueryParamsResponse {
-    const message = { ...baseQueryParamsResponse } as QueryParamsResponse;
-    if (object.params !== undefined && object.params !== null) {
-      message.params = Params.fromJSON(object.params);
-    } else {
-      message.params = undefined;
-    }
-    return message;
+    return {
+      params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
+    };
   },
 
   toJSON(message: QueryParamsResponse): unknown {
@@ -383,36 +412,152 @@ export const QueryParamsResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<QueryParamsResponse>): QueryParamsResponse {
-    const message = { ...baseQueryParamsResponse } as QueryParamsResponse;
-    if (object.params !== undefined && object.params !== null) {
-      message.params = Params.fromPartial(object.params);
-    } else {
-      message.params = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<QueryParamsResponse>, I>>(object: I): QueryParamsResponse {
+    const message = createBaseQueryParamsResponse();
+    message.params =
+      object.params !== undefined && object.params !== null ? Params.fromPartial(object.params) : undefined;
     return message;
   },
 };
 
-/** Query defines the gRPC querier service. */
-export interface Query {
-  /** Retrieves registered token pairs */
-  TokenPairs(request: QueryTokenPairsRequest): Promise<QueryTokenPairsResponse>;
-  /** Retrieves a registered token pair */
-  TokenPair(request: QueryTokenPairRequest): Promise<QueryTokenPairResponse>;
-  /** Params retrieves the aiozrc20 module params */
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse>;
+function createBaseQueryConverterAddressRequest(): QueryConverterAddressRequest {
+  return {};
 }
 
+export const QueryConverterAddressRequest = {
+  encode(_: QueryConverterAddressRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryConverterAddressRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryConverterAddressRequest();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(_: any): QueryConverterAddressRequest {
+    return {};
+  },
+
+  toJSON(_: QueryConverterAddressRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryConverterAddressRequest>, I>>(
+    _: I,
+  ): QueryConverterAddressRequest {
+    const message = createBaseQueryConverterAddressRequest();
+    return message;
+  },
+};
+
+function createBaseQueryConverterAddressResponse(): QueryConverterAddressResponse {
+  return {
+    converterAddress: "",
+  };
+}
+
+export const QueryConverterAddressResponse = {
+  encode(message: QueryConverterAddressResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.converterAddress !== "") {
+      writer.uint32(10).string(message.converterAddress);
+    }
+
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryConverterAddressResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryConverterAddressResponse();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        case 1:
+          message.converterAddress = reader.string();
+          break;
+
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(object: any): QueryConverterAddressResponse {
+    return {
+      converterAddress: isSet(object.converterAddress) ? String(object.converterAddress) : "",
+    };
+  },
+
+  toJSON(message: QueryConverterAddressResponse): unknown {
+    const obj: any = {};
+    message.converterAddress !== undefined && (obj.converterAddress = message.converterAddress);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryConverterAddressResponse>, I>>(
+    object: I,
+  ): QueryConverterAddressResponse {
+    const message = createBaseQueryConverterAddressResponse();
+    message.converterAddress = object.converterAddress ?? "";
+    return message;
+  },
+};
+/** Query defines the gRPC querier service. */
+
+export interface Query {
+  /** Retrieves registered converter address */
+  ConverterAddress(request?: QueryConverterAddressRequest): Promise<QueryConverterAddressResponse>;
+  /** Retrieves registered token pairs */
+
+  TokenPairs(request?: QueryTokenPairsRequest): Promise<QueryTokenPairsResponse>;
+  /** Retrieves a registered token pair */
+
+  TokenPair(request: QueryTokenPairRequest): Promise<QueryTokenPairResponse>;
+  /** Params retrieves the aiozrc20 module params */
+
+  Params(request?: QueryParamsRequest): Promise<QueryParamsResponse>;
+}
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
+    this.ConverterAddress = this.ConverterAddress.bind(this);
     this.TokenPairs = this.TokenPairs.bind(this);
     this.TokenPair = this.TokenPair.bind(this);
     this.Params = this.Params.bind(this);
   }
-  TokenPairs(request: QueryTokenPairsRequest): Promise<QueryTokenPairsResponse> {
+
+  ConverterAddress(request: QueryConverterAddressRequest = {}): Promise<QueryConverterAddressResponse> {
+    const data = QueryConverterAddressRequest.encode(request).finish();
+    const promise = this.rpc.request("aioz.aiozrc20.v1.Query", "ConverterAddress", data);
+    return promise.then((data) => QueryConverterAddressResponse.decode(new _m0.Reader(data)));
+  }
+
+  TokenPairs(
+    request: QueryTokenPairsRequest = {
+      pagination: undefined,
+    },
+  ): Promise<QueryTokenPairsResponse> {
     const data = QueryTokenPairsRequest.encode(request).finish();
     const promise = this.rpc.request("aioz.aiozrc20.v1.Query", "TokenPairs", data);
     return promise.then((data) => QueryTokenPairsResponse.decode(new _m0.Reader(data)));
@@ -424,29 +569,9 @@ export class QueryClientImpl implements Query {
     return promise.then((data) => QueryTokenPairResponse.decode(new _m0.Reader(data)));
   }
 
-  Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
+  Params(request: QueryParamsRequest = {}): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
     const promise = this.rpc.request("aioz.aiozrc20.v1.Query", "Params", data);
     return promise.then((data) => QueryParamsResponse.decode(new _m0.Reader(data)));
   }
-}
-
-interface Rpc {
-  request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
-}
-
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined | Long;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
 }

@@ -18,30 +18,15 @@ export function pendingWithoutLedger(): void {
   }
 }
 
-export function launchpadEnabled(): boolean {
-  return !!process.env.LAUNCHPAD_ENABLED;
-}
-
-export function pendingWithoutLaunchpad(): void {
-  if (!launchpadEnabled()) {
-    return pending("Set LAUNCHPAD_ENABLED to enable Launchpad-based tests");
-  }
-}
-
 export function simappEnabled(): boolean {
-  return !!process.env.SIMAPP_ENABLED;
+  return !!process.env.SIMAPP44_ENABLED || !!process.env.SIMAPP46_ENABLED;
 }
 
 export function pendingWithoutSimapp(): void {
   if (!simappEnabled()) {
-    return pending("Set SIMAPP_ENABLED to enable Simapp-based tests");
+    return pending("Set SIMAPP{44,46}_ENABLED to enable Simapp-based tests");
   }
 }
-
-export const launchpad = {
-  endpoint: "http://localhost:1317",
-  chainId: "testing",
-};
 
 export const simapp = {
   endpoint: "ws://localhost:26658",

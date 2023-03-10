@@ -1,92 +1,14 @@
 syntax = "proto3";
 package aioz.staking.v1beta1;
 
-import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "aioz/staking/v1beta1/staking.proto";
-import "cosmos/staking/v1beta1/query.proto";
 
-option go_package = "x/staking/types";
+option go_package = "github.com/AIOZNetwork/go-aioz/x/staking/types";
 
 // Query defines the gRPC querier service.
 service Query {
-
-  // Validators queries all validators that match the given status.
-  rpc Validators(cosmos.staking.v1beta1.QueryValidatorsRequest) returns (cosmos.staking.v1beta1.QueryValidatorsResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/validators";
-  }
-
-  // Validator queries validator info for given validator address.
-  rpc Validator(cosmos.staking.v1beta1.QueryValidatorRequest) returns (cosmos.staking.v1beta1.QueryValidatorResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/validators/{validator_addr}";
-  }
-
-  // ValidatorDelegations queries delegate info for given validator.
-  rpc ValidatorDelegations(cosmos.staking.v1beta1.QueryValidatorDelegationsRequest) returns (cosmos.staking.v1beta1.QueryValidatorDelegationsResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/validators/{validator_addr}/delegations";
-  }
-
-  // ValidatorUnbondingDelegations queries unbonding delegations of a validator.
-  rpc ValidatorUnbondingDelegations(cosmos.staking.v1beta1.QueryValidatorUnbondingDelegationsRequest)
-      returns (cosmos.staking.v1beta1.QueryValidatorUnbondingDelegationsResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/validators/"
-                                   "{validator_addr}/unbonding_delegations";
-  }
-
-  // Delegation queries delegate info for given validator delegator pair.
-  rpc Delegation(cosmos.staking.v1beta1.QueryDelegationRequest) returns (cosmos.staking.v1beta1.QueryDelegationResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/validators/{validator_addr}/delegations/"
-                                   "{delegator_addr}";
-  }
-
-  // UnbondingDelegation queries unbonding info for given validator delegator
-  // pair.
-  rpc UnbondingDelegation(cosmos.staking.v1beta1.QueryUnbondingDelegationRequest) returns (cosmos.staking.v1beta1.QueryUnbondingDelegationResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/validators/{validator_addr}/delegations/"
-                                   "{delegator_addr}/unbonding_delegation";
-  }
-
-  // DelegatorDelegations queries all delegations of a given delegator address.
-  rpc DelegatorDelegations(cosmos.staking.v1beta1.QueryDelegatorDelegationsRequest) returns (cosmos.staking.v1beta1.QueryDelegatorDelegationsResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/delegations/{delegator_addr}";
-  }
-
-  // DelegatorUnbondingDelegations queries all unbonding delegations of a given
-  // delegator address.
-  rpc DelegatorUnbondingDelegations(cosmos.staking.v1beta1.QueryDelegatorUnbondingDelegationsRequest)
-      returns (cosmos.staking.v1beta1.QueryDelegatorUnbondingDelegationsResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/delegators/"
-                                   "{delegator_addr}/unbonding_delegations";
-  }
-
-  // Redelegations queries redelegations of given address.
-  rpc Redelegations(cosmos.staking.v1beta1.QueryRedelegationsRequest) returns (cosmos.staking.v1beta1.QueryRedelegationsResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/delegators/{delegator_addr}/redelegations";
-  }
-
-  // DelegatorValidators queries all validators info for given delegator
-  // address.
-  rpc DelegatorValidators(cosmos.staking.v1beta1.QueryDelegatorValidatorsRequest) returns (cosmos.staking.v1beta1.QueryDelegatorValidatorsResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/delegators/{delegator_addr}/validators";
-  }
-
-  // DelegatorValidator queries validator info for given delegator validator
-  // pair.
-  rpc DelegatorValidator(cosmos.staking.v1beta1.QueryDelegatorValidatorRequest) returns (cosmos.staking.v1beta1.QueryDelegatorValidatorResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/delegators/{delegator_addr}/validators/"
-                                   "{validator_addr}";
-  }
-
-  // HistoricalInfo queries the historical info for given height.
-  rpc HistoricalInfo(cosmos.staking.v1beta1.QueryHistoricalInfoRequest) returns (cosmos.staking.v1beta1.QueryHistoricalInfoResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/historical_info/{height}";
-  }
-
-  // Pool queries the pool info.
-  rpc Pool(cosmos.staking.v1beta1.QueryPoolRequest) returns (cosmos.staking.v1beta1.QueryPoolResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/pool";
-  }
 
   // Parameters queries the staking parameters.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {

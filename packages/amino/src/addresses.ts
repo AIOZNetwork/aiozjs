@@ -1,10 +1,16 @@
 // See https://github.com/tendermint/tendermint/blob/f2ada0a604b4c0763bda2f64fac53d506d3beca7/docs/spec/blockchain/encoding.md#public-key-cryptography
 
-import { ripemd160, sha256, keccak256, Secp256k1 } from "@cosmjs/crypto";
-import { Bech32, fromBase64, toHex, fromHex, toUtf8 } from "@cosmjs/encoding";
+import { keccak256, ripemd160, Secp256k1, sha256 } from "@cosmjs/crypto";
+import { Bech32, fromBase64, fromHex, toHex, toUtf8 } from "@cosmjs/encoding";
 
 import { encodeAminoPubkey } from "./encoding";
-import { isEd25519Pubkey, isMultisigThresholdPubkey, isSecp256k1Pubkey, isEthSecp256k1Pubkey, Pubkey } from "./pubkeys";
+import {
+  isEd25519Pubkey,
+  isEthSecp256k1Pubkey,
+  isMultisigThresholdPubkey,
+  isSecp256k1Pubkey,
+  Pubkey,
+} from "./pubkeys";
 
 export function rawEd25519PubkeyToRawAddress(pubkeyData: Uint8Array): Uint8Array {
   if (pubkeyData.length !== 32) {
@@ -24,7 +30,7 @@ export function rawEthSecp256k1PubkeyToRawAddress(pubkeyData: Uint8Array): Uint8
   if (pubkeyData.length !== 33) {
     throw new Error(`Invalid EthSecp256k1 pubkey length (compressed): ${pubkeyData.length}`);
   }
-  return keccak256(Secp256k1.decompressPubkey(pubkeyData).slice(1)).slice(-20);
+  return keccak256(Secp256k1.uncompressPubkey(pubkeyData).slice(1)).slice(-20);
 }
 
 // For secp256k1 this assumes we already have a compressed pubkey.
@@ -51,31 +57,38 @@ export function ethAddressChecksumRaw(rawAddress: Uint8Array): string {
   const address = toHex(rawAddress);
   const addressHash = toHex(keccak256(toUtf8(address)));
   let checksumAddress = "0x";
-  for (let i = 0; i < address.length; i++) checksumAddress += parseInt(addressHash[i], 16) > 7 ? address[i].toUpperCase() : address[i];
+  for (let i = 0; i < address.length; i++) {
+    checksumAddress += parseInt(addressHash[i], 16) > 7 ? address[i].toUpperCase() : address[i];
+  }
   return checksumAddress;
-};
+}
 
 export function ethAddressChecksum(address: string): string {
-  address = address.replace(/^0x/i,'').toLowerCase();
+  address = address.replace(/^0x/i, "").toLowerCase();
   const addressHash = toHex(keccak256(toUtf8(address)));
   let checksumAddress = "0x";
-  for (let i = 0; i < address.length; i++) checksumAddress += parseInt(addressHash[i], 16) > 7 ? address[i].toUpperCase() : address[i];
+  for (let i = 0; i < address.length; i++) {
+    checksumAddress += parseInt(addressHash[i], 16) > 7 ? address[i].toUpperCase() : address[i];
+  }
   return checksumAddress;
-};
+}
 
 export function checkEthAddressChecksum(address: string): boolean {
   // Check each case
-  address = address.replace(/^0x/i,'');
-  var addressHash = toHex(keccak256(toUtf8(address.toLowerCase())));
+  address = address.replace(/^0x/i, "");
+  const addressHash = toHex(keccak256(toUtf8(address.toLowerCase())));
 
-  for (var i = 0; i < address.length; i++ ) {
-      // the nth letter should be uppercase if the nth digit of casemap is 1
-      if ((parseInt(addressHash[i], 16) > 7 && address[i].toUpperCase() !== address[i]) || (parseInt(addressHash[i], 16) <= 7 && address[i].toLowerCase() !== address[i])) {
-          return false;
-      }
+  for (let i = 0; i < address.length; i++) {
+    // the nth letter should be uppercase if the nth digit of casemap is 1
+    if (
+      (parseInt(addressHash[i], 16) > 7 && address[i].toUpperCase() !== address[i]) ||
+      (parseInt(addressHash[i], 16) <= 7 && address[i].toLowerCase() !== address[i])
+    ) {
+      return false;
+    }
   }
   return true;
-};
+}
 
 export function isValidAddress(input: string, requiredPrefix: string): boolean {
   return isValidHexAddress(input) || isValidBech32Address(input, requiredPrefix);
@@ -84,10 +97,10 @@ export function isValidAddress(input: string, requiredPrefix: string): boolean {
 export function isValidHexAddress(input: string): boolean {
   if (!/^(0x)?[0-9a-f]{40}$/i.test(input)) {
     return false;
-  // If it's ALL lowercase or ALL upppercase
+    // If it's ALL lowercase or ALL upppercase
   } else if (/^(0x|0X)?[0-9a-f]{40}$/.test(input) || /^(0x|0X)?[0-9A-F]{40}$/.test(input)) {
     return true;
-  // Otherwise check each case
+    // Otherwise check each case
   } else {
     return checkEthAddressChecksum(input);
   }

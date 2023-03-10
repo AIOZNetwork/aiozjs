@@ -1,19 +1,24 @@
-import { encodeEthSecp256k1Signature, makeEthPath, rawEthSecp256k1PubkeyToRawAddress, ethAddressChecksumRaw } from "@cosmjs/amino";
+import {
+  encodeEthSecp256k1Signature,
+  ethAddressChecksumRaw,
+  makeEthPath,
+  rawEthSecp256k1PubkeyToRawAddress,
+} from "@cosmjs/amino";
 import {
   Bip39,
   EnglishMnemonic,
   HdPath,
+  keccak256,
   pathToString,
   Random,
   Secp256k1,
   Secp256k1Keypair,
-  keccak256,
   Slip10,
   Slip10Curve,
   stringToPath,
 } from "@cosmjs/crypto";
-import { fromBase64, fromUtf8, toBase64, toUtf8, Bech32 } from "@cosmjs/encoding";
-import { assert, isNonNullObject } from "@cosmjs/utils/build";
+import { fromBase64, fromUtf8, toBase64, toBech32, toUtf8 } from "@cosmjs/encoding";
+import { assert, isNonNullObject } from "@cosmjs/utils";
 import { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { AccountData, AccountDataWithPrivkey, DirectSignResponse, OfflineDirectSigner } from "./signer";
@@ -167,7 +172,10 @@ export class DirectEthSecp256k1HdWallet implements OfflineDirectSigner {
    * @param password The user provided password used to generate an encryption key via a KDF.
    *                 This is not normalized internally (see "Unicode normalization" to learn more).
    */
-  public static async deserialize(serialization: string, password: string): Promise<DirectEthSecp256k1HdWallet> {
+  public static async deserialize(
+    serialization: string,
+    password: string,
+  ): Promise<DirectEthSecp256k1HdWallet> {
     const root = JSON.parse(serialization);
     if (!isNonNullObject(root)) throw new Error("Root document is not an object.");
     switch ((root as any).type) {
@@ -260,7 +268,7 @@ export class DirectEthSecp256k1HdWallet implements OfflineDirectSigner {
       algo: algo,
       pubkey: pubkey,
       address: address,
-      addressHex: addressHex
+      addressHex: addressHex,
     }));
   }
 
@@ -343,14 +351,14 @@ export class DirectEthSecp256k1HdWallet implements OfflineDirectSigner {
     return Promise.all(
       this.accounts.map(async ({ hdPath, prefix }) => {
         const { privkey, pubkey } = await this.getKeyPair(hdPath);
-        const address = Bech32.encode(prefix, rawEthSecp256k1PubkeyToRawAddress(pubkey));
+        const address = toBech32(prefix, rawEthSecp256k1PubkeyToRawAddress(pubkey));
         const addressHex = ethAddressChecksumRaw(rawEthSecp256k1PubkeyToRawAddress(pubkey));
         return {
           algo: "eth_secp256k1" as const,
           privkey: privkey,
           pubkey: pubkey,
           address: address,
-          addressHex: addressHex
+          addressHex: addressHex,
         };
       }),
     );

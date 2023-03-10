@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { AminoSignResponse, Secp256k1HdWallet, Secp256k1HdWalletOptions, StdSignDoc } from "@cosmjs/amino";
 import { Bip39, EnglishMnemonic, Random } from "@cosmjs/crypto";
-import { Bech32 } from "@cosmjs/encoding";
+import { toBech32 } from "@cosmjs/encoding";
 import {
   coins,
   DirectSecp256k1HdWallet,
@@ -15,23 +15,43 @@ import { AuthInfo, SignDoc, TxBody } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { calculateFee, GasPrice } from "./fee";
 import { SigningStargateClientOptions } from "./signingstargateclient";
 
+export function simapp44Enabled(): boolean {
+  return !!process.env.SIMAPP44_ENABLED;
+}
+
+export function simapp46Enabled(): boolean {
+  return !!process.env.SIMAPP46_ENABLED;
+}
+
 export function simappEnabled(): boolean {
-  return !!process.env.SIMAPP_ENABLED;
+  return simapp44Enabled() || simapp46Enabled();
+}
+
+export function pendingWithoutSimapp44Or46(): void {
+  if (!simapp44Enabled() && !simapp46Enabled()) {
+    return pending("Set SIMAPP{44,46}_ENABLED to enable Simapp based tests");
+  }
+}
+
+export function pendingWithoutSimapp46(): void {
+  if (!simapp46Enabled()) {
+    return pending("Set SIMAPP46_ENABLED to enable Simapp based tests");
+  }
 }
 
 export function pendingWithoutSimapp(): void {
   if (!simappEnabled()) {
-    return pending("Set SIMAPP_ENABLED to enable Simapp based tests");
+    return pending("Set SIMAPP{44,46}_ENABLED to enable Simapp based tests");
   }
 }
 
 export function slowSimappEnabled(): boolean {
-  return !!process.env.SLOW_SIMAPP_ENABLED;
+  return !!process.env.SLOW_SIMAPP44_ENABLED || !!process.env.SLOW_SIMAPP46_ENABLED;
 }
 
 export function pendingWithoutSlowSimapp(): void {
   if (!slowSimappEnabled()) {
-    return pending("Set SLOW_SIMAPP_ENABLED to enable slow Simapp based tests");
+    return pending("Set SLOW_SIMAPP{44,46}_ENABLED to enable slow Simapp based tests");
   }
 }
 
@@ -40,7 +60,7 @@ export function makeRandomAddressBytes(): Uint8Array {
 }
 
 export function makeRandomAddress(): string {
-  return Bech32.encode("cosmos", makeRandomAddressBytes());
+  return toBech32("cosmos", makeRandomAddressBytes());
 }
 
 /** Returns first element. Throws if array has a different length than 1. */
@@ -50,7 +70,7 @@ export function fromOneElementArray<T>(elements: ArrayLike<T>): T {
 }
 
 export const defaultGasPrice = GasPrice.fromString("0.025ucosm");
-export const defaultSendFee = calculateFee(80_000, defaultGasPrice);
+export const defaultSendFee = calculateFee(100_000, defaultGasPrice);
 
 export const simapp = {
   tendermintUrl: "localhost:26658",
@@ -79,6 +99,7 @@ export const slowSimapp = {
 export const defaultSigningClientOptions: SigningStargateClientOptions = {
   broadcastPollIntervalMs: 300,
   broadcastTimeoutMs: 8_000,
+  gasPrice: GasPrice.fromString("0.01ucosm"),
 };
 
 export const faucet = {
@@ -126,10 +147,10 @@ export const unused = {
 
 export const validator = {
   /**
-   * From first gentx's auth_info.signer_infos in scripts/simapp/template/.simapp/config/genesis.json
+   * From first gentx's auth_info.signer_infos in scripts/simapp44/template/.simapp/config/genesis.json
    *
    * ```
-   * jq ".app_state.genutil.gen_txs[0].auth_info.signer_infos[0].public_key" scripts/simapp/template/.simapp/config/genesis.json
+   * jq ".app_state.genutil.gen_txs[0].auth_info.signer_infos[0].public_key" scripts/simapp44/template/.simapp/config/genesis.json
    * ```
    */
   pubkey: {
@@ -137,18 +158,18 @@ export const validator = {
     value: "AtDcuH4cX1eaxZrJ5shheLG3tXPAoV4awoIZmNQtQxmf",
   },
   /**
-   * delegator_address from /cosmos.staking.v1beta1.MsgCreateValidator in scripts/simapp/template/.simapp/config/genesis.json
+   * delegator_address from /cosmos.staking.v1beta1.MsgCreateValidator in scripts/simapp44/template/.simapp/config/genesis.json
    *
    * ```
-   * jq ".app_state.genutil.gen_txs[0].body.messages[0].delegator_address" scripts/simapp/template/.simapp/config/genesis.json
+   * jq ".app_state.genutil.gen_txs[0].body.messages[0].delegator_address" scripts/simapp44/template/.simapp/config/genesis.json
    * ```
    */
   delegatorAddress: "cosmos1urk9gy7cfws0ak9x5nu7lx4un9n6gqkry79679",
   /**
-   * validator_address from /cosmos.staking.v1beta1.MsgCreateValidator in scripts/simapp/template/.simapp/config/genesis.json
+   * validator_address from /cosmos.staking.v1beta1.MsgCreateValidator in scripts/simapp44/template/.simapp/config/genesis.json
    *
    * ```
-   * jq ".app_state.genutil.gen_txs[0].body.messages[0].validator_address" scripts/simapp/template/.simapp/config/genesis.json
+   * jq ".app_state.genutil.gen_txs[0].body.messages[0].validator_address" scripts/simapp44/template/.simapp/config/genesis.json
    * ```
    */
   validatorAddress: "cosmosvaloper1urk9gy7cfws0ak9x5nu7lx4un9n6gqkrp230jk",
@@ -213,6 +234,8 @@ export class ModifyingDirectSecp256k1HdWallet extends DirectSecp256k1HdWallet {
     }));
     const modifiedFeeAmount = coins(3000, "ucosm");
     const modifiedGasLimit = 333333;
+    const modifiedFeeGranter = undefined;
+    const modifiedFeePayer = undefined;
     const modifiedSignDoc = {
       ...signDoc,
       bodyBytes: Uint8Array.from(TxBody.encode(modifiedTxBody).finish()),
@@ -220,6 +243,8 @@ export class ModifyingDirectSecp256k1HdWallet extends DirectSecp256k1HdWallet {
         signers,
         modifiedFeeAmount,
         modifiedGasLimit,
+        modifiedFeeGranter,
+        modifiedFeePayer,
         SignMode.SIGN_MODE_DIRECT,
       ),
     };

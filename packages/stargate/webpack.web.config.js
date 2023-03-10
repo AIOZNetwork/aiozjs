@@ -16,7 +16,12 @@ module.exports = [
       filename: "tests.js",
     },
     plugins: [
-      new webpack.EnvironmentPlugin({ SIMAPP_ENABLED: "", SLOW_SIMAPP_ENABLED: "" }),
+      new webpack.EnvironmentPlugin({
+        SIMAPP44_ENABLED: "",
+        SLOW_SIMAPP44_ENABLED: "",
+        SIMAPP46_ENABLED: "",
+        SLOW_SIMAPP46_ENABLED: "",
+      }),
       new webpack.ProvidePlugin({
         Buffer: ["buffer", "Buffer"],
       }),
@@ -27,7 +32,7 @@ module.exports = [
         crypto: false,
         events: false,
         path: false,
-        stream: require.resolve("stream-browserify"),
+        stream: false,
         string_decoder: false,
       },
     },

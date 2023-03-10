@@ -10,7 +10,7 @@ import {
   Registry,
   TxBodyEncodeObject,
 } from "@cosmjs/proto-signing";
-import { assertIsBroadcastTxSuccess, coins, logs, MsgSendEncodeObject, StdFee } from "@cosmjs/stargate";
+import { assertIsDeliverTxSuccess, coins, logs, MsgSendEncodeObject, StdFee } from "@cosmjs/stargate";
 import { assert, sleep } from "@cosmjs/utils";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { ReadonlyDate } from "readonly-date";
@@ -120,7 +120,7 @@ describe("CosmWasmClient", () => {
       const client = await CosmWasmClient.connect(wasmd.endpoint);
       const missing = makeRandomAddress();
       await expectAsync(client.getSequence(missing)).toBeRejectedWithError(
-        /account does not exist on chain/i,
+        /account '([a-z0-9]{10,90})' does not exist on chain/i,
       );
     });
   });
@@ -203,7 +203,15 @@ describe("CosmWasmClient", () => {
       };
       const txBodyBytes = registry.encode(txBody);
       const gasLimit = Int53.fromString(fee.gas).toNumber();
-      const authInfoBytes = makeAuthInfoBytes([{ pubkey, sequence }], fee.amount, gasLimit);
+      const feeGranter = undefined;
+      const feePayer = undefined;
+      const authInfoBytes = makeAuthInfoBytes(
+        [{ pubkey, sequence }],
+        fee.amount,
+        gasLimit,
+        feeGranter,
+        feePayer,
+      );
       const signDoc = makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
       const { signed, signature } = await wallet.signDirect(alice.address0, signDoc);
       const txRaw = TxRaw.fromPartial({
@@ -213,7 +221,7 @@ describe("CosmWasmClient", () => {
       });
       const signedTx = Uint8Array.from(TxRaw.encode(txRaw).finish());
       const result = await client.broadcastTx(signedTx);
-      assertIsBroadcastTxSuccess(result);
+      assertIsDeliverTxSuccess(result);
       const amountAttr = logs.findAttribute(logs.parseRawLog(result.rawLog), "transfer", "amount");
       expect(amountAttr.value).toEqual("1234567ucosm");
       expect(result.transactionHash).toMatch(/^[0-9A-F]{64}$/);
@@ -271,9 +279,13 @@ describe("CosmWasmClient", () => {
     it("works", async () => {
       pendingWithoutWasmd();
       const client = await CosmWasmClient.connect(wasmd.endpoint);
-      const result = await client.getContracts(1);
+      const result = await client.getContracts(deployedHackatom.codeId);
       const expectedAddresses = deployedHackatom.instances.map((info) => info.address);
-      expect(result).toEqual(expectedAddresses);
+
+      // Test first 3 instances we get from scripts/wasmd/init.sh. There may me more than that in the result.
+      expect(result[0]).toEqual(expectedAddresses[0]);
+      expect(result[1]).toEqual(expectedAddresses[1]);
+      expect(result[2]).toEqual(expectedAddresses[2]);
     });
   });
 
@@ -406,6 +418,14 @@ describe("CosmWasmClient", () => {
       const client = await CosmWasmClient.connect(wasmd.endpoint);
       const result = await client.queryContractSmart(contract.address, { verifier: {} });
       expect(result).toEqual({ verifier: contract.instantiateMsg.verifier });
+
+      // Typed request (https://github.com/cosmos/cosmjs/pull/1281)
+      interface VerifierQuery {
+        verifier: Record<string, never>;
+      }
+      const request: VerifierQuery = { verifier: {} };
+      const result2 = await client.queryContractSmart(contract.address, request);
+      expect(result2).toEqual({ verifier: contract.instantiateMsg.verifier });
     });
 
     it("errors for malformed query message", async () => {

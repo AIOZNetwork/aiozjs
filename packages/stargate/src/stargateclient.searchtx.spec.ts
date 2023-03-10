@@ -1,6 +1,7 @@
 import { fromBase64, toBase64 } from "@cosmjs/encoding";
 import {
   coins,
+  decodeTxRaw,
   DirectSecp256k1HdWallet,
   encodePubkey,
   makeAuthInfoBytes,
@@ -8,18 +9,12 @@ import {
   Registry,
   TxBodyEncodeObject,
 } from "@cosmjs/proto-signing";
-import { decodeTxRaw } from "@cosmjs/proto-signing/build";
 import { assert, sleep } from "@cosmjs/utils";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
-import { isMsgSendEncodeObject } from "./encodeobjects";
-import {
-  BroadcastTxResponse,
-  isBroadcastTxFailure,
-  isBroadcastTxSuccess,
-  StargateClient,
-} from "./stargateclient";
+import { isMsgSendEncodeObject } from "./modules";
+import { DeliverTxResponse, isDeliverTxFailure, isDeliverTxSuccess, StargateClient } from "./stargateclient";
 import {
   defaultSigningClientOptions,
   faucet,
@@ -46,7 +41,7 @@ async function sendTokens(
   amount: readonly Coin[],
   memo: string,
 ): Promise<{
-  readonly broadcastResponse: BroadcastTxResponse;
+  readonly broadcastResponse: DeliverTxResponse;
   readonly tx: Uint8Array;
 }> {
   const [{ address: walletAddress, pubkey: pubkeyBytes }] = await wallet.getAccounts();
@@ -79,7 +74,9 @@ async function sendTokens(
     },
   ];
   const gasLimit = 200000;
-  const authInfoBytes = makeAuthInfoBytes([{ pubkey, sequence }], feeAmount, gasLimit);
+  const feeGranter = undefined;
+  const feePayer = undefined;
+  const authInfoBytes = makeAuthInfoBytes([{ pubkey, sequence }], feeAmount, gasLimit, feeGranter, feePayer);
 
   const chainId = await client.getChainId();
   const signDoc = makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
@@ -122,7 +119,7 @@ describe("StargateClient.getTx and .searchTx", () => {
         coins(123456700000000, "ucosm"),
         "Sending more than I can afford",
       );
-      if (isBroadcastTxFailure(unsuccessfulResult.broadcastResponse)) {
+      if (isDeliverTxFailure(unsuccessfulResult.broadcastResponse)) {
         sendUnsuccessful = {
           sender: faucet.address0,
           recipient: unsuccessfulRecipient,
@@ -139,7 +136,7 @@ describe("StargateClient.getTx and .searchTx", () => {
         coins(1234567, "ucosm"),
         "Something I can afford",
       );
-      if (isBroadcastTxSuccess(successfulResult.broadcastResponse)) {
+      if (isDeliverTxSuccess(successfulResult.broadcastResponse)) {
         sendSuccessful = {
           sender: faucet.address0,
           recipient: successfulRecipient,

@@ -6,6 +6,567 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.29.5] - 2022-12-07
+
+### Fixed
+
+- @cosmjs/stargate: Fix `protoDecimalToJson` for values with a 0 fractional
+  part, such as `0.000000000000000000`, `1.000000000000000000` or
+  `42.000000000000000000` ([#1326]).
+
+[#1326]: https://github.com/cosmos/cosmjs/pull/1326
+
+### Changed
+
+- @cosmjs/crypto: `getSubtle()` does not use `getCryptoModule()` anymore to find
+  a subtle implementation. Turns out all environments we support have subtle in
+  `globalThis` or do not have it at all ([#1307], [#1340]).
+
+[#1307]: https://github.com/cosmos/cosmjs/pull/1307
+[#1340]: https://github.com/cosmos/cosmjs/pull/1340
+
+### Deprecated
+
+- @cosmjs/stargate: Deprecate `QueryClient.queryUnverified` in favour of newly
+  added `QueryClient.queryAbci`.
+- @cosmjs/stargate: Deprecate `QueryClient.queryVerified` in favour of newly
+  added `QueryClient.queryStoreVerified`.
+
+## [0.29.4] - 2022-11-15
+
+### Added
+
+- @cosmjs/tendermint-rpc: The options in the `HttpBatchClient` constructor are
+  now of type `Partial<HttpBatchClientOptions>`, allowing you to set only the
+  fields you want to change ([#1309]).
+- @cosmjs/tendermint-rpc: Add missing exports `HttpBatchClient`,
+  `HttpBatchClientOptions`, `RpcClient` ([#1311]).
+- @cosmjs/tendermint-rpc: Send batch immediately when full in `HttpBatchClient`
+  ([#1310]).
+
+[#1309]: https://github.com/cosmos/cosmjs/issues/1309
+[#1310]: https://github.com/cosmos/cosmjs/issues/1310
+[#1311]: https://github.com/cosmos/cosmjs/issues/1311
+
+### Fixed
+
+- @cosmjs/cosmwasm-stargate: Fix `ContractCodeHistory` decoding when msg
+  contains non-printable ASCII ([#1320]).
+- @cosmjs/crypto: Bump elliptic version to ^6.5.4 due to
+  [CVE-2020-28498](https://github.com/advisories/GHSA-r9p9-mrjm-926w).
+
+[#1320]: https://github.com/cosmos/cosmjs/pull/1320
+
+## [0.29.3] - 2022-10-25
+
+### Added
+
+- @cosmjs/tendermint-rpc: Add `HttpBatchClient`, which implements `RpcClient`,
+  supporting batch RPC requests ([#1300]).
+- @cosmjs/encoding: Add `lossy` parameter to `fromUtf8` allowing the use of a
+  replacement charater instead of throwing.
+- @cosmjs/stargate: Add structured `Events`s to `IndexTx.events` and
+  `DeliverTxResponse.events`.
+- @cosmjs/cosmwasm-stargate: Add structured `Events`s field to
+  `SigningCosmWasmClient`s transaction execution methods.
+
+### Fixed
+
+- @cosmjs/stargate: Fix Amino JSON encoding of the unset case of
+  `commission_rate` and `min_self_delegation` in
+  `MsgEditValidator`/`AminoMsgEditValidator`.
+
+## [0.29.2] - 2022-10-13
+
+### Added
+
+- @cosmjs/amino: Add `encodeEd25519Pubkey` analogue to the existing
+  `encodeSecp256k1Pubkey`.
+- @cosmjs/proto-signing: Add Ed25519 support to `encodePubkey` and
+  `anyToSinglePubkey`. Export `anyToSinglePubkey`.
+- @cosmjs/utils: Add `isDefined` which checks for `undefined` in a
+  TypeScript-friendly way.
+- @cosmjs/stargate: Add missing `{is,}MsgBeginRedelegateEncodeObject`,
+  `{is,MsgCreateValidatorEncodeObject}` and `{is,MsgEditValidatorEncodeObject}`.
+
+[#1300]: https://github.com/cosmos/cosmjs/pull/1300
+
+### Fixed
+
+- @cosmjs/cosmwasm-stargate: Use type `JsonObject = any` for smart query
+  requests and messages (in `WasmExtension.wasm.queryContractSmart`,
+  `CosmWasmClient.queryContractSmart`, `SigningCosmWasmClient.instantiate`,
+  `SigningCosmWasmClient.migrate`, `SigningCosmWasmClient.execute`). This
+  reverts the type change done in CosmJS 0.23.0. ([#1281], [#1284])
+- @cosmjs/cosmwasm-stargate: `AminoMsgCreateValidator` and
+  `createSdkStakingAminoConverters` were fixed after testing both
+  `MsgCreateValidator` and `MsgEditValidator` in sign mode direct and Amino JSON
+  ([#1290]).
+
+[#1281]: https://github.com/cosmos/cosmjs/pull/1281
+[#1284]: https://github.com/cosmos/cosmjs/pull/1284
+[#1290]: https://github.com/cosmos/cosmjs/pull/1290
+
+## [0.29.1] - 2022-10-09
+
+### Changed
+
+- @cosmjs/stargate, @cosmjs/cosmwasm-stargate: Add address to "Account does not
+  exist on chain." error message.
+
+## [0.29.0] - 2022-09-15
+
+### Added
+
+- @cosmjs/stargate: Add `makeMultisignedTxBytes` which is like
+  `makeMultisignedTx` but returns bytes ready to broadcast ([#1176]).
+- @cosmjs/tendermint-rpc: Add Tendermint 0.35 client (private, unusable). This
+  is currently not used by higher level clients as Cosmos SDK 0.42-0.46 use
+  Tendermint 0.34. It may become public or evolve into a Tendermint 0.36+ client
+  from here. If you need this client, please comment in [#1225] or open a new
+  issue. ([#1154] and [#1225])
+- @cosmjs/tendermint-rpc: Add fields `codespace` and `info` to
+  `AbciQueryResponse`.
+- @cosmjs/cosmwasm-stargate: Add `SigningCosmWasmClient.executeMultiple`
+  ([#1072]).
+- @cosmjs/math: Add `{Uint32,Int53,Uint53,Uint64}.toBigInt` converter methods.
+- @cosmjs/stargate: Add missing exports `AminoMsgTransfer`/`isAminoMsgTransfer`.
+- @cosmjs/stargate: Add support for `MsgVoteWeighted` (register by default and
+  create Amino JSON converters) ([#1224]).
+- @cosmjs/stargate: Add Amino JSON support for `MsgCreateVestingAccount`.
+- @cosmjs/stargate and @cosmjs/cosmwasm-stargate: Create and use
+  BroadcastTxError ([#1096]).
+- @cosmjs/stargate: Add height parameter to `QueryClient.queryUnverified`
+  ([#1250]).
+- @cosmjs/faucet: Allow configuring the cooldown value via
+  `FAUCET_COOLDOWN_TIME` environment variable.
+- @cosmjs/stargate: Add missing exports `setupAuthzExtension`,
+  `setupFeegrantExtension` and `setupSlashingExtension` ([#1261]).
+- @cosmjs/stargate: Add missing exports `createCrysisAminoConverters`,
+  `createEvidenceAminoConverters`, `createSlashingAminoConverters` and
+  `createVestingAminoConverters` ([#1261]).
+
+[#1072]: https://github.com/cosmos/cosmjs/issues/1072
+[#1096]: https://github.com/cosmos/cosmjs/issues/1096
+[#1154]: https://github.com/cosmos/cosmjs/issues/1154
+[#1176]: https://github.com/cosmos/cosmjs/pull/1176
+[#1224]: https://github.com/cosmos/cosmjs/pull/1224
+[#1225]: https://github.com/cosmos/cosmjs/issues/1225
+[#1250]: https://github.com/cosmos/cosmjs/issues/1250
+[#1261]: https://github.com/cosmos/cosmjs/pull/1261
+
+### Fixed
+
+- @cosmjs/stargate: Fix valid values of `BondStatusString` for `validators`
+  query ([#1170]).
+- @cosmjs/tendermint-rpc: Fix decoding validator updates due to slashing
+  ([#1177]).
+- @cosmjs/math: Check for negative values in `Decimal.fromAtomics` ([#1188]).
+- @cosmjs/tendermint-rpc: Fix `key` and `value` type in `RpcAbciQueryResponse`
+  to also include the `null` option.
+- @cosmjs/tendermint-rpc: Fix decoding events without attributes ([#1198]).
+- @cosmjs/amino, @cosmjs/proto-signing: Support amounts larger than the uint64
+  range in `parseCoins` ([#1268]).
+- @cosmjs/cosmwasm-stargate: Accept non-ASCII inputs in query requests of
+  `{CosmWasmClient,WasmExtension}.queryContractSmart` ([#1269]).
+
+[#1170]: https://github.com/cosmos/cosmjs/issues/1170
+[#1177]: https://github.com/cosmos/cosmjs/issues/1177
+[#1188]: https://github.com/cosmos/cosmjs/pull/1188
+[#1198]: https://github.com/cosmos/cosmjs/pull/1198
+[#1268]: https://github.com/cosmos/cosmjs/issues/1268
+[#1269]: https://github.com/cosmos/cosmjs/issues/1269
+
+### Changed
+
+- all: Upgrade cosmjs-types to 0.5 ([#1131]).
+- all: Drop support for Node.js < 14.
+- all: Use caret version for internal dependencies' version ranges ([#1254]).
+- @cosmjs/stargate: Change `packetCommitment` parameter `sequence` type from
+  `Long` to `number` ([#1168]).
+- @cosmjs/tendermint-rpc: The type of `votingPower` fields was changed from
+  `number` to `bigint` as those values can exceed the safe integer range
+  ([#1133]).
+- @cosmjs/stargate: Remove Cosmos SDK 0.42 support ([#1094]).
+- @cosmjs/tendermint-rpc: Change spelling of field `codeSpace` to `codespace` in
+  `TxData` and `BroadcastTxSyncResponse` ([#1234]).
+- @cosmjs/stargate: `BankExtension.totalSupply` now takes a pagination key
+  argument and returns the full `QueryTotalSupplyResponse` including the next
+  pagination key ([#1095]).
+- @cosmjs/proto-signing: `makeAuthInfoBytes` now expects a fee granter and fee
+  payer argument in position 4 and 5.
+- @cosmjs/stargate: Rename exported function `createFreegrantAminoConverters` to
+  `createFeegrantAminoConverters` due to a typo ([#1261).
+
+[#1131]: https://github.com/cosmos/cosmjs/pull/1131
+[#1168]: https://github.com/cosmos/cosmjs/pull/1168
+[#1133]: https://github.com/cosmos/cosmjs/issues/1133
+[#1094]: https://github.com/cosmos/cosmjs/issues/1094
+[#1234]: https://github.com/cosmos/cosmjs/issues/1234
+[#1095]: https://github.com/cosmos/cosmjs/issues/1095
+[#1254]: https://github.com/cosmos/cosmjs/issues/1254
+[#1261]: https://github.com/cosmos/cosmjs/pull/1261
+
+## [0.28.11] - 2022-07-13
+
+### Fixed
+
+- @cosmjs/faucet: Fix cooldown value from 86 seconds to 24 hours.
+
+## [0.28.10] - 2022-06-29
+
+### Fixed
+
+- @cosmjs/tendermint-rpc: Fix decoding events without attributes ([#1198]).
+
+[#1198]: https://github.com/cosmos/cosmjs/pull/1198
+
+## [0.28.9] - 2022-06-21
+
+This version replaces the 0.28.8 release which was erroneously tagged as 0.26.8
+and released to npm under that wrong version. In order to avoid further
+confusion we give up the .8 patch version. Users should install `^0.28.9` for
+all `@cosmjs/*` packages to be safe. Users of `^0.26` should upgrade to a more
+recent minor version if they run into trouble.
+
+## [0.28.8] - 2022-06-21
+
+- @cosmjs/tendermint-rpc: Fix decoding validator updates due to slashing
+  ([#1177]).
+
+[#1177]: https://github.com/cosmos/cosmjs/issues/1177
+
+## [0.28.7] - 2022-06-14
+
+### Fixed
+
+- @cosmjs/stargate: Fix valid values of `BondStatusString` for `validators`
+  query ([#1170]).
+
+[#1170]: https://github.com/cosmos/cosmjs/issues/1170
+
+### Changed
+
+- @cosmjs/proto-signing, @cosmjs/cosmwasm-stargate: Turn `protobufjs` into a
+  devDependency ([#1166]).
+
+[#1166]: https://github.com/cosmos/cosmjs/pull/1166
+
+## [0.28.6] - 2022-06-08
+
+## [0.28.5] - 2022-06-08
+
+### Added
+
+- @cosmjs/math: Add `Decimal.floor` and `Decimal.ceil`.
+- @cosmjs/tendermint-rpc: Add `num_unconfirmed_txs` endpoint. ([#1150])
+
+[#1150]: https://github.com/cosmos/cosmjs/pull/1150
+
+### Changed
+
+- @cosmjs/stargate: Let `calculateFee` handle fee amounts that exceed the safe
+  integer range.
+- @cosmjs/cosmwasm-stargate, @cosmjs/stargate, @cosmjs/proto-signing: Upgrade
+  protobufjs to 6.11.
+
+### Fixed
+
+- @cosmjs/tendermint-rpc: Fix block results validator update decoder. ([#1151])
+
+[#1151]: https://github.com/cosmos/cosmjs/issues/1151
+
+## [0.28.4] - 2022-04-15
+
+### Added
+
+- @cosmjs/math: Add `Decimal.zero` and `Decimal.one` ([#1110]).
+- @cosmjs/amino: Add `addCoins` ([#1116])
+- @cosmjs/stargate: Add `StargateClient.getBalanceStaked()` to query the sum of
+  all staked balance. ([#1116])
+
+### Changed
+
+- @cosmjs/faucet: Docker build image is 90 % smaller now (from 500 MB to 50 MB)
+  due to build system optimizations ([#1120], [#1121]).
+- @cosmjs/cosmwasm-stargate: `CosmWasmClient.connect` and
+  `SigningCosmWasmClient.connectWithSigner` now accept custom HTTP headers
+  ([#1007])
+- @cosmjs/stargate: `StargateClient.connect` and
+  `SigningStargateClient.connectWithSigner` now accept custom HTTP headers
+  ([#1007])
+- @cosmjs/tendermint-rpc: `Tendermint34Client.connect` now accepts custom HTTP
+  headers ([#1007]).
+
+[#1007]: https://github.com/cosmos/cosmjs/issues/1007
+[#1110]: https://github.com/cosmos/cosmjs/issues/1110
+[#1120]: https://github.com/cosmos/cosmjs/pull/1120
+[#1121]: https://github.com/cosmos/cosmjs/pull/1121
+[#1116]: https://github.com/cosmos/cosmjs/issues/1116
+
+## [0.28.3] - 2022-04-11
+
+### Added
+
+- @cosmjs/encoding: Add missing export: `normalizeBech32`.
+
+## [0.28.2] - 2022-04-07
+
+### Added
+
+- @cosmjs/encoding: Create `normalizeBech32`.
+- @cosmjs/stargate: Added support for `MsgCreateVestingAccount` ([#1074]).
+  Please note that Amino JSON signing is currently not available for this type
+  ([#1115]).
+
+[#1074]: https://github.com/cosmos/cosmjs/issues/1074
+[#1115]: https://github.com/cosmos/cosmjs/issues/1115
+
+## [0.28.1] - 2022-03-30
+
+### Added
+
+- @cosmjs/stargate: Added the ability to specify a custom account parser for
+  `StargateClient`
+
+### Fixed
+
+- @cosmjs/proto-signing: Add missing runtime dependencies @cosmjs/encoding and
+  @cosmjs/utils.
+- @cosmjs/tendermint-rpc: Add missing runtime dependency @cosmjs/utils.
+
+## [0.28.0] - 2022-03-17
+
+### Changed
+
+- all: The TypeScript compilation target is now ES2018.
+- @cosmjs/crypto: Add `Secp256k1.uncompressPubkey`.
+- @cosmjs/crypto: Replace hashing implementations with @noble/hashes ([#960]).
+- @cosmjs/faucet: Set default value of `FAUCET_GAS_LIMIT` to 100_000 to better
+  support Cosmos SDK 0.45 chains.
+- @cosmjs/stargate: The `AminoTypes` now always requires an argument of type
+  `AminoTypesOptions`. This is an object with a required `prefix` field. Before
+  the prefix defaulted to "cosmos" but this is almost never the right choice for
+  CosmJS users that need to add Amino types manually. ([#989])
+- @cosmjs/cosmwasm-stargate: `height`, `gasWanted` and `gasUsed` have been added
+  to all result types of `SigningCosmWasmClient`
+- @cosmjs/stargate: `MsgSend` and `Coin` are now parts of
+  `defaultRegistryTypes`. ([#994])
+- @cosmjs/proto-signing: `Registry`'s constructor can now override default
+  types. ([#994])
+- @cosmjs/tendermint-rpc: The property `evidence` in the interface `Block` is
+  now non-optional. ([#1011])
+- @cosmjs/stargate: Added the following message types to stargate's
+  `defaultRegistryTypes`: ([#1026])
+  - cosmos.authz.v1beta1.MsgGrant
+  - cosmos.authz.v1beta1.MsgExec
+  - cosmos.authz.v1beta1.MsgRevoke
+  - cosmos.feegrant.v1beta1.MsgGrantAllowance
+  - cosmos.feegrant.v1beta1.MsgRevokeAllowance
+- @cosmjs/stargate: In `AminoTypes` the uniqueness of the Amino type identifier
+  is checked in `fromAmino` now instead of the constructor. This only affects
+  you if multiple different protobuf type URLs map to the same Amino type
+  identifier which should not be the case anyways.
+- @cosmjs/stargate: Added support for slashing queries ([#927])
+- @cosmjs/ledger-amino: Renamed `LaunchpadLedger` to `LedgerConnector` ([#955])
+- @cosmjs/encoding: Created `toBech32()` and `fromBech32()`. Class Bech32 is now
+  deprecated and should not longer be used. ([#1053])
+- @cosmjs/crypto: Use a custom BIP-39 implementation to reduce external
+  dependencies. This should also reduce the bundle size as only the English
+  wordlist is shipped. ([#966])
+- @cosmjs/cli: Rename binary `cosmwasm-cli` to `cosmjs-cli` ([#1033]).
+- @cosmjs/stargate: Added Authz queries. ([#1080]).
+- @cosmjs/stargate & @cosmjs/cosmwasm-stargate: Removed default types from
+  AminoTypes. ([#1079])
+- @cosmjs/cosmwasm-stargate: getCodes() automatically loops through all
+  pagination pages now. ([#1077])
+- @cosmjs/stargate & @cosmjs/cosmwasm-stargate: Timeout Errors shows more
+  relevant information about the timeout. ([#1066])
+
+[#927]: https://github.com/cosmos/cosmjs/issues/927
+[#955]: https://github.com/cosmos/cosmjs/issues/955
+[#960]: https://github.com/cosmos/cosmjs/pull/960
+[#966]: https://github.com/cosmos/cosmjs/pull/966
+[#989]: https://github.com/cosmos/cosmjs/issues/989
+[#994]: https://github.com/cosmos/cosmjs/issues/994
+[#1011]: https://github.com/cosmos/cosmjs/issues/1011
+[#1026]: https://github.com/cosmos/cosmjs/issues/1026
+[#1033]: https://github.com/cosmos/cosmjs/issues/1033
+[#1053]: https://github.com/cosmos/cosmjs/issues/1053
+[#1066]: https://github.com/cosmos/cosmjs/issues/1066
+[#1077]: https://github.com/cosmos/cosmjs/issues/1077
+[#1078]: https://github.com/cosmos/cosmjs/issues/1078
+[#1079]: https://github.com/cosmos/cosmjs/issues/1079
+[#1080]: https://github.com/cosmos/cosmjs/issues/1080
+
+### Removed
+
+- @cosmjs/crypto: Remove the SHA1 implementation (`Sha1` and `sha1`) as it is
+  not used in the Cosmos tech stack and not implemented in the hashing lib we
+  want to migrate to ([#1003]). Also it has known weaknesses.
+- @cosmjs/launchpad: Package was removed as no support for Cosmos SDK 0.37-0.39
+  is needed anymore ([#947]).
+
+[#947]: https://github.com/cosmos/cosmjs/issues/947
+[#1003]: https://github.com/cosmos/cosmjs/issues/1003
+
+## [0.27.1] - 2022-01-26
+
+### Added
+
+- @cosmjs/cosmwasm-stargate: Add `fromBinary`/`toBinary` to convert between
+  JavaScript objects and the JSON representation of `cosmwasm_std::Binary`
+  (base64).
+- @cosmjs/cosmwasm-stargate: Export `WasmExtension` and `setupWasmExtension`.
+- @cosmjs/ledger-amino: Added `LedgerSigner.showAddress` and
+  `LaunchpadLedger.showAddress` to show the user's address in the Ledger screen.
+
+### Changed
+
+- @cosmjs/stargate: The error messages for missing types in `AminoTypes` now
+  contain the type that was searched for ([#990]).
+- @cosmjs/tendermint-rpc: Change the `Evidence` type to `any` and avoid decoding
+  it. The structure we had before was outdated and trying to decode it led to
+  exceptions at runtime when a block with actual values was encountered.
+  ([#980])
+
+[#990]: https://github.com/cosmos/cosmjs/pull/990
+[#980]: https://github.com/cosmos/cosmjs/issues/980
+
+## [0.27.0] - 2022-01-10
+
+### Added
+
+- @cosmjs/tendermint-rpc: Add `hash` field to `BroadcastTxAsyncResponse`
+  ([#938]).
+- @cosmjs/stargate: Add `denomMetadata` and `denomsMetadata` to `BankExtension`
+  ([#932]).
+- @cosmjs/stargate: Merge `DeliverTxFailure` and `DeliverTxSuccess` into a
+  single `DeliverTxResponse` ([#878], [#949]). Add `assertIsDeliverTxFailure`.
+- @cosmjs/stargate: Created initial `MintExtension`.
+- @cosmjs/stargate: Created `types.Dec` decoder function
+  `decodeCosmosSdkDecFromProto`.
+- @cosmjs/amino: Added `StdTx`, `isStdTx` and `makeStdTx` and removed them from
+  @cosmjs/launchpad. They are re-exported in @cosmjs/launchpad for backwards
+  compatibility.
+- @cosmjs/stargate: Add `GasPrice.toString`.
+- @cosmjs/faucet: Added a new functionality to faucet: Each address is only
+  allowed to get credits once every 24h to prevent draining. ([#962]))
+
+[#962]: https://github.com/cosmos/cosmjs/issues/962
+[#938]: https://github.com/cosmos/cosmjs/issues/938
+[#932]: https://github.com/cosmos/cosmjs/issues/932
+[#878]: https://github.com/cosmos/cosmjs/issues/878
+[#949]: https://github.com/cosmos/cosmjs/issues/949
+
+### Fixed
+
+- @cosmjs/tendermint-rpc: Add missing `BlockSearchResponse` case to `Response`.
+
+### Changed
+
+- @cosmjs/stargate: Remove verified queries from `AuthExtension` and
+  `BankExtension` as well as `StargateClient.getAccountVerified` because the
+  storage layout is not stable across multiple Cosmos SDK releases. Verified
+  queries remain available in the `IbcExtension` because for IBC the storage
+  layout is standardized. Such queries can still be implemented in CosmJS caller
+  code that only needs to support one backend. ([#865])
+- @cosmjs/tendermint-rpc: Remove default URL from `HttpClient` and
+  `WebsocketClient` constructors ([#897]).
+- all: Upgrade cosmjs-types to 0.4. This includes the types of the Cosmos SDK
+  0.44 modules x/authz and x/feegrant. It causes a few breaking changes by
+  adding fields to interfaces as well as changing `Date` to a `Timestamp`
+  object. ([#928])
+- @cosmjs/stargate and @cosmjs/cosmwasm-stargate: Add simulation support
+  ([#931]).
+- @cosmjs/cosmwasm-stargate: Rename `BroadcastTx{Success,Failure}` to
+  `DeliverTx{Success,Failure}`, `BroadcastTxResponse` to `DeliverTxResponse`,
+  `isBroadcastTx{Success,Failure}` to `isDeliverTx{Success,Failure}` and
+  `assertIsBroadcastTxSuccess` to `assertIsDeliverTxSuccess`. ([#946])
+- @cosmjs/tendermint-rpc: Remove `Tendermint33Client` and related symbols.
+- @cosmjs/cosmwasm-stargate: Add support for wasmd 0.21. This changes the AMINO
+  JSON representation of `Msg{Execute,Instantiate,Migrate}Contract.msg` from
+  base64 strings to JSON objects. ([#948])
+- @cosmjs/cli: Replace `colors` dependency with `chalk` (see
+  https://snyk.io/blog/open-source-npm-packages-colors-faker/)
+
+[#865]: https://github.com/cosmos/cosmjs/issues/865
+[#897]: https://github.com/cosmos/cosmjs/issues/897
+[#928]: https://github.com/cosmos/cosmjs/issues/928
+[#931]: https://github.com/cosmos/cosmjs/pull/931
+[#709]: https://github.com/cosmos/cosmjs/issues/709
+[#946]: https://github.com/cosmos/cosmjs/pull/946
+[#948]: https://github.com/cosmos/cosmjs/pull/948
+
+## [0.26.6] - 2022-01-10
+
+### Changed
+
+- @cosmjs/cli: Replace `colors` dependency with `chalk` (see
+  https://snyk.io/blog/open-source-npm-packages-colors-faker/)
+
+## [0.26.5] - 2021-11-20
+
+### Added
+
+- @cosmjs/amino: The `coin` and `coins` helpers now support both `number` and
+  `string` as input types for the amount. This is useful if your values exceed
+  the safe integer range.
+
+### Fixed
+
+- @cosmjs/tendermint-rpc: Fix undefined `this` in `decodeBroadcastTxAsync` and
+  `broadcastTxAsync` ([#937]).
+
+[#937]: https://github.com/cosmos/cosmjs/pull/937
+
+## [0.26.4] - 2021-10-28
+
+### Fixed
+
+- @cosmjs/cosmwasm-stargate: Fix response error handling for smart queries.
+
+## [0.26.3] - 2021-10-25
+
+### Added
+
+- @cosmjs/ledger-amino: Add support for using forks of the Cosmos Ledger app by
+  adding the fields `LaunchpadLedgerOptions.ledgerAppName` and
+  `.minLedgerAppVersion`.
+
+### Deprecated
+
+- @cosmjs/stargate: The verified queries from `AuthExtension` and
+  `BankExtension` as well as `StargateClient.getAccountVerified` are deprecated
+  and will be removed in 0.27 ([#910]).
+
+[#910]: https://github.com/cosmos/cosmjs/pull/910
+
+## [0.26.2] - 2021-10-12
+
+### Fixed
+
+- @cosmjs/stargate: remove extra space in messageTimeout registry.
+- @cosmjs/cosmwasm-stargate: Fix Amino JSON representation of
+  `MsgInstantiateContract`, `MsgMigrateContract` and `MsgExecuteContract` to
+  match the wasmd expectation. This was broken since the wasmd upgrade to
+  Stargate such that no Ledger signing was possible for those message types in
+  the meantime.
+
+## [0.26.1] - 2021-09-30
+
+### Added
+
+- @cosmjs/amino: `decodeBech32Pubkey` and `decodeAminoPubkey` now support
+  decoding multisig public keys ([#882]).
+
+### Fixed
+
+- @cosmjs/stargate: Add missing pagination key arguments to query types in
+  `GovExtension`.
+
+[#882]: https://github.com/cosmos/cosmjs/issues/882
+
 ## [0.26.0] - 2021-08-24
 
 ### Added
@@ -577,7 +1138,33 @@ CHANGELOG entries missing. Please see [the diff][0.24.1].
   `FeeTable`. @cosmjs/cosmwasm has its own `FeeTable` with those properties.
 - @cosmjs/sdk38: Rename package to @cosmjs/launchpad.
 
-[unreleased]: https://github.com/cosmos/cosmjs/compare/v0.26.0...HEAD
+[unreleased]: https://github.com/cosmos/cosmjs/compare/v0.29.5...HEAD
+[0.29.5]: https://github.com/cosmos/cosmjs/compare/v0.29.4...v0.29.5
+[0.29.4]: https://github.com/cosmos/cosmjs/compare/v0.29.3...v0.29.4
+[0.29.3]: https://github.com/cosmos/cosmjs/compare/v0.29.2...v0.29.3
+[0.29.2]: https://github.com/cosmos/cosmjs/compare/v0.29.1...v0.29.2
+[0.29.1]: https://github.com/cosmos/cosmjs/compare/v0.29.0...v0.29.1
+[0.29.0]: https://github.com/cosmos/cosmjs/compare/v0.28.11...v0.29.0
+[0.28.11]: https://github.com/cosmos/cosmjs/compare/v0.28.10...v0.28.11
+[0.28.10]: https://github.com/cosmos/cosmjs/compare/v0.28.9...v0.28.10
+[0.28.9]: https://github.com/cosmos/cosmjs/compare/v0.28.8...v0.28.9
+[0.28.8]: https://github.com/cosmos/cosmjs/compare/v0.28.7...v0.28.8
+[0.28.7]: https://github.com/cosmos/cosmjs/compare/v0.28.6...v0.28.7
+[0.28.6]: https://github.com/cosmos/cosmjs/compare/v0.28.5...v0.28.6
+[0.28.5]: https://github.com/cosmos/cosmjs/compare/v0.28.4...v0.28.5
+[0.28.4]: https://github.com/cosmos/cosmjs/compare/v0.28.3...v0.28.4
+[0.28.3]: https://github.com/cosmos/cosmjs/compare/v0.28.2...v0.28.3
+[0.28.2]: https://github.com/cosmos/cosmjs/compare/v0.28.1...v0.28.2
+[0.28.1]: https://github.com/cosmos/cosmjs/compare/v0.28.0...v0.28.1
+[0.28.0]: https://github.com/cosmos/cosmjs/compare/v0.27.1...v0.28.0
+[0.27.1]: https://github.com/cosmos/cosmjs/compare/v0.27.0...v0.27.1
+[0.27.0]: https://github.com/cosmos/cosmjs/compare/v0.26.6...v0.27.0
+[0.26.6]: https://github.com/cosmos/cosmjs/compare/v0.26.5...v0.26.6
+[0.26.5]: https://github.com/cosmos/cosmjs/compare/v0.26.4...v0.26.5
+[0.26.4]: https://github.com/cosmos/cosmjs/compare/v0.26.3...v0.26.4
+[0.26.3]: https://github.com/cosmos/cosmjs/compare/v0.26.2...v0.26.3
+[0.26.2]: https://github.com/cosmos/cosmjs/compare/v0.26.1...v0.26.2
+[0.26.1]: https://github.com/cosmos/cosmjs/compare/v0.26.0...v0.26.1
 [0.26.0]: https://github.com/cosmos/cosmjs/compare/v0.25.6...v0.26.0
 [0.25.6]: https://github.com/cosmos/cosmjs/compare/v0.25.5...v0.25.6
 [0.25.5]: https://github.com/cosmos/cosmjs/compare/v0.25.4...v0.25.5

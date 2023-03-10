@@ -27,15 +27,13 @@ yarn demo-node
 
 ### Browser
 
-Build the package for web:
+Serve the project locally:
 
 ```sh
+# Build the package for web
 yarn pack-web
-```
 
-Host the `ledger-amino` package directory, for example using Python 3:
-
-```sh
+# Host the `ledger-amino` package directory, for example using Python 3
 python3 -m http.server
 ```
 
@@ -44,22 +42,26 @@ http://localhost:8000/demo.
 
 Then follow the instructions on that page.
 
-## Runnng tests
+## Running tests
 
 The tests in this package require a Ledger device
 [initialized with the mnemonic](https://support.ledger.com/hc/en-us/articles/360005434914)
 from
-[scripts/launchpad/README.md#preset-accounts](https://github.com/cosmos/cosmjs/blob/main/scripts/launchpad/README.md#preset-accounts)
+[scripts/wasmd/README.md#preset-accounts](https://github.com/cosmos/cosmjs/blob/main/scripts/wasmd/README.md#preset-accounts)
 (see "Ledger: accounts for Ledger based demos and tests") with an installed
 "Cosmos (ATOM)" app. The device must be connected via USB, unlocked and the
 Cosmos app must be opened. The tests require the user to manually approve
-transactions. Start a local Launchpad blockchain as described in
-[scripts/launchpad/README.md](https://github.com/cosmos/cosmjs/blob/main/scripts/launchpad/README.md)
+transactions.
+
+### Stargate tests
+
+Start a local Stargate blockchain as described in
+[scripts/simapp44/README.md](https://github.com/cosmos/cosmjs/blob/main/scripts/simapp44/README.md)
 and execute:
 
 ```sh
 export LEDGER_ENABLED=1
-export LAUNCHPAD_ENABLED=1
+export SIMAPP44_ENABLED=1
 yarn test
 ```
 

@@ -1,17 +1,42 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EthAccount = exports.protobufPackage = void 0;
 /* eslint-disable */
-const long_1 = __importDefault(require("long"));
-const minimal_1 = __importDefault(require("protobufjs/minimal"));
 const auth_1 = require("../../../cosmos/auth/v1beta1/auth");
+const _m0 = __importStar(require("protobufjs/minimal"));
+const helpers_1 = require("../../../helpers");
 exports.protobufPackage = "ethermint.types.v1";
-const baseEthAccount = { codeHash: "" };
+function createBaseEthAccount() {
+    return {
+        baseAccount: undefined,
+        codeHash: "",
+    };
+}
 exports.EthAccount = {
-    encode(message, writer = minimal_1.default.Writer.create()) {
+    encode(message, writer = _m0.Writer.create()) {
         if (message.baseAccount !== undefined) {
             auth_1.BaseAccount.encode(message.baseAccount, writer.uint32(10).fork()).ldelim();
         }
@@ -21,9 +46,9 @@ exports.EthAccount = {
         return writer;
     },
     decode(input, length) {
-        const reader = input instanceof minimal_1.default.Reader ? input : new minimal_1.default.Reader(input);
+        const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
         let end = length === undefined ? reader.len : reader.pos + length;
-        const message = Object.assign({}, baseEthAccount);
+        const message = createBaseEthAccount();
         while (reader.pos < end) {
             const tag = reader.uint32();
             switch (tag >>> 3) {
@@ -41,20 +66,10 @@ exports.EthAccount = {
         return message;
     },
     fromJSON(object) {
-        const message = Object.assign({}, baseEthAccount);
-        if (object.baseAccount !== undefined && object.baseAccount !== null) {
-            message.baseAccount = auth_1.BaseAccount.fromJSON(object.baseAccount);
-        }
-        else {
-            message.baseAccount = undefined;
-        }
-        if (object.codeHash !== undefined && object.codeHash !== null) {
-            message.codeHash = String(object.codeHash);
-        }
-        else {
-            message.codeHash = "";
-        }
-        return message;
+        return {
+            baseAccount: (0, helpers_1.isSet)(object.baseAccount) ? auth_1.BaseAccount.fromJSON(object.baseAccount) : undefined,
+            codeHash: (0, helpers_1.isSet)(object.codeHash) ? String(object.codeHash) : "",
+        };
     },
     toJSON(message) {
         const obj = {};
@@ -64,24 +79,13 @@ exports.EthAccount = {
         return obj;
     },
     fromPartial(object) {
-        const message = Object.assign({}, baseEthAccount);
-        if (object.baseAccount !== undefined && object.baseAccount !== null) {
-            message.baseAccount = auth_1.BaseAccount.fromPartial(object.baseAccount);
-        }
-        else {
-            message.baseAccount = undefined;
-        }
-        if (object.codeHash !== undefined && object.codeHash !== null) {
-            message.codeHash = object.codeHash;
-        }
-        else {
-            message.codeHash = "";
-        }
+        const message = createBaseEthAccount();
+        message.baseAccount =
+            object.baseAccount !== undefined && object.baseAccount !== null
+                ? auth_1.BaseAccount.fromPartial(object.baseAccount)
+                : undefined;
+        message.codeHash = object.codeHash ?? "";
         return message;
     },
 };
-if (minimal_1.default.util.Long !== long_1.default) {
-    minimal_1.default.util.Long = long_1.default;
-    minimal_1.default.configure();
-}
 //# sourceMappingURL=account.js.map

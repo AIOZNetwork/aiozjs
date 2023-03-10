@@ -17,8 +17,6 @@ function checkDenom(denom: string): void {
 /**
  * A gas price, i.e. the price of a single unit of gas. This is typically a fraction of
  * the smallest fee token unit, such as 0.012utoken.
- *
- * This is the same as GasPrice from @cosmjs/launchpad but those might diverge in the future.
  */
 export class GasPrice {
   public readonly amount: Decimal;
@@ -49,12 +47,22 @@ export class GasPrice {
     const decimalAmount = Decimal.fromUserInput(amount, fractionalDigits);
     return new GasPrice(decimalAmount, denom);
   }
+
+  /**
+   * Returns a string representation of this gas price, e.g. "0.025uatom".
+   * This can be used as an input to `GasPrice.fromString`.
+   */
+  public toString(): string {
+    return this.amount.toString() + this.denom;
+  }
 }
 
 export function calculateFee(gasLimit: number, gasPrice: GasPrice | string): StdFee {
   const processedGasPrice = typeof gasPrice === "string" ? GasPrice.fromString(gasPrice) : gasPrice;
   const { denom, amount: gasPriceAmount } = processedGasPrice;
-  const amount = Math.ceil(gasPriceAmount.multiply(new Uint53(gasLimit)).toFloatApproximation());
+  // Note: Amount can exceed the safe integer range (https://github.com/cosmos/cosmjs/issues/1134),
+  // which we handle by converting from Decimal to string without going through number.
+  const amount = gasPriceAmount.multiply(new Uint53(gasLimit)).ceil().toString();
   return {
     amount: coins(amount, denom),
     gas: gasLimit.toString(),

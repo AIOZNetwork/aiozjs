@@ -10,11 +10,7 @@ import {
 import { Secp256k1, Secp256k1Signature, sha256 } from "@cosmjs/crypto";
 import { fromBase64 } from "@cosmjs/encoding";
 import {
-  assertIsBroadcastTxSuccess as assertIsBroadcastTxSuccessLaunchpad,
-  SigningCosmosClient,
-} from "@cosmjs/launchpad";
-import {
-  assertIsBroadcastTxSuccess as assertIsBroadcastTxSuccessStargate,
+  assertIsDeliverTxSuccess as assertIsDeliverTxSuccessStargate,
   calculateFee,
   SigningStargateClient,
 } from "@cosmjs/stargate";
@@ -24,9 +20,7 @@ import Transport from "@ledgerhq/hw-transport";
 import { LedgerSigner } from "./ledgersigner";
 import {
   faucet,
-  launchpad,
   ledgerEnabled,
-  pendingWithoutLaunchpad,
   pendingWithoutLedger,
   pendingWithoutSimapp,
   simapp,
@@ -53,7 +47,7 @@ async function createTransport(): Promise<Transport> {
 
 describe("LedgerSigner", () => {
   const defaultChainId = "testing";
-  const defaultFee = calculateFee(80_000, "0.025ucosm");
+  const defaultFee = calculateFee(100_000, "0.025ucosm");
   const defaultMemo = "Some memo";
   const defaultSequence = "0";
   const defaultAccountNumber = "42";
@@ -73,7 +67,7 @@ describe("LedgerSigner", () => {
         defaultFee,
         memo,
       );
-      assertIsBroadcastTxSuccessStargate(sendResult);
+      assertIsDeliverTxSuccessStargate(sendResult);
     }
   });
 
@@ -170,24 +164,6 @@ describe("LedgerSigner", () => {
     );
 
     it(
-      "creates signature accepted by Launchpad backend",
-      async () => {
-        pendingWithoutLedger();
-        pendingWithoutLaunchpad();
-        const signer = new LedgerSigner(transport, {
-          testModeAllowed: true,
-          hdPaths: [makeCosmoshubPath(0), makeCosmoshubPath(1), makeCosmoshubPath(10)],
-        });
-        const [firstAccount] = await signer.getAccounts();
-
-        const client = new SigningCosmosClient(launchpad.endpoint, firstAccount.address, signer);
-        const result = await client.sendTokens(defaultLedgerAddress, coins(1234567, "ucosm"));
-        assertIsBroadcastTxSuccessLaunchpad(result);
-      },
-      interactiveTimeout,
-    );
-
-    it(
       "creates signature accepted by Stargate backend",
       async () => {
         pendingWithoutLedger();
@@ -205,7 +181,7 @@ describe("LedgerSigner", () => {
           coins(1234, "ucosm"),
           defaultFee,
         );
-        assertIsBroadcastTxSuccessStargate(result);
+        assertIsDeliverTxSuccessStargate(result);
       },
       interactiveTimeout,
     );

@@ -4,78 +4,70 @@
 
 ## Installation and first run
 
-The `cosmwasm-cli` executable is available via npm. We recommend local
+The `cosmjs-cli` executable is available via npm. We recommend local
 installations to your demo project. If you don't have one yet, just
-`mkdir cosmwasm-cli-installation && cd cosmwasm-cli-installation && yarn init --yes`.
+`mkdir cosmjs-cli-installation && cd cosmjs-cli-installation && yarn init --yes`.
 
 ### locally with yarn
 
 ```
 $ yarn add @cosmjs/cli --dev
-$ ./node_modules/.bin/cosmwasm-cli
+$ ./node_modules/.bin/cosmjs-cli
 ```
 
 ### locally with npm
 
 ```
 $ npm install @cosmjs/cli --save-dev
-$ ./node_modules/.bin/cosmwasm-cli
+$ ./node_modules/.bin/cosmjs-cli
 ```
 
 ### globally with yarn
 
 ```
 $ yarn global add @cosmjs/cli
-$ cosmwasm-cli
+$ cosmjs-cli
 ```
 
 ### globally with npm
 
 ```
 $ npm install -g @cosmjs/cli
-$ cosmwasm-cli
+$ cosmjs-cli
 ```
 
 ## Getting started
 
-1. Install `@cosmjs/cli` and run `cosmwasm-cli` as shown above
+1. Install `@cosmjs/cli` and run `cosmjs-cli` as shown above
 2. Start a local wasmd blockchain
-3. Start with `./bin/cosmwasm-cli --init examples/local_faucet.ts`
+3. Start with `./bin/cosmjs-cli --init examples/local_faucet.ts`
 4. Play around as in the following example code
 
 ```ts
 // Get account information
-const { account_number, sequence } = (await client.authAccounts(faucetAddress))
-  .result.value;
+const account = await client.getAccount(faucetAddress);
 
 // Craft a send transaction
 const emptyAddress = Bech32.encode("cosmos", Random.getBytes(20));
-const memo = "My first contract on chain";
-const sendTokensMsg: MsgSend = {
-  type: "cosmos-sdk/MsgSend",
-  value: {
-    from_address: faucetAddress,
-    to_address: emptyAddress,
-    amount: [
-      {
-        denom: "ucosm",
-        amount: "1234567",
-      },
-    ],
-  },
+const memo = "My very first tx!";
+const msgSend = {
+  fromAddress: faucetAddress,
+  toAddress: emptyAddress,
+  amount: coins(1234, "ucosm"),
 };
 
-const signDoc = makeSignDoc(
-  [sendTokensMsg],
+const msgAny = {
+  typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+  value: msgSend,
+};
+
+// Broadcast and sign the transaction
+const broadcastResult = await client.signAndBroadcast(
+  faucetAddress,
+  [msgAny],
   defaultFee,
-  defaultNetworkId,
   memo,
-  account_number,
-  sequence,
 );
-const { signed, signature } = await wallet.signAmino(faucetAddress, signDoc);
-const signedTx = makeStdTx(signed, signature);
-const broadcastResult = await client.broadcastTx(signedTx);
 ```
 
 ## Extended helpers
@@ -85,7 +77,7 @@ way to learn how to embed cosmjs into your project. However, if you just want a
 cli to perform some quick queries on a chain, you can use an extended set of
 helpers:
 
-Start with `./bin/cosmwasm-cli --init examples/helpers.ts`
+Start with `./bin/cosmjs-cli --init examples/helpers.ts`
 
 (This points to the Demonet at https://lcd.demo-08.cosmwasm.com for ease of use.
 Other networks, look below)
@@ -179,7 +171,7 @@ see how to connect to the Regen Testnet, try this. (Note you need to use
 `.editor` in the repl to allow multi-line commands. Alternative is to place
 entire `regenOptions` on one line.
 
-Run `./bin/cosmwasm-cli --init examples/helpers.ts`
+Run `./bin/cosmjs-cli --init examples/helpers.ts`
 
 ```ts
 .editor
@@ -252,7 +244,7 @@ Save mnemonic to a file
 echo "cousin nephew vintage label empty sunny cargo mushroom photo side clarify sleep solid entire deal tattoo vehicle record discover arrive sting staff salt uncle" > wasmcli.key
 ```
 
-Load it up in cosmjs: `./bin/cosmwasm-cli --init examples/helpers.ts`
+Load it up in cosmjs: `./bin/cosmjs-cli --init examples/helpers.ts`
 
 ```ts
 const mnemonic = loadOrCreateMnemonic("wasmcli.key");
@@ -267,8 +259,10 @@ play with contracts.
 
 ## Diving into Contracts
 
-Check out the [mask documentation](./MASK.md) to view how to use some custom
-helpers to upload code and use non-trivial contracts with proper types.
+Check out the
+[mask documentation](https://github.com/cosmos/cosmjs/blob/main/packages/cli/MASK.md)
+to view how to use some custom helpers to upload code and use non-trivial
+contracts with proper types.
 
 ## License
 

@@ -1,127 +1,83 @@
 import {
-  encodeSecp256k1Pubkey, encodeEthSecp256k1Pubkey,
-  makeSignDoc as makeSignDocAmino, StdFee,
+  encodeEthSecp256k1Pubkey,
+  encodeSecp256k1Pubkey,
   hexToAddress,
- } from "@cosmjs/amino";
+  makeSignDoc as makeSignDocAmino,
+  StdFee,
+} from "@cosmjs/amino";
+import { isOfflineDirectSigner, isOfflineEIP712Signer, OfflineSigner, parseChainId } from "@cosmjs/eip712";
 import { fromBase64 } from "@cosmjs/encoding";
-import { Int53 } from "@cosmjs/math";
+import { Int53, Uint53 } from "@cosmjs/math";
 import {
   EncodeObject,
   encodePubkey,
   GeneratedType,
-  // isOfflineDirectSigner,
   makeAuthInfoBytes,
   makeSignDoc,
-  // OfflineSigner,
   Registry,
   TxBodyEncodeObject,
 } from "@cosmjs/proto-signing";
-import {
-  isOfflineDirectSigner,
-  isOfflineEIP712Signer,
-  OfflineSigner,
-  parseChainId,
-} from "@cosmjs/eip712";
-import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
-import { assert } from "@cosmjs/utils";
-import { MsgMultiSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
+import { HttpEndpoint, Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { assert, assertDefined } from "@cosmjs/utils";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
-import {
-  MsgFundCommunityPool,
-  MsgSetWithdrawAddress,
-  MsgWithdrawDelegatorReward,
-  MsgWithdrawValidatorCommission,
-} from "cosmjs-types/cosmos/distribution/v1beta1/tx";
-import { MsgDeposit, MsgSubmitProposal, MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
-import {
-  MsgBeginRedelegate,
-  MsgCreateValidator,
-  MsgDelegate,
-  MsgEditValidator,
-  MsgUndelegate,
-} from "cosmjs-types/cosmos/staking/v1beta1/tx";
-import {
-  MsgConvertCoin,
-  MsgConvertAIOZRC20,
-} from "cosmjs-types/aioz/aiozrc20/v1/tx";
+import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
+import { MsgDelegate, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
-import {
-  MsgAcknowledgement,
-  MsgChannelCloseConfirm,
-  MsgChannelCloseInit,
-  MsgChannelOpenAck,
-  MsgChannelOpenConfirm,
-  MsgChannelOpenInit,
-  MsgChannelOpenTry,
-  MsgRecvPacket,
-  MsgTimeout,
-  MsgTimeoutOnClose,
-} from "cosmjs-types/ibc/core/channel/v1/tx";
-import { Height } from "cosmjs-types/ibc/core/client/v1/client";
-import {
-  MsgCreateClient,
-  MsgSubmitMisbehaviour,
-  MsgUpdateClient,
-  MsgUpgradeClient,
-} from "cosmjs-types/ibc/core/client/v1/tx";
-import {
-  MsgConnectionOpenAck,
-  MsgConnectionOpenConfirm,
-  MsgConnectionOpenInit,
-  MsgConnectionOpenTry,
-} from "cosmjs-types/ibc/core/connection/v1/tx";
 import { ExtensionOptionsWeb3Tx } from "cosmjs-types/ethermint/types/v1/web3";
 import { Any } from "cosmjs-types/google/protobuf/any";
+import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
+import { Height } from "cosmjs-types/ibc/core/client/v1/client";
 import Long from "long";
 
-import { AminoTypes } from "./aminotypes";
+import { AminoConverters, AminoTypes } from "./aminotypes";
+import { calculateFee, GasPrice } from "./fee";
 import {
+  aiozrc20Types,
+  authzTypes,
+  bankTypes,
+  distributionTypes,
+  ethermintTypes,
+  ExtensionOptionsWeb3TxEncodeObject,
+  feegrantTypes,
+  govTypes,
+  gravityTypes,
+  ibcTypes,
   MsgDelegateEncodeObject,
   MsgSendEncodeObject,
   MsgTransferEncodeObject,
   MsgUndelegateEncodeObject,
   MsgWithdrawDelegatorRewardEncodeObject,
-} from "./encodeobjects";
-import { BroadcastTxResponse, StargateClient } from "./stargateclient";
+  stakingTypes,
+  vestingTypes,
+} from "./modules";
+import {
+  createAiozrc20AminoConverters,
+  createAuthzAminoConverters,
+  createBankAminoConverters,
+  createDistributionAminoConverters,
+  createFeegrantAminoConverters,
+  createGovAminoConverters,
+  createGravityAminoConverters,
+  createIbcAminoConverters,
+  createSdkStakingAminoConverters,
+  createVestingAminoConverters,
+} from "./modules";
+import { DeliverTxResponse, StargateClient, StargateClientOptions } from "./stargateclient";
 
 export const defaultRegistryTypes: ReadonlyArray<[string, GeneratedType]> = [
-  ["/cosmos.bank.v1beta1.MsgMultiSend", MsgMultiSend],
-  ["/cosmos.distribution.v1beta1.MsgFundCommunityPool", MsgFundCommunityPool],
-  ["/cosmos.distribution.v1beta1.MsgSetWithdrawAddress", MsgSetWithdrawAddress],
-  ["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward", MsgWithdrawDelegatorReward],
-  ["/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission", MsgWithdrawValidatorCommission],
-  ["/cosmos.gov.v1beta1.MsgDeposit", MsgDeposit],
-  ["/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal],
-  ["/cosmos.gov.v1beta1.MsgVote", MsgVote],
-  ["/cosmos.staking.v1beta1.MsgBeginRedelegate", MsgBeginRedelegate],
-  ["/cosmos.staking.v1beta1.MsgCreateValidator", MsgCreateValidator],
-  ["/cosmos.staking.v1beta1.MsgDelegate", MsgDelegate],
-  ["/cosmos.staking.v1beta1.MsgEditValidator", MsgEditValidator],
-  ["/cosmos.staking.v1beta1.MsgUndelegate", MsgUndelegate],
-  ["/ibc.core.channel.v1.MsgChannelOpenInit", MsgChannelOpenInit],
-  ["/ibc.core.channel.v1.MsgChannelOpenTry", MsgChannelOpenTry],
-  ["/ibc.core.channel.v1.MsgChannelOpenAck", MsgChannelOpenAck],
-  ["/ibc.core.channel.v1.MsgChannelOpenConfirm", MsgChannelOpenConfirm],
-  ["/ibc.core.channel.v1.MsgChannelCloseInit", MsgChannelCloseInit],
-  ["/ibc.core.channel.v1.MsgChannelCloseConfirm", MsgChannelCloseConfirm],
-  ["/ibc.core.channel.v1.MsgRecvPacket", MsgRecvPacket],
-  ["/ibc.core.channel.v1.MsgTimeout ", MsgTimeout],
-  ["/ibc.core.channel.v1.MsgTimeoutOnClose", MsgTimeoutOnClose],
-  ["/ibc.core.channel.v1.MsgAcknowledgement", MsgAcknowledgement],
-  ["/ibc.core.client.v1.MsgCreateClient", MsgCreateClient],
-  ["/ibc.core.client.v1.MsgUpdateClient", MsgUpdateClient],
-  ["/ibc.core.client.v1.MsgUpgradeClient", MsgUpgradeClient],
-  ["/ibc.core.client.v1.MsgSubmitMisbehaviour", MsgSubmitMisbehaviour],
-  ["/ibc.core.connection.v1.MsgConnectionOpenInit", MsgConnectionOpenInit],
-  ["/ibc.core.connection.v1.MsgConnectionOpenTry", MsgConnectionOpenTry],
-  ["/ibc.core.connection.v1.MsgConnectionOpenAck", MsgConnectionOpenAck],
-  ["/ibc.core.connection.v1.MsgConnectionOpenConfirm", MsgConnectionOpenConfirm],
-  ["/ibc.applications.transfer.v1.MsgTransfer", MsgTransfer],
-  ["/aioz.aiozrc20.v1.MsgConvertCoin", MsgConvertCoin],
-  ["/aioz.aiozrc20.v1.MsgConvertAIOZRC20", MsgConvertAIOZRC20],
-  ["/ethermint.types.v1.ExtensionOptionsWeb3Tx", ExtensionOptionsWeb3Tx],
+  ["/cosmos.base.v1beta1.Coin", Coin],
+  ...authzTypes,
+  ...bankTypes,
+  ...distributionTypes,
+  ...feegrantTypes,
+  ...govTypes,
+  ...stakingTypes,
+  ...ibcTypes,
+  ...vestingTypes,
+  ...aiozrc20Types,
+  ...gravityTypes,
+  ...ethermintTypes,
 ];
 
 function createDefaultRegistry(): Registry {
@@ -144,13 +100,29 @@ export interface PrivateSigningStargateClient {
   readonly registry: Registry;
 }
 
-export interface SigningStargateClientOptions {
+export interface SigningStargateClientOptions extends StargateClientOptions {
   readonly registry?: Registry;
   readonly aminoTypes?: AminoTypes;
   readonly prefix?: string;
   readonly broadcastTimeoutMs?: number;
   readonly broadcastPollIntervalMs?: number;
   readonly pubkeyAlgo?: string;
+  readonly gasPrice?: GasPrice;
+}
+
+function createDefaultTypes(prefix: string): AminoConverters {
+  return {
+    ...createAuthzAminoConverters(),
+    ...createBankAminoConverters(),
+    ...createDistributionAminoConverters(),
+    ...createGovAminoConverters(),
+    ...createSdkStakingAminoConverters(prefix),
+    ...createIbcAminoConverters(),
+    ...createFeegrantAminoConverters(),
+    ...createVestingAminoConverters(),
+    ...createAiozrc20AminoConverters(),
+    ...createGravityAminoConverters(),
+  };
 }
 
 export class SigningStargateClient extends StargateClient {
@@ -162,9 +134,10 @@ export class SigningStargateClient extends StargateClient {
   private readonly aminoTypes: AminoTypes;
   private readonly prefix: string;
   private readonly pubkeyAlgo?: string;
+  private readonly gasPrice: GasPrice | undefined;
 
   public static async connectWithSigner(
-    endpoint: string,
+    endpoint: string | HttpEndpoint,
     signer: OfflineSigner,
     options: SigningStargateClientOptions = {},
   ): Promise<SigningStargateClient> {
@@ -193,25 +166,68 @@ export class SigningStargateClient extends StargateClient {
     signer: OfflineSigner,
     options: SigningStargateClientOptions,
   ) {
-    super(tmClient);
-    const { registry = createDefaultRegistry(), aminoTypes = new AminoTypes({ prefix: options.prefix }) } =
-      options;
+    super(tmClient, options);
+    // TODO: do we really want to set a default here? Ideally we could get it from the signer such that users only have to set it once.
+    this.prefix = options.prefix ?? "aioz";
+    const {
+      registry = createDefaultRegistry(),
+      aminoTypes = new AminoTypes(createDefaultTypes(this.prefix)),
+    } = options;
     this.registry = registry;
-    this.prefix = options.prefix || 'aioz';
     this.aminoTypes = aminoTypes;
     this.signer = signer;
     this.broadcastTimeoutMs = options.broadcastTimeoutMs;
     this.broadcastPollIntervalMs = options.broadcastPollIntervalMs;
     this.pubkeyAlgo = options.pubkeyAlgo;
+    this.gasPrice = options.gasPrice;
+  }
+
+  public async simulate(
+    signerAddress: string,
+    messages: readonly EncodeObject[],
+    memo: string | undefined,
+  ): Promise<number> {
+    const anyMsgs = messages.map((m) => this.registry.encodeAsAny(m));
+    let encodedPubkey;
+    if (isOfflineEIP712Signer(this.signer)) {
+      // const msgs = messages.map((msg) => this.aminoTypes.toAmino(msg));
+      // const signDoc = makeSignDocAmino(
+      //   msgs,
+      //   { amount: [], gas: "0" },
+      //   "simulate_1-1",
+      //   "get pubkey",
+      //   "0",
+      //   "0",
+      // );
+      // const { pubkey } = await this.signer.signEIP712(signerAddress, signDoc);
+      // encodedPubkey = encodeEthSecp256k1Pubkey(pubkey);
+      throw new Error("Simulation for EIP712Signer is not supported");
+    } else {
+      const accountFromSigner = (await this.signer.getAccounts()).find(
+        (account) => account.address === signerAddress,
+      );
+      if (!accountFromSigner) {
+        throw new Error("Failed to retrieve account from signer");
+      }
+      encodedPubkey =
+        accountFromSigner.algo == "eth_secp256k1"
+          ? encodeEthSecp256k1Pubkey(accountFromSigner.pubkey)
+          : encodeSecp256k1Pubkey(accountFromSigner.pubkey);
+    }
+
+    const { sequence } = await this.getSequence(signerAddress);
+    const { gasInfo } = await this.forceGetQueryClient().tx.simulate(anyMsgs, memo, encodedPubkey, sequence);
+    assertDefined(gasInfo);
+    return Uint53.fromString(gasInfo.gasUsed.toString()).toNumber();
   }
 
   public async sendTokens(
     senderAddress: string,
     recipientAddress: string,
     amount: readonly Coin[],
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     const sendMsg: MsgSendEncodeObject = {
       typeUrl: "/cosmos.bank.v1beta1.MsgSend",
       value: {
@@ -227,14 +243,14 @@ export class SigningStargateClient extends StargateClient {
     delegatorAddress: string,
     validatorAddress: string,
     amount: Coin,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     const delegateMsg: MsgDelegateEncodeObject = {
       typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
       value: MsgDelegate.fromPartial({
         delegatorAddress: hexToAddress(delegatorAddress, this.prefix),
-        validatorAddress: hexToAddress(validatorAddress, this.prefix + 'valoper'),
+        validatorAddress: hexToAddress(validatorAddress, this.prefix + "valoper"),
         amount: amount,
       }),
     };
@@ -245,14 +261,14 @@ export class SigningStargateClient extends StargateClient {
     delegatorAddress: string,
     validatorAddress: string,
     amount: Coin,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     const undelegateMsg: MsgUndelegateEncodeObject = {
       typeUrl: "/cosmos.staking.v1beta1.MsgUndelegate",
       value: MsgUndelegate.fromPartial({
         delegatorAddress: hexToAddress(delegatorAddress, this.prefix),
-        validatorAddress: hexToAddress(validatorAddress, this.prefix + 'valoper'),
+        validatorAddress: hexToAddress(validatorAddress, this.prefix + "valoper"),
         amount: amount,
       }),
     };
@@ -262,14 +278,14 @@ export class SigningStargateClient extends StargateClient {
   public async withdrawRewards(
     delegatorAddress: string,
     validatorAddress: string,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     const withdrawMsg: MsgWithdrawDelegatorRewardEncodeObject = {
       typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
       value: MsgWithdrawDelegatorReward.fromPartial({
         delegatorAddress: hexToAddress(delegatorAddress, this.prefix),
-        validatorAddress: hexToAddress(validatorAddress, this.prefix + 'valoper'),
+        validatorAddress: hexToAddress(validatorAddress, this.prefix + "valoper"),
       }),
     };
     return this.signAndBroadcast(hexToAddress(delegatorAddress, this.prefix), [withdrawMsg], fee, memo);
@@ -284,9 +300,9 @@ export class SigningStargateClient extends StargateClient {
     timeoutHeight: Height | undefined,
     /** timeout in seconds */
     timeoutTimestamp: number | undefined,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     const timeoutTimestampNanoseconds = timeoutTimestamp
       ? Long.fromNumber(timeoutTimestamp).multiply(1_000_000_000)
       : undefined;
@@ -308,10 +324,19 @@ export class SigningStargateClient extends StargateClient {
   public async signAndBroadcast(
     signerAddress: string,
     messages: readonly EncodeObject[],
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
-    const txRaw = await this.sign(signerAddress, messages, fee, memo);
+  ): Promise<DeliverTxResponse> {
+    let usedFee: StdFee;
+    if (fee == "auto" || typeof fee === "number") {
+      assertDefined(this.gasPrice, "Gas price must be set in the client options when auto gas is used.");
+      const gasEstimation = await this.simulate(signerAddress, messages, memo);
+      const multiplier = typeof fee === "number" ? fee : 1.3;
+      usedFee = calculateFee(Math.round(gasEstimation * multiplier), this.gasPrice);
+    } else {
+      usedFee = fee;
+    }
+    const txRaw = await this.sign(signerAddress, messages, usedFee, memo);
     const txBytes = TxRaw.encode(txRaw).finish();
     return this.broadcastTx(txBytes, this.broadcastTimeoutMs, this.broadcastPollIntervalMs);
   }
@@ -362,17 +387,19 @@ export class SigningStargateClient extends StargateClient {
   ): Promise<TxRaw> {
     assert(!isOfflineDirectSigner(this.signer) && !isOfflineEIP712Signer(this.signer));
     const accountFromSigner = (await this.signer.getAccounts()).find(
-      (account: any) => account.address === signerAddress,
+      (account) => account.address === signerAddress,
     );
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
     const account = {
-      ...accountFromSigner, algo: this.pubkeyAlgo || accountFromSigner.algo,
+      ...accountFromSigner,
+      algo: this.pubkeyAlgo || accountFromSigner.algo,
     };
-    const pubkey = account.algo == "eth_secp256k1" ?
-      encodePubkey(encodeEthSecp256k1Pubkey(account.pubkey)) :
-      encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
+    const pubkey =
+      account.algo == "eth_secp256k1"
+        ? encodePubkey(encodeEthSecp256k1Pubkey(account.pubkey))
+        : encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     const msgs = messages.map((msg) => this.aminoTypes.toAmino(msg));
     const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence);
@@ -392,6 +419,8 @@ export class SigningStargateClient extends StargateClient {
       [{ pubkey, sequence: signedSequence }],
       signed.fee.amount,
       signedGasLimit,
+      signed.fee.granter,
+      signed.fee.payer,
       signMode,
     );
     return TxRaw.fromPartial({
@@ -410,17 +439,19 @@ export class SigningStargateClient extends StargateClient {
   ): Promise<TxRaw> {
     assert(isOfflineDirectSigner(this.signer));
     const accountFromSigner = (await this.signer.getAccounts()).find(
-      (account: any) => account.address === signerAddress,
+      (account) => account.address === signerAddress,
     );
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
     const account = {
-      ...accountFromSigner, algo: this.pubkeyAlgo || accountFromSigner.algo,
+      ...accountFromSigner,
+      algo: this.pubkeyAlgo || accountFromSigner.algo,
     };
-    const pubkey = account.algo == "eth_secp256k1" ?
-      encodePubkey(encodeEthSecp256k1Pubkey(account.pubkey)) :
-      encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
+    const pubkey =
+      account.algo == "eth_secp256k1"
+        ? encodePubkey(encodeEthSecp256k1Pubkey(account.pubkey))
+        : encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
     const txBodyEncodeObject: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -430,7 +461,13 @@ export class SigningStargateClient extends StargateClient {
     };
     const txBodyBytes = this.registry.encode(txBodyEncodeObject);
     const gasLimit = Int53.fromString(fee.gas).toNumber();
-    const authInfoBytes = makeAuthInfoBytes([{ pubkey, sequence }], fee.amount, gasLimit);
+    const authInfoBytes = makeAuthInfoBytes(
+      [{ pubkey, sequence }],
+      fee.amount,
+      gasLimit,
+      fee.granter,
+      fee.payer,
+    );
     const signDoc = makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
     const { signature, signed } = await this.signer.signDirect(signerAddress, signDoc);
     return TxRaw.fromPartial({
@@ -440,6 +477,7 @@ export class SigningStargateClient extends StargateClient {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   private async signEIP712(
     signerAddress: string,
     messages: readonly EncodeObject[],
@@ -449,7 +487,7 @@ export class SigningStargateClient extends StargateClient {
   ): Promise<TxRaw> {
     assert(isOfflineEIP712Signer(this.signer));
     const accountFromSigner = (await this.signer.getAccounts()).find(
-      (account: any) => account.address === signerAddress,
+      (account) => account.address === signerAddress,
     );
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
@@ -460,20 +498,19 @@ export class SigningStargateClient extends StargateClient {
     const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence);
     const { signature, pubkey, signed } = await this.signer.signEIP712(signerAddress, signDoc);
     const encodedPubkey = encodePubkey(encodeEthSecp256k1Pubkey(pubkey));
-    const extension = ExtensionOptionsWeb3Tx.fromPartial({
-      typedDataChainId: parseChainId(chainId),
-      feePayer: signerAddress,
-      feePayerSig: signature,
-    });
-    const extensionEncodeObject: EncodeObject = {
+    const extension: ExtensionOptionsWeb3TxEncodeObject = {
       typeUrl: "/ethermint.types.v1.ExtensionOptionsWeb3Tx",
-      value: extension
-    }
-    const extensionBytes = this.registry.encode(extensionEncodeObject);
+      value: ExtensionOptionsWeb3Tx.fromPartial({
+        typedDataChainId: parseChainId(chainId),
+        feePayer: signerAddress,
+        feePayerSig: signature,
+      }),
+    };
+    const extensionBytes = this.registry.encode(extension);
     const signedTxBody = {
       messages: signed.msgs.map((msg) => this.aminoTypes.fromAmino(msg)),
       memo: signed.memo,
-      extensionOptions: [Any.fromPartial({typeUrl: extensionEncodeObject.typeUrl, value: extensionBytes})],
+      extensionOptions: [Any.fromPartial({ typeUrl: extension.typeUrl, value: extensionBytes })],
     };
     const signedTxBodyEncodeObject: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
@@ -486,6 +523,8 @@ export class SigningStargateClient extends StargateClient {
       [{ pubkey: encodedPubkey, sequence: signedSequence }],
       signed.fee.amount,
       signedGasLimit,
+      fee.granter,
+      fee.payer,
       signMode,
     );
     return TxRaw.fromPartial({

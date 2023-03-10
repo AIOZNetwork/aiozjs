@@ -1,18 +1,19 @@
 // window.process = Object.assign({}, window.process);
 
 function show(a) {
-  let t = document.createElement('pre');
-  t.textContent = a;
-  document.body.appendChild(t);
+  const e = document.createElement('pre');
+  e.textContent = a;
+  document.body.appendChild(e);
 }
 
-import { DirectEthSecp256k1HdWallet } from "@cosmjs/proto-signing";
+import { DirectEthSecp256k1HdWallet, DirectEthSecp256k1Wallet } from "@cosmjs/proto-signing";
 import Web3 from "web3";
 import { Web3Wallet } from "@cosmjs/eip712";
-import { assertIsBroadcastTxSuccess, SigningStargateClient, StargateClient, parseChainId, calculateFee } from "@cosmjs/stargate";
+import { SigningStargateClient, StargateClient, parseChainId, calculateFee } from "@cosmjs/stargate";
 import { fromHex } from "@cosmjs/encoding";
 import { hexToAddress } from "@cosmjs/amino";
 import { MsgConvertCoin, MsgConvertAIOZRC20 } from "cosmjs-types/aioz/aiozrc20/v1/tx";
+import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import Long from "long";
 
 
@@ -24,7 +25,7 @@ async function main() {
   // return;
 
 
-  const mnemonic = "federal injury annual melt near scan daughter before nut catalog spend decade";
+  // const mnemonic = "federal injury annual melt near scan daughter before nut catalog spend decade";
   // const wallet = await DirectEthSecp256k1HdWallet.fromMnemonic(mnemonic, {prefix: 'aioz'});
   // const [firstAccount] = await wallet.getAccounts();
 
@@ -33,9 +34,10 @@ async function main() {
   // show((await (await DirectEthSecp256k1HdWallet.deserialize(keyStore, '123123123')).getAccounts())[0].address);
 
 
-  // const hexPriv = "1da6847600b0ee25e9ad9a52abbd786dd2502fa4005dd5af9310b7cc7a3b25db";
-  // const wallet = await DirectEthSecp256k1Wallet.fromKey(fromHex(hexPriv));
-  const wallet = new Web3Wallet(new Web3(window.ethereum));
+  const hexPriv = "0FD4124E2F2FA7ECE4C8179E1E581FA6B63387881BA04ED3DAAAB4D126A76C73";
+  const wallet = await DirectEthSecp256k1Wallet.fromKey(fromHex(hexPriv));
+  // window.ethereum.enable();
+  // const wallet = new Web3Wallet(new Web3(window.ethereum));
   const [firstAccount] = await wallet.getAccounts();
 
   // const chainId = "testnet_2-1";
@@ -69,13 +71,13 @@ async function main() {
   // show((await (await DirectEthSecp256k1Wallet.deserialize(keyStore, '123123123')).getAccounts())[0].addressHex);
 
   //const rpcEndpoint = "https://rpc-ds.testnet.aioz.network";
-  const rpcEndpoint = "http://10.0.0.77:56657";
+  const rpcEndpoint = "http://10.0.0.77:26657";
   // const rpcEndpoint = "http://157.245.144.55:26657";
   const client = await SigningStargateClient.connectWithSigner(rpcEndpoint, wallet, {pubkeyAlgo: 'eth_secp256k1'});
 
-  const cpChainId = "gaia-1";
-  const cpRpcEndpoint = "http://10.0.0.77:46657";
-  const cpClient = await StargateClient.connect(cpRpcEndpoint);
+  // const cpChainId = "gaia0-1";
+  // const cpRpcEndpoint = "http://10.0.0.77:27757";
+  // const cpClient = await StargateClient.connect(cpRpcEndpoint);
 
   const recipient = "0x70207819eC28FB8cc692A4327C80282006E6476A";
   const ibcRecipient = "cosmos1davg4s96ulrya44njxgzdstlyau69fuvlyn2x4";
@@ -93,37 +95,48 @@ async function main() {
   //     sender: firstAccount.address,
   //   }),
   // };
+  // const msg = {
+  //   typeUrl: "/aioz.aiozrc20.v1.MsgConvertAIOZRC20",
+  //   value: MsgConvertAIOZRC20.fromPartial({
+  //     contractAddress: '0x36D42b40018351cd30fC40744716CD8d374cc17a',
+  //     amount: '50000000000000000000',
+  //     receiver: hexToAddress('0x9b595F28D783c587C48b3fFe58e0a3c7400d32F8', client.prefix),
+  //     sender: firstAccount.addressHex,
+  //   }),
+  // };
+
   const msg = {
-    typeUrl: "/aioz.aiozrc20.v1.MsgConvertAIOZRC20",
-    value: MsgConvertAIOZRC20.fromPartial({
-      contractAddress: '0x36D42b40018351cd30fC40744716CD8d374cc17a',
-      amount: '50000000000000000000',
-      receiver: hexToAddress('0x9b595F28D783c587C48b3fFe58e0a3c7400d32F8', client.prefix),
-      sender: firstAccount.addressHex,
+    typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+    value: MsgSend.fromPartial({
+      fromAddress: firstAccount.address,
+      toAddress: hexToAddress(recipient, client.prefix),
+      amount: [amount],
     }),
   };
-  const fee = calculateFee(200000, "1000000000attoaioz");
+  const memo = "Use your power wisely";
+  const gasUsed = await client.simulate(firstAccount.address, [msg], memo);
+
+  const fee = calculateFee(Math.trunc(gasUsed * 1.5), "1000000000attoaioz");
   // const result = await client.sendTokens(firstAccount.address, recipient, [amount], fee, "Have fun with your star coins");
-  const cpHeight = await cpClient.getHeight();
-  const cpRevision = parseChainId(cpChainId);
-  const result = await client.sendIbcTokens(
-    firstAccount.address,
-    ibcRecipient,
-    amount,
-    'transfer',
-    'channel-14',
-    {
-      revisionNumber: Long.fromNumber(cpRevision),
-      revisionHeight: Long.fromNumber(cpHeight + 1000)
-    },
-    Math.trunc(Date.now()/1000) + 5000,
-    fee,
-    "send ibc",
-  )
+  // const cpHeight = await cpClient.getHeight();
+  // const cpRevision = parseChainId(cpChainId);
+  // const result = await client.sendIbcTokens(
+  //   firstAccount.address,
+  //   ibcRecipient,
+  //   amount,
+  //   'transfer',
+  //   'channel-14',
+  //   {
+  //     revisionNumber: Long.fromNumber(cpRevision),
+  //     revisionHeight: Long.fromNumber(cpHeight + 1000)
+  //   },
+  //   Math.trunc(Date.now()/1000) + 5000,
+  //   fee,
+  //   "send ibc",
+  // )
   // const result = await client.delegateTokens(firstAccount.address, validator, amount, fee, "Have fun with your star coins");
-  // const result = await client.signAndBroadcast(firstAccount.address, [msg], fee, "Have fun with your star coins");
-  console.log(result)
-  assertIsBroadcastTxSuccess(result);
+  const result = await client.signAndBroadcast(firstAccount.address, [msg], fee, memo);
+  console.log(result);
 }
 
 // await keplrHandle();

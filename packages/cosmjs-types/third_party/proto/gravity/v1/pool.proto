@@ -1,0 +1,36 @@
+syntax = "proto3";
+package gravity.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/Gravity-Bridge/Gravity-Bridge/module/x/gravity/types";
+
+// IDSet represents a set of IDs
+message IDSet { repeated uint64 ids = 1; }
+
+message BatchFees {
+  string token      = 1;
+  string total_fees = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  uint64 tx_count   = 3;
+}
+
+message EventWithdrawalReceived {
+  string chain_name      = 1;
+  string bridge_contract = 2;
+  string bridge_chain_id = 3;
+  string outgoing_tx_id  = 4;
+  string nonce           = 5;
+}
+
+message EventWithdrawCanceled {
+  string sender          = 1;
+  string chain_name      = 2;
+  string tx_id           = 3;
+  string bridge_contract = 4;
+  string bridge_chain_id = 5;
+}

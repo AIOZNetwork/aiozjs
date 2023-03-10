@@ -22,7 +22,7 @@ FAUCET_PORT               Port of the webserver. Defaults to 8000.
 FAUCET_MEMO               Memo for send transactions. Defaults to unset.
 FAUCET_GAS_PRICE          Gas price for transactions as a comma separated list.
                           Defaults to "0.025ucosm".
-FAUCET_GAS_LIMIT          Gas limit for send transactions. Defaults to 80000.
+FAUCET_GAS_LIMIT          Gas limit for send transactions. Defaults to 100000.
 FAUCET_MNEMONIC           Secret mnemonic that serves as the base secret for the
                           faucet HD accounts
 FAUCET_PATH_PATTERN       The pattern of BIP32 paths for the faucet accounts.
@@ -37,6 +37,9 @@ FAUCET_CREDIT_AMOUNT_TKN  Send this amount of TKN to a user requesting TKN. TKN 
 FAUCET_REFILL_FACTOR      Send factor times credit amount on refilling. Defauls to 8.
 FAUCET_REFILL_THRESHOLD   Refill when balance gets below factor times credit amount.
                           Defaults to 20.
+FAUCET_COOLDOWN_TIME      Time (in seconds) after which an address can request
+                          more tokens. Can be set to "0". Defaults to 24 hours
+                          if unset or an empty string.
 `.trim();
 
   process.stdout.write(`${out}\n`);

@@ -1,15 +1,10 @@
 import {
-  assertIsBroadcastTxSuccess as assertIsBroadcastTxSuccessLaunchpad,
-  CosmosClient,
-  SigningCosmosClient,
-} from "@cosmjs/launchpad";
-import {
-  assertIsBroadcastTxSuccess as assertIsBroadcastTxSuccessStargate,
+  assertIsDeliverTxSuccess as assertIsDeliverTxSuccessStargate,
   calculateFee,
   SigningStargateClient,
   StargateClient,
 } from "@cosmjs/stargate";
-import { sleep } from "@cosmjs/utils";
+import { isDefined, sleep } from "@cosmjs/utils";
 
 import * as constants from "./constants";
 import { debugAccount, logAccountsState, logSendJob } from "./debugging";
@@ -17,10 +12,6 @@ import { PathBuilder } from "./pathbuilder";
 import { createClients, createWallets } from "./profile";
 import { TokenConfiguration, TokenManager } from "./tokenmanager";
 import { MinimalAccount, SendJob } from "./types";
-
-function isDefined<X>(value: X | undefined): value is X {
-  return value !== undefined;
-}
 
 export class Faucet {
   public static async make(
@@ -30,19 +21,11 @@ export class Faucet {
     mnemonic: string,
     pathBuilder: PathBuilder,
     numberOfDistributors: number,
-    stargate = true,
     logging = false,
   ): Promise<Faucet> {
-    const wallets = await createWallets(
-      mnemonic,
-      pathBuilder,
-      addressPrefix,
-      numberOfDistributors,
-      stargate,
-      logging,
-    );
+    const wallets = await createWallets(mnemonic, pathBuilder, addressPrefix, numberOfDistributors, logging);
     const clients = await createClients(apiUrl, wallets);
-    const readonlyClient = stargate ? await StargateClient.connect(apiUrl) : new CosmosClient(apiUrl);
+    const readonlyClient = await StargateClient.connect(apiUrl);
     return new Faucet(addressPrefix, config, clients, readonlyClient, logging);
   }
 
@@ -52,16 +35,16 @@ export class Faucet {
 
   private readonly tokenConfig: TokenConfiguration;
   private readonly tokenManager: TokenManager;
-  private readonly readOnlyClient: CosmosClient | StargateClient;
-  private readonly clients: { [senderAddress: string]: SigningCosmosClient | SigningStargateClient };
+  private readonly readOnlyClient: StargateClient;
+  private readonly clients: { [senderAddress: string]: SigningStargateClient };
   private readonly logging: boolean;
   private creditCount = 0;
 
   private constructor(
     addressPrefix: string,
     config: TokenConfiguration,
-    clients: ReadonlyArray<readonly [string, SigningCosmosClient | SigningStargateClient]>,
-    readonlyClient: CosmosClient | StargateClient,
+    clients: ReadonlyArray<readonly [string, SigningStargateClient]>,
+    readonlyClient: StargateClient,
     logging = false,
   ) {
     this.addressPrefix = addressPrefix;
@@ -94,13 +77,9 @@ export class Faucet {
    */
   public async send(job: SendJob): Promise<void> {
     const client = this.clients[job.sender];
-    if (client instanceof SigningCosmosClient) {
-      const result = await client.sendTokens(job.recipient, [job.amount], constants.memo);
-      return assertIsBroadcastTxSuccessLaunchpad(result);
-    }
-    const fee = calculateFee(constants.gasLimits.send, constants.gasPrice);
+    const fee = calculateFee(constants.gasLimitSend, constants.gasPrice);
     const result = await client.sendTokens(job.sender, job.recipient, [job.amount], fee, constants.memo);
-    assertIsBroadcastTxSuccessStargate(result);
+    assertIsDeliverTxSuccessStargate(result);
   }
 
   /** Use one of the distributor accounts to send tokens to user */
@@ -122,11 +101,7 @@ export class Faucet {
   }
 
   public async loadAccount(address: string): Promise<MinimalAccount> {
-    const balance =
-      this.readOnlyClient instanceof CosmosClient
-        ? (await this.readOnlyClient.getAccount(address))?.balance ?? []
-        : await this.readOnlyClient.getAllBalances(address);
-
+    const balance = await this.readOnlyClient.getAllBalances(address);
     return {
       address: address,
       balance: balance,

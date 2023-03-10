@@ -31,6 +31,7 @@ module.exports = {
     "spaced-comment": ["warn", "always", { line: { markers: ["/ <reference"] } }],
     "import/no-cycle": "warn",
     "simple-import-sort/imports": "warn",
+    "simple-import-sort/exports": "warn",
     "@typescript-eslint/array-type": ["warn", { default: "array-simple" }],
     "@typescript-eslint/await-thenable": "warn",
     "@typescript-eslint/ban-types": "warn",
@@ -80,6 +81,7 @@ module.exports = {
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/explicit-member-accessibility": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
       },
     },
     {

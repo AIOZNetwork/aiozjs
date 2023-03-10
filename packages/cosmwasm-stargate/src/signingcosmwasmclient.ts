@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { encodeSecp256k1Pubkey, encodeEthSecp256k1Pubkey, makeSignDoc as makeSignDocAmino } from "@cosmjs/amino";
+import { encodeSecp256k1Pubkey, makeSignDoc as makeSignDocAmino } from "@cosmjs/amino";
 import { sha256 } from "@cosmjs/crypto";
 import { fromBase64, toHex, toUtf8 } from "@cosmjs/encoding";
 import { Int53, Uint53 } from "@cosmjs/math";
@@ -15,11 +15,14 @@ import {
 } from "@cosmjs/proto-signing";
 import {
   AminoTypes,
-  BroadcastTxFailure,
-  BroadcastTxResponse,
+  calculateFee,
   Coin,
-  defaultRegistryTypes,
-  isBroadcastTxFailure,
+  createBankAminoConverters,
+  defaultRegistryTypes as defaultStargateTypes,
+  DeliverTxResponse,
+  Event,
+  GasPrice,
+  isDeliverTxFailure,
   logs,
   MsgDelegateEncodeObject,
   MsgSendEncodeObject,
@@ -28,8 +31,8 @@ import {
   SignerData,
   StdFee,
 } from "@cosmjs/stargate";
-import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
-import { assert } from "@cosmjs/utils";
+import { HttpEndpoint, Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { assert, assertDefined } from "@cosmjs/utils";
 import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { MsgDelegate, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
@@ -45,16 +48,18 @@ import {
 import Long from "long";
 import pako from "pako";
 
-import { cosmWasmTypes } from "./aminotypes";
 import { CosmWasmClient } from "./cosmwasmclient";
 import {
+  createWasmAminoConverters,
+  JsonObject,
   MsgClearAdminEncodeObject,
   MsgExecuteContractEncodeObject,
   MsgInstantiateContractEncodeObject,
   MsgMigrateContractEncodeObject,
   MsgStoreCodeEncodeObject,
   MsgUpdateAdminEncodeObject,
-} from "./encodeobjects";
+  wasmTypes,
+} from "./modules";
 
 export interface UploadResult {
   /** Size of the original wasm code in bytes */
@@ -68,8 +73,13 @@ export interface UploadResult {
   /** The ID of the code asigned by the chain */
   readonly codeId: number;
   readonly logs: readonly logs.Log[];
+  /** Block height in which the transaction is included */
+  readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly transactionHash: string;
+  readonly events: readonly Event[];
+  readonly gasWanted: number;
+  readonly gasUsed: number;
 }
 
 /**
@@ -97,8 +107,13 @@ export interface InstantiateResult {
   /** The address of the newly instantiated contract */
   readonly contractAddress: string;
   readonly logs: readonly logs.Log[];
+  /** Block height in which the transaction is included */
+  readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly transactionHash: string;
+  readonly events: readonly Event[];
+  readonly gasWanted: number;
+  readonly gasUsed: number;
 }
 
 /**
@@ -106,36 +121,49 @@ export interface InstantiateResult {
  */
 export interface ChangeAdminResult {
   readonly logs: readonly logs.Log[];
+  /** Block height in which the transaction is included */
+  readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly transactionHash: string;
+  readonly events: readonly Event[];
+  readonly gasWanted: number;
+  readonly gasUsed: number;
 }
 
 export interface MigrateResult {
   readonly logs: readonly logs.Log[];
+  /** Block height in which the transaction is included */
+  readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly transactionHash: string;
+  readonly events: readonly Event[];
+  readonly gasWanted: number;
+  readonly gasUsed: number;
+}
+
+export interface ExecuteInstruction {
+  contractAddress: string;
+  msg: JsonObject;
+  funds?: readonly Coin[];
 }
 
 export interface ExecuteResult {
   readonly logs: readonly logs.Log[];
+  /** Block height in which the transaction is included */
+  readonly height: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly transactionHash: string;
+  readonly events: readonly Event[];
+  readonly gasWanted: number;
+  readonly gasUsed: number;
 }
 
-function createBroadcastTxErrorMessage(result: BroadcastTxFailure): string {
+function createDeliverTxResponseErrorMessage(result: DeliverTxResponse): string {
   return `Error when broadcasting tx ${result.transactionHash} at height ${result.height}. Code: ${result.code}; Raw log: ${result.rawLog}`;
 }
 
 function createDefaultRegistry(): Registry {
-  return new Registry([
-    ...defaultRegistryTypes,
-    ["/cosmwasm.wasm.v1.MsgClearAdmin", MsgClearAdmin],
-    ["/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract],
-    ["/cosmwasm.wasm.v1.MsgMigrateContract", MsgMigrateContract],
-    ["/cosmwasm.wasm.v1.MsgStoreCode", MsgStoreCode],
-    ["/cosmwasm.wasm.v1.MsgInstantiateContract", MsgInstantiateContract],
-    ["/cosmwasm.wasm.v1.MsgUpdateAdmin", MsgUpdateAdmin],
-  ]);
+  return new Registry([...defaultStargateTypes, ...wasmTypes]);
 }
 
 export interface SigningCosmWasmClientOptions {
@@ -144,6 +172,7 @@ export interface SigningCosmWasmClientOptions {
   readonly prefix?: string;
   readonly broadcastTimeoutMs?: number;
   readonly broadcastPollIntervalMs?: number;
+  readonly gasPrice?: GasPrice;
 }
 
 export class SigningCosmWasmClient extends CosmWasmClient {
@@ -153,9 +182,10 @@ export class SigningCosmWasmClient extends CosmWasmClient {
 
   private readonly signer: OfflineSigner;
   private readonly aminoTypes: AminoTypes;
+  private readonly gasPrice: GasPrice | undefined;
 
   public static async connectWithSigner(
-    endpoint: string,
+    endpoint: string | HttpEndpoint,
     signer: OfflineSigner,
     options: SigningCosmWasmClientOptions = {},
   ): Promise<SigningCosmWasmClient> {
@@ -187,20 +217,40 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     super(tmClient);
     const {
       registry = createDefaultRegistry(),
-      aminoTypes = new AminoTypes({ additions: cosmWasmTypes, prefix: options.prefix }),
+      aminoTypes = new AminoTypes({ ...createWasmAminoConverters(), ...createBankAminoConverters() }),
     } = options;
     this.registry = registry;
     this.aminoTypes = aminoTypes;
     this.signer = signer;
     this.broadcastTimeoutMs = options.broadcastTimeoutMs;
     this.broadcastPollIntervalMs = options.broadcastPollIntervalMs;
+    this.gasPrice = options.gasPrice;
+  }
+
+  public async simulate(
+    signerAddress: string,
+    messages: readonly EncodeObject[],
+    memo: string | undefined,
+  ): Promise<number> {
+    const anyMsgs = messages.map((m) => this.registry.encodeAsAny(m));
+    const accountFromSigner = (await this.signer.getAccounts()).find(
+      (account) => account.address === signerAddress,
+    );
+    if (!accountFromSigner) {
+      throw new Error("Failed to retrieve account from signer");
+    }
+    const pubkey = encodeSecp256k1Pubkey(accountFromSigner.pubkey);
+    const { sequence } = await this.getSequence(signerAddress);
+    const { gasInfo } = await this.forceGetQueryClient().tx.simulate(anyMsgs, memo, pubkey, sequence);
+    assertDefined(gasInfo);
+    return Uint53.fromString(gasInfo.gasUsed.toString()).toNumber();
   }
 
   /** Uploads code and returns a receipt, including the code ID */
   public async upload(
     senderAddress: string,
     wasmCode: Uint8Array,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
   ): Promise<UploadResult> {
     const compressed = pako.gzip(wasmCode, { level: 9 });
@@ -213,8 +263,8 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     };
 
     const result = await this.signAndBroadcast(senderAddress, [storeCodeMsg], fee, memo);
-    if (isBroadcastTxFailure(result)) {
-      throw new Error(createBroadcastTxErrorMessage(result));
+    if (isDeliverTxFailure(result)) {
+      throw new Error(createDeliverTxResponseErrorMessage(result));
     }
     const parsedLogs = logs.parseRawLog(result.rawLog);
     const codeIdAttr = logs.findAttribute(parsedLogs, "store_code", "code_id");
@@ -225,16 +275,20 @@ export class SigningCosmWasmClient extends CosmWasmClient {
       compressedChecksum: toHex(sha256(compressed)),
       codeId: Number.parseInt(codeIdAttr.value, 10),
       logs: parsedLogs,
+      height: result.height,
       transactionHash: result.transactionHash,
+      events: result.events,
+      gasWanted: result.gasWanted,
+      gasUsed: result.gasUsed,
     };
   }
 
   public async instantiate(
     senderAddress: string,
     codeId: number,
-    msg: Record<string, unknown>,
+    msg: JsonObject,
     label: string,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     options: InstantiateOptions = {},
   ): Promise<InstantiateResult> {
     const instantiateContractMsg: MsgInstantiateContractEncodeObject = {
@@ -249,15 +303,19 @@ export class SigningCosmWasmClient extends CosmWasmClient {
       }),
     };
     const result = await this.signAndBroadcast(senderAddress, [instantiateContractMsg], fee, options.memo);
-    if (isBroadcastTxFailure(result)) {
-      throw new Error(createBroadcastTxErrorMessage(result));
+    if (isDeliverTxFailure(result)) {
+      throw new Error(createDeliverTxResponseErrorMessage(result));
     }
     const parsedLogs = logs.parseRawLog(result.rawLog);
     const contractAddressAttr = logs.findAttribute(parsedLogs, "instantiate", "_contract_address");
     return {
       contractAddress: contractAddressAttr.value,
       logs: parsedLogs,
+      height: result.height,
       transactionHash: result.transactionHash,
+      events: result.events,
+      gasWanted: result.gasWanted,
+      gasUsed: result.gasUsed,
     };
   }
 
@@ -265,7 +323,7 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     senderAddress: string,
     contractAddress: string,
     newAdmin: string,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
   ): Promise<ChangeAdminResult> {
     const updateAdminMsg: MsgUpdateAdminEncodeObject = {
@@ -277,19 +335,23 @@ export class SigningCosmWasmClient extends CosmWasmClient {
       }),
     };
     const result = await this.signAndBroadcast(senderAddress, [updateAdminMsg], fee, memo);
-    if (isBroadcastTxFailure(result)) {
-      throw new Error(createBroadcastTxErrorMessage(result));
+    if (isDeliverTxFailure(result)) {
+      throw new Error(createDeliverTxResponseErrorMessage(result));
     }
     return {
       logs: logs.parseRawLog(result.rawLog),
+      height: result.height,
       transactionHash: result.transactionHash,
+      events: result.events,
+      gasWanted: result.gasWanted,
+      gasUsed: result.gasUsed,
     };
   }
 
   public async clearAdmin(
     senderAddress: string,
     contractAddress: string,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
   ): Promise<ChangeAdminResult> {
     const clearAdminMsg: MsgClearAdminEncodeObject = {
@@ -300,12 +362,16 @@ export class SigningCosmWasmClient extends CosmWasmClient {
       }),
     };
     const result = await this.signAndBroadcast(senderAddress, [clearAdminMsg], fee, memo);
-    if (isBroadcastTxFailure(result)) {
-      throw new Error(createBroadcastTxErrorMessage(result));
+    if (isDeliverTxFailure(result)) {
+      throw new Error(createDeliverTxResponseErrorMessage(result));
     }
     return {
       logs: logs.parseRawLog(result.rawLog),
+      height: result.height,
       transactionHash: result.transactionHash,
+      events: result.events,
+      gasWanted: result.gasWanted,
+      gasUsed: result.gasUsed,
     };
   }
 
@@ -313,8 +379,8 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     senderAddress: string,
     contractAddress: string,
     codeId: number,
-    migrateMsg: Record<string, unknown>,
-    fee: StdFee,
+    migrateMsg: JsonObject,
+    fee: StdFee | "auto" | number,
     memo = "",
   ): Promise<MigrateResult> {
     const migrateContractMsg: MsgMigrateContractEncodeObject = {
@@ -327,39 +393,64 @@ export class SigningCosmWasmClient extends CosmWasmClient {
       }),
     };
     const result = await this.signAndBroadcast(senderAddress, [migrateContractMsg], fee, memo);
-    if (isBroadcastTxFailure(result)) {
-      throw new Error(createBroadcastTxErrorMessage(result));
+    if (isDeliverTxFailure(result)) {
+      throw new Error(createDeliverTxResponseErrorMessage(result));
     }
     return {
       logs: logs.parseRawLog(result.rawLog),
+      height: result.height,
       transactionHash: result.transactionHash,
+      events: result.events,
+      gasWanted: result.gasWanted,
+      gasUsed: result.gasUsed,
     };
   }
 
   public async execute(
     senderAddress: string,
     contractAddress: string,
-    msg: Record<string, unknown>,
-    fee: StdFee,
+    msg: JsonObject,
+    fee: StdFee | "auto" | number,
     memo = "",
     funds?: readonly Coin[],
   ): Promise<ExecuteResult> {
-    const executeContractMsg: MsgExecuteContractEncodeObject = {
+    const instruction: ExecuteInstruction = {
+      contractAddress: contractAddress,
+      msg: msg,
+      funds: funds,
+    };
+    return this.executeMultiple(senderAddress, [instruction], fee, memo);
+  }
+
+  /**
+   * Like `execute` but allows executing multiple messages in one transaction.
+   */
+  public async executeMultiple(
+    senderAddress: string,
+    instructions: readonly ExecuteInstruction[],
+    fee: StdFee | "auto" | number,
+    memo = "",
+  ): Promise<ExecuteResult> {
+    const msgs: MsgExecuteContractEncodeObject[] = instructions.map((i) => ({
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: senderAddress,
-        contract: contractAddress,
-        msg: toUtf8(JSON.stringify(msg)),
-        funds: [...(funds || [])],
+        contract: i.contractAddress,
+        msg: toUtf8(JSON.stringify(i.msg)),
+        funds: [...(i.funds || [])],
       }),
-    };
-    const result = await this.signAndBroadcast(senderAddress, [executeContractMsg], fee, memo);
-    if (isBroadcastTxFailure(result)) {
-      throw new Error(createBroadcastTxErrorMessage(result));
+    }));
+    const result = await this.signAndBroadcast(senderAddress, msgs, fee, memo);
+    if (isDeliverTxFailure(result)) {
+      throw new Error(createDeliverTxResponseErrorMessage(result));
     }
     return {
       logs: logs.parseRawLog(result.rawLog),
+      height: result.height,
       transactionHash: result.transactionHash,
+      events: result.events,
+      gasWanted: result.gasWanted,
+      gasUsed: result.gasUsed,
     };
   }
 
@@ -367,9 +458,9 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     senderAddress: string,
     recipientAddress: string,
     amount: readonly Coin[],
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     const sendMsg: MsgSendEncodeObject = {
       typeUrl: "/cosmos.bank.v1beta1.MsgSend",
       value: {
@@ -385,9 +476,9 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     delegatorAddress: string,
     validatorAddress: string,
     amount: Coin,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     const delegateMsg: MsgDelegateEncodeObject = {
       typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
       value: MsgDelegate.fromPartial({ delegatorAddress: delegatorAddress, validatorAddress, amount }),
@@ -399,9 +490,9 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     delegatorAddress: string,
     validatorAddress: string,
     amount: Coin,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     const undelegateMsg: MsgUndelegateEncodeObject = {
       typeUrl: "/cosmos.staking.v1beta1.MsgUndelegate",
       value: MsgUndelegate.fromPartial({ delegatorAddress: delegatorAddress, validatorAddress, amount }),
@@ -412,9 +503,9 @@ export class SigningCosmWasmClient extends CosmWasmClient {
   public async withdrawRewards(
     delegatorAddress: string,
     validatorAddress: string,
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
+  ): Promise<DeliverTxResponse> {
     const withdrawDelegatorRewardMsg: MsgWithdrawDelegatorRewardEncodeObject = {
       typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
       value: MsgWithdrawDelegatorReward.fromPartial({ delegatorAddress: delegatorAddress, validatorAddress }),
@@ -433,10 +524,19 @@ export class SigningCosmWasmClient extends CosmWasmClient {
   public async signAndBroadcast(
     signerAddress: string,
     messages: readonly EncodeObject[],
-    fee: StdFee,
+    fee: StdFee | "auto" | number,
     memo = "",
-  ): Promise<BroadcastTxResponse> {
-    const txRaw = await this.sign(signerAddress, messages, fee, memo);
+  ): Promise<DeliverTxResponse> {
+    let usedFee: StdFee;
+    if (fee == "auto" || typeof fee === "number") {
+      assertDefined(this.gasPrice, "Gas price must be set in the client options when auto gas is used.");
+      const gasEstimation = await this.simulate(signerAddress, messages, memo);
+      const multiplier = typeof fee === "number" ? fee : 1.3;
+      usedFee = calculateFee(Math.round(gasEstimation * multiplier), this.gasPrice);
+    } else {
+      usedFee = fee;
+    }
+    const txRaw = await this.sign(signerAddress, messages, usedFee, memo);
     const txBytes = TxRaw.encode(txRaw).finish();
     return this.broadcastTx(txBytes, this.broadcastTimeoutMs, this.broadcastPollIntervalMs);
   }
@@ -480,9 +580,7 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = accountFromSigner.algo == "eth_secp256k1" ?
-      encodePubkey(encodeEthSecp256k1Pubkey(accountFromSigner.pubkey)) :
-      encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
+    const pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
     const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     const msgs = messages.map((msg) => this.aminoTypes.toAmino(msg));
     const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence);
@@ -501,6 +599,8 @@ export class SigningCosmWasmClient extends CosmWasmClient {
       [{ pubkey, sequence: signedSequence }],
       signed.fee.amount,
       signedGasLimit,
+      signed.fee.granter,
+      signed.fee.payer,
       signMode,
     );
     return TxRaw.fromPartial({
@@ -524,9 +624,7 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = accountFromSigner.algo == "eth_secp256k1" ?
-      encodePubkey(encodeEthSecp256k1Pubkey(accountFromSigner.pubkey)) :
-      encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
+    const pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
     const txBody: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
@@ -536,7 +634,13 @@ export class SigningCosmWasmClient extends CosmWasmClient {
     };
     const txBodyBytes = this.registry.encode(txBody);
     const gasLimit = Int53.fromString(fee.gas).toNumber();
-    const authInfoBytes = makeAuthInfoBytes([{ pubkey, sequence }], fee.amount, gasLimit);
+    const authInfoBytes = makeAuthInfoBytes(
+      [{ pubkey, sequence }],
+      fee.amount,
+      gasLimit,
+      fee.granter,
+      fee.payer,
+    );
     const signDoc = makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
     const { signature, signed } = await this.signer.signDirect(signerAddress, signDoc);
     return TxRaw.fromPartial({

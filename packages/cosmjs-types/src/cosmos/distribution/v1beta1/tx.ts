@@ -1,104 +1,113 @@
 /* eslint-disable */
-import Long from "long";
-import _m0 from "protobufjs/minimal";
-import { Coin } from "../../../cosmos/base/v1beta1/coin";
-
+import { Coin } from "../../base/v1beta1/coin";
+import * as _m0 from "protobufjs/minimal";
+import { isSet, DeepPartial, Exact, Rpc } from "../../../helpers";
 export const protobufPackage = "cosmos.distribution.v1beta1";
-
 /**
  * MsgSetWithdrawAddress sets the withdraw address for
  * a delegator (or validator self-delegation).
  */
+
 export interface MsgSetWithdrawAddress {
   delegatorAddress: string;
   withdrawAddress: string;
 }
-
 /** MsgSetWithdrawAddressResponse defines the Msg/SetWithdrawAddress response type. */
-export interface MsgSetWithdrawAddressResponse {}
 
+export interface MsgSetWithdrawAddressResponse {}
 /**
  * MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
  * from a single validator.
  */
+
 export interface MsgWithdrawDelegatorReward {
   delegatorAddress: string;
   validatorAddress: string;
 }
-
 /** MsgWithdrawDelegatorRewardResponse defines the Msg/WithdrawDelegatorReward response type. */
-export interface MsgWithdrawDelegatorRewardResponse {}
 
+export interface MsgWithdrawDelegatorRewardResponse {
+  /** Since: cosmos-sdk 0.46 */
+  amount: Coin[];
+}
 /**
  * MsgWithdrawValidatorCommission withdraws the full commission to the validator
  * address.
  */
+
 export interface MsgWithdrawValidatorCommission {
   validatorAddress: string;
 }
-
 /** MsgWithdrawValidatorCommissionResponse defines the Msg/WithdrawValidatorCommission response type. */
-export interface MsgWithdrawValidatorCommissionResponse {}
 
+export interface MsgWithdrawValidatorCommissionResponse {
+  /** Since: cosmos-sdk 0.46 */
+  amount: Coin[];
+}
 /**
  * MsgFundCommunityPool allows an account to directly
  * fund the community pool.
  */
+
 export interface MsgFundCommunityPool {
   amount: Coin[];
   depositor: string;
 }
-
 /** MsgFundCommunityPoolResponse defines the Msg/FundCommunityPool response type. */
+
 export interface MsgFundCommunityPoolResponse {}
 
-const baseMsgSetWithdrawAddress: object = { delegatorAddress: "", withdrawAddress: "" };
+function createBaseMsgSetWithdrawAddress(): MsgSetWithdrawAddress {
+  return {
+    delegatorAddress: "",
+    withdrawAddress: "",
+  };
+}
 
 export const MsgSetWithdrawAddress = {
   encode(message: MsgSetWithdrawAddress, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.delegatorAddress !== "") {
       writer.uint32(10).string(message.delegatorAddress);
     }
+
     if (message.withdrawAddress !== "") {
       writer.uint32(18).string(message.withdrawAddress);
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgSetWithdrawAddress {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgSetWithdrawAddress } as MsgSetWithdrawAddress;
+    const message = createBaseMsgSetWithdrawAddress();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.delegatorAddress = reader.string();
           break;
+
         case 2:
           message.withdrawAddress = reader.string();
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): MsgSetWithdrawAddress {
-    const message = { ...baseMsgSetWithdrawAddress } as MsgSetWithdrawAddress;
-    if (object.delegatorAddress !== undefined && object.delegatorAddress !== null) {
-      message.delegatorAddress = String(object.delegatorAddress);
-    } else {
-      message.delegatorAddress = "";
-    }
-    if (object.withdrawAddress !== undefined && object.withdrawAddress !== null) {
-      message.withdrawAddress = String(object.withdrawAddress);
-    } else {
-      message.withdrawAddress = "";
-    }
-    return message;
+    return {
+      delegatorAddress: isSet(object.delegatorAddress) ? String(object.delegatorAddress) : "",
+      withdrawAddress: isSet(object.withdrawAddress) ? String(object.withdrawAddress) : "",
+    };
   },
 
   toJSON(message: MsgSetWithdrawAddress): unknown {
@@ -108,23 +117,17 @@ export const MsgSetWithdrawAddress = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgSetWithdrawAddress>): MsgSetWithdrawAddress {
-    const message = { ...baseMsgSetWithdrawAddress } as MsgSetWithdrawAddress;
-    if (object.delegatorAddress !== undefined && object.delegatorAddress !== null) {
-      message.delegatorAddress = object.delegatorAddress;
-    } else {
-      message.delegatorAddress = "";
-    }
-    if (object.withdrawAddress !== undefined && object.withdrawAddress !== null) {
-      message.withdrawAddress = object.withdrawAddress;
-    } else {
-      message.withdrawAddress = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgSetWithdrawAddress>, I>>(object: I): MsgSetWithdrawAddress {
+    const message = createBaseMsgSetWithdrawAddress();
+    message.delegatorAddress = object.delegatorAddress ?? "";
+    message.withdrawAddress = object.withdrawAddress ?? "";
     return message;
   },
 };
 
-const baseMsgSetWithdrawAddressResponse: object = {};
+function createBaseMsgSetWithdrawAddressResponse(): MsgSetWithdrawAddressResponse {
+  return {};
+}
 
 export const MsgSetWithdrawAddressResponse = {
   encode(_: MsgSetWithdrawAddressResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -134,21 +137,23 @@ export const MsgSetWithdrawAddressResponse = {
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgSetWithdrawAddressResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgSetWithdrawAddressResponse } as MsgSetWithdrawAddressResponse;
+    const message = createBaseMsgSetWithdrawAddressResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(_: any): MsgSetWithdrawAddressResponse {
-    const message = { ...baseMsgSetWithdrawAddressResponse } as MsgSetWithdrawAddressResponse;
-    return message;
+    return {};
   },
 
   toJSON(_: MsgSetWithdrawAddressResponse): unknown {
@@ -156,59 +161,65 @@ export const MsgSetWithdrawAddressResponse = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgSetWithdrawAddressResponse>): MsgSetWithdrawAddressResponse {
-    const message = { ...baseMsgSetWithdrawAddressResponse } as MsgSetWithdrawAddressResponse;
+  fromPartial<I extends Exact<DeepPartial<MsgSetWithdrawAddressResponse>, I>>(
+    _: I,
+  ): MsgSetWithdrawAddressResponse {
+    const message = createBaseMsgSetWithdrawAddressResponse();
     return message;
   },
 };
 
-const baseMsgWithdrawDelegatorReward: object = { delegatorAddress: "", validatorAddress: "" };
+function createBaseMsgWithdrawDelegatorReward(): MsgWithdrawDelegatorReward {
+  return {
+    delegatorAddress: "",
+    validatorAddress: "",
+  };
+}
 
 export const MsgWithdrawDelegatorReward = {
   encode(message: MsgWithdrawDelegatorReward, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.delegatorAddress !== "") {
       writer.uint32(10).string(message.delegatorAddress);
     }
+
     if (message.validatorAddress !== "") {
       writer.uint32(18).string(message.validatorAddress);
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgWithdrawDelegatorReward {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgWithdrawDelegatorReward } as MsgWithdrawDelegatorReward;
+    const message = createBaseMsgWithdrawDelegatorReward();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.delegatorAddress = reader.string();
           break;
+
         case 2:
           message.validatorAddress = reader.string();
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): MsgWithdrawDelegatorReward {
-    const message = { ...baseMsgWithdrawDelegatorReward } as MsgWithdrawDelegatorReward;
-    if (object.delegatorAddress !== undefined && object.delegatorAddress !== null) {
-      message.delegatorAddress = String(object.delegatorAddress);
-    } else {
-      message.delegatorAddress = "";
-    }
-    if (object.validatorAddress !== undefined && object.validatorAddress !== null) {
-      message.validatorAddress = String(object.validatorAddress);
-    } else {
-      message.validatorAddress = "";
-    }
-    return message;
+    return {
+      delegatorAddress: isSet(object.delegatorAddress) ? String(object.delegatorAddress) : "",
+      validatorAddress: isSet(object.validatorAddress) ? String(object.validatorAddress) : "",
+    };
   },
 
   toJSON(message: MsgWithdrawDelegatorReward): unknown {
@@ -218,96 +229,121 @@ export const MsgWithdrawDelegatorReward = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgWithdrawDelegatorReward>): MsgWithdrawDelegatorReward {
-    const message = { ...baseMsgWithdrawDelegatorReward } as MsgWithdrawDelegatorReward;
-    if (object.delegatorAddress !== undefined && object.delegatorAddress !== null) {
-      message.delegatorAddress = object.delegatorAddress;
-    } else {
-      message.delegatorAddress = "";
-    }
-    if (object.validatorAddress !== undefined && object.validatorAddress !== null) {
-      message.validatorAddress = object.validatorAddress;
-    } else {
-      message.validatorAddress = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgWithdrawDelegatorReward>, I>>(
+    object: I,
+  ): MsgWithdrawDelegatorReward {
+    const message = createBaseMsgWithdrawDelegatorReward();
+    message.delegatorAddress = object.delegatorAddress ?? "";
+    message.validatorAddress = object.validatorAddress ?? "";
     return message;
   },
 };
 
-const baseMsgWithdrawDelegatorRewardResponse: object = {};
+function createBaseMsgWithdrawDelegatorRewardResponse(): MsgWithdrawDelegatorRewardResponse {
+  return {
+    amount: [],
+  };
+}
 
 export const MsgWithdrawDelegatorRewardResponse = {
-  encode(_: MsgWithdrawDelegatorRewardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: MsgWithdrawDelegatorRewardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.amount) {
+      Coin.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgWithdrawDelegatorRewardResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgWithdrawDelegatorRewardResponse } as MsgWithdrawDelegatorRewardResponse;
+    const message = createBaseMsgWithdrawDelegatorRewardResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
+        case 1:
+          message.amount.push(Coin.decode(reader, reader.uint32()));
+          break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
-  fromJSON(_: any): MsgWithdrawDelegatorRewardResponse {
-    const message = { ...baseMsgWithdrawDelegatorRewardResponse } as MsgWithdrawDelegatorRewardResponse;
-    return message;
+  fromJSON(object: any): MsgWithdrawDelegatorRewardResponse {
+    return {
+      amount: Array.isArray(object?.amount) ? object.amount.map((e: any) => Coin.fromJSON(e)) : [],
+    };
   },
 
-  toJSON(_: MsgWithdrawDelegatorRewardResponse): unknown {
+  toJSON(message: MsgWithdrawDelegatorRewardResponse): unknown {
     const obj: any = {};
+
+    if (message.amount) {
+      obj.amount = message.amount.map((e) => (e ? Coin.toJSON(e) : undefined));
+    } else {
+      obj.amount = [];
+    }
+
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgWithdrawDelegatorRewardResponse>): MsgWithdrawDelegatorRewardResponse {
-    const message = { ...baseMsgWithdrawDelegatorRewardResponse } as MsgWithdrawDelegatorRewardResponse;
+  fromPartial<I extends Exact<DeepPartial<MsgWithdrawDelegatorRewardResponse>, I>>(
+    object: I,
+  ): MsgWithdrawDelegatorRewardResponse {
+    const message = createBaseMsgWithdrawDelegatorRewardResponse();
+    message.amount = object.amount?.map((e) => Coin.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseMsgWithdrawValidatorCommission: object = { validatorAddress: "" };
+function createBaseMsgWithdrawValidatorCommission(): MsgWithdrawValidatorCommission {
+  return {
+    validatorAddress: "",
+  };
+}
 
 export const MsgWithdrawValidatorCommission = {
   encode(message: MsgWithdrawValidatorCommission, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.validatorAddress !== "") {
       writer.uint32(10).string(message.validatorAddress);
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgWithdrawValidatorCommission {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgWithdrawValidatorCommission } as MsgWithdrawValidatorCommission;
+    const message = createBaseMsgWithdrawValidatorCommission();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.validatorAddress = reader.string();
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): MsgWithdrawValidatorCommission {
-    const message = { ...baseMsgWithdrawValidatorCommission } as MsgWithdrawValidatorCommission;
-    if (object.validatorAddress !== undefined && object.validatorAddress !== null) {
-      message.validatorAddress = String(object.validatorAddress);
-    } else {
-      message.validatorAddress = "";
-    }
-    return message;
+    return {
+      validatorAddress: isSet(object.validatorAddress) ? String(object.validatorAddress) : "",
+    };
   },
 
   toJSON(message: MsgWithdrawValidatorCommission): unknown {
@@ -316,143 +352,159 @@ export const MsgWithdrawValidatorCommission = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgWithdrawValidatorCommission>): MsgWithdrawValidatorCommission {
-    const message = { ...baseMsgWithdrawValidatorCommission } as MsgWithdrawValidatorCommission;
-    if (object.validatorAddress !== undefined && object.validatorAddress !== null) {
-      message.validatorAddress = object.validatorAddress;
-    } else {
-      message.validatorAddress = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgWithdrawValidatorCommission>, I>>(
+    object: I,
+  ): MsgWithdrawValidatorCommission {
+    const message = createBaseMsgWithdrawValidatorCommission();
+    message.validatorAddress = object.validatorAddress ?? "";
     return message;
   },
 };
 
-const baseMsgWithdrawValidatorCommissionResponse: object = {};
+function createBaseMsgWithdrawValidatorCommissionResponse(): MsgWithdrawValidatorCommissionResponse {
+  return {
+    amount: [],
+  };
+}
 
 export const MsgWithdrawValidatorCommissionResponse = {
-  encode(_: MsgWithdrawValidatorCommissionResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(
+    message: MsgWithdrawValidatorCommissionResponse,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    for (const v of message.amount) {
+      Coin.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgWithdrawValidatorCommissionResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseMsgWithdrawValidatorCommissionResponse,
-    } as MsgWithdrawValidatorCommissionResponse;
+    const message = createBaseMsgWithdrawValidatorCommissionResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
+        case 1:
+          message.amount.push(Coin.decode(reader, reader.uint32()));
+          break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
-  fromJSON(_: any): MsgWithdrawValidatorCommissionResponse {
-    const message = {
-      ...baseMsgWithdrawValidatorCommissionResponse,
-    } as MsgWithdrawValidatorCommissionResponse;
-    return message;
+  fromJSON(object: any): MsgWithdrawValidatorCommissionResponse {
+    return {
+      amount: Array.isArray(object?.amount) ? object.amount.map((e: any) => Coin.fromJSON(e)) : [],
+    };
   },
 
-  toJSON(_: MsgWithdrawValidatorCommissionResponse): unknown {
+  toJSON(message: MsgWithdrawValidatorCommissionResponse): unknown {
     const obj: any = {};
+
+    if (message.amount) {
+      obj.amount = message.amount.map((e) => (e ? Coin.toJSON(e) : undefined));
+    } else {
+      obj.amount = [];
+    }
+
     return obj;
   },
 
-  fromPartial(
-    _: DeepPartial<MsgWithdrawValidatorCommissionResponse>,
+  fromPartial<I extends Exact<DeepPartial<MsgWithdrawValidatorCommissionResponse>, I>>(
+    object: I,
   ): MsgWithdrawValidatorCommissionResponse {
-    const message = {
-      ...baseMsgWithdrawValidatorCommissionResponse,
-    } as MsgWithdrawValidatorCommissionResponse;
+    const message = createBaseMsgWithdrawValidatorCommissionResponse();
+    message.amount = object.amount?.map((e) => Coin.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseMsgFundCommunityPool: object = { depositor: "" };
+function createBaseMsgFundCommunityPool(): MsgFundCommunityPool {
+  return {
+    amount: [],
+    depositor: "",
+  };
+}
 
 export const MsgFundCommunityPool = {
   encode(message: MsgFundCommunityPool, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.amount) {
       Coin.encode(v!, writer.uint32(10).fork()).ldelim();
     }
+
     if (message.depositor !== "") {
       writer.uint32(18).string(message.depositor);
     }
+
     return writer;
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgFundCommunityPool {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgFundCommunityPool } as MsgFundCommunityPool;
-    message.amount = [];
+    const message = createBaseMsgFundCommunityPool();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         case 1:
           message.amount.push(Coin.decode(reader, reader.uint32()));
           break;
+
         case 2:
           message.depositor = reader.string();
           break;
+
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(object: any): MsgFundCommunityPool {
-    const message = { ...baseMsgFundCommunityPool } as MsgFundCommunityPool;
-    message.amount = [];
-    if (object.amount !== undefined && object.amount !== null) {
-      for (const e of object.amount) {
-        message.amount.push(Coin.fromJSON(e));
-      }
-    }
-    if (object.depositor !== undefined && object.depositor !== null) {
-      message.depositor = String(object.depositor);
-    } else {
-      message.depositor = "";
-    }
-    return message;
+    return {
+      amount: Array.isArray(object?.amount) ? object.amount.map((e: any) => Coin.fromJSON(e)) : [],
+      depositor: isSet(object.depositor) ? String(object.depositor) : "",
+    };
   },
 
   toJSON(message: MsgFundCommunityPool): unknown {
     const obj: any = {};
+
     if (message.amount) {
       obj.amount = message.amount.map((e) => (e ? Coin.toJSON(e) : undefined));
     } else {
       obj.amount = [];
     }
+
     message.depositor !== undefined && (obj.depositor = message.depositor);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgFundCommunityPool>): MsgFundCommunityPool {
-    const message = { ...baseMsgFundCommunityPool } as MsgFundCommunityPool;
-    message.amount = [];
-    if (object.amount !== undefined && object.amount !== null) {
-      for (const e of object.amount) {
-        message.amount.push(Coin.fromPartial(e));
-      }
-    }
-    if (object.depositor !== undefined && object.depositor !== null) {
-      message.depositor = object.depositor;
-    } else {
-      message.depositor = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MsgFundCommunityPool>, I>>(object: I): MsgFundCommunityPool {
+    const message = createBaseMsgFundCommunityPool();
+    message.amount = object.amount?.map((e) => Coin.fromPartial(e)) || [];
+    message.depositor = object.depositor ?? "";
     return message;
   },
 };
 
-const baseMsgFundCommunityPoolResponse: object = {};
+function createBaseMsgFundCommunityPoolResponse(): MsgFundCommunityPoolResponse {
+  return {};
+}
 
 export const MsgFundCommunityPoolResponse = {
   encode(_: MsgFundCommunityPoolResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -462,21 +514,23 @@ export const MsgFundCommunityPoolResponse = {
   decode(input: _m0.Reader | Uint8Array, length?: number): MsgFundCommunityPoolResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgFundCommunityPoolResponse } as MsgFundCommunityPoolResponse;
+    const message = createBaseMsgFundCommunityPoolResponse();
+
     while (reader.pos < end) {
       const tag = reader.uint32();
+
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
+
     return message;
   },
 
   fromJSON(_: any): MsgFundCommunityPoolResponse {
-    const message = { ...baseMsgFundCommunityPoolResponse } as MsgFundCommunityPoolResponse;
-    return message;
+    return {};
   },
 
   toJSON(_: MsgFundCommunityPoolResponse): unknown {
@@ -484,13 +538,15 @@ export const MsgFundCommunityPoolResponse = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<MsgFundCommunityPoolResponse>): MsgFundCommunityPoolResponse {
-    const message = { ...baseMsgFundCommunityPoolResponse } as MsgFundCommunityPoolResponse;
+  fromPartial<I extends Exact<DeepPartial<MsgFundCommunityPoolResponse>, I>>(
+    _: I,
+  ): MsgFundCommunityPoolResponse {
+    const message = createBaseMsgFundCommunityPoolResponse();
     return message;
   },
 };
-
 /** Msg defines the distribution Msg service. */
+
 export interface Msg {
   /**
    * SetWithdrawAddress defines a method to change the withdraw address
@@ -501,11 +557,13 @@ export interface Msg {
    * WithdrawDelegatorReward defines a method to withdraw rewards of delegator
    * from a single validator.
    */
+
   WithdrawDelegatorReward(request: MsgWithdrawDelegatorReward): Promise<MsgWithdrawDelegatorRewardResponse>;
   /**
    * WithdrawValidatorCommission defines a method to withdraw the
    * full commission to the validator address.
    */
+
   WithdrawValidatorCommission(
     request: MsgWithdrawValidatorCommission,
   ): Promise<MsgWithdrawValidatorCommissionResponse>;
@@ -513,11 +571,12 @@ export interface Msg {
    * FundCommunityPool defines a method to allow an account to directly
    * fund the community pool.
    */
+
   FundCommunityPool(request: MsgFundCommunityPool): Promise<MsgFundCommunityPoolResponse>;
 }
-
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.SetWithdrawAddress = this.SetWithdrawAddress.bind(this);
@@ -525,6 +584,7 @@ export class MsgClientImpl implements Msg {
     this.WithdrawValidatorCommission = this.WithdrawValidatorCommission.bind(this);
     this.FundCommunityPool = this.FundCommunityPool.bind(this);
   }
+
   SetWithdrawAddress(request: MsgSetWithdrawAddress): Promise<MsgSetWithdrawAddressResponse> {
     const data = MsgSetWithdrawAddress.encode(request).finish();
     const promise = this.rpc.request("cosmos.distribution.v1beta1.Msg", "SetWithdrawAddress", data);
@@ -550,24 +610,4 @@ export class MsgClientImpl implements Msg {
     const promise = this.rpc.request("cosmos.distribution.v1beta1.Msg", "FundCommunityPool", data);
     return promise.then((data) => MsgFundCommunityPoolResponse.decode(new _m0.Reader(data)));
   }
-}
-
-interface Rpc {
-  request(service: string, method: string, data: Uint8Array): Promise<Uint8Array>;
-}
-
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined | Long;
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
 }

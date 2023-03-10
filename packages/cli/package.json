@@ -1,6 +1,6 @@
 {
   "name": "@cosmjs/cli",
-  "version": "0.26.0",
+  "version": "0.29.5",
   "description": "Command line interface",
   "contributors": [
     "IOV SAS <admin@iov.one>",
@@ -23,14 +23,14 @@
     "lint-fix": "eslint --fix --max-warnings 0 \"./**/*.ts\" \"./*.js\"",
     "build": "rm -rf ./build && tsc",
     "build-or-skip": "[ -n \"$SKIP_BUILD\" ] || yarn build",
-    "start": "yarn build-or-skip && ./bin/cosmwasm-cli",
-    "selftest": "yarn build-or-skip && ./bin/cosmwasm-cli --selftest",
-    "test-node": "node --require esm jasmine-testrunner.js",
+    "start": "yarn build-or-skip && ./bin/cosmjs-cli",
+    "selftest": "yarn build-or-skip && ./bin/cosmjs-cli --selftest",
+    "test-node": "yarn node jasmine-testrunner.js",
     "test": "yarn build-or-skip && yarn test-node",
     "coverage": "nyc --reporter=text --reporter=lcov yarn test --quiet"
   },
   "bin": {
-    "cosmwasm-cli": "bin/cosmwasm-cli"
+    "cosmjs-cli": "bin/cosmjs-cli"
   },
   "files": [
     "build/",
@@ -40,25 +40,24 @@
     "!**/testdata/"
   ],
   "dependencies": {
-    "@cosmjs/amino": "workspace:packages/amino",
-    "@cosmjs/cosmwasm-stargate": "workspace:packages/cosmwasm-stargate",
-    "@cosmjs/crypto": "workspace:packages/crypto",
-    "@cosmjs/encoding": "workspace:packages/encoding",
-    "@cosmjs/faucet-client": "workspace:packages/faucet-client",
-    "@cosmjs/launchpad": "workspace:packages/launchpad",
-    "@cosmjs/math": "workspace:packages/math",
-    "@cosmjs/proto-signing": "workspace:packages/proto-signing",
-    "@cosmjs/stargate": "workspace:packages/stargate",
-    "@cosmjs/tendermint-rpc": "workspace:packages/tendermint-rpc",
-    "@cosmjs/utils": "workspace:packages/utils",
-    "axios": "^0.21.1",
+    "@cosmjs/amino": "workspace:^",
+    "@cosmjs/cosmwasm-stargate": "workspace:^",
+    "@cosmjs/crypto": "workspace:^",
+    "@cosmjs/encoding": "workspace:^",
+    "@cosmjs/faucet-client": "workspace:^",
+    "@cosmjs/math": "workspace:^",
+    "@cosmjs/proto-signing": "workspace:^",
+    "@cosmjs/stargate": "workspace:^",
+    "@cosmjs/tendermint-rpc": "workspace:^",
+    "@cosmjs/utils": "workspace:^",
+    "axios": "^0.21.2",
     "babylon": "^6.18.0",
-    "colors": "^1.3.3",
-    "cosmjs-types": "workspace:packages/cosmjs-types",
+    "chalk": "^4",
+    "cosmjs-types": "workspace:^",
     "diff": "^4",
     "recast": "^0.20",
     "ts-node": "^8",
-    "typescript": "~4.3",
+    "typescript": "~4.6",
     "yargs": "^15.3.1"
   },
   "devDependencies": {
@@ -66,11 +65,11 @@
     "@types/babylon": "^6.16.3",
     "@types/diff": "^4",
     "@types/eslint-plugin-prettier": "^3",
-    "@types/jasmine": "^3.8",
+    "@types/jasmine": "^4",
     "@types/node": "^15.0.1",
     "@types/yargs": "^15.0.4",
-    "@typescript-eslint/eslint-plugin": "^4.28",
-    "@typescript-eslint/parser": "^4.28",
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.13.0",
     "eslint": "^7.5",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-node": "^0.3.4",
@@ -78,10 +77,10 @@
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "esm": "^3.2.25",
-    "jasmine": "^3.8",
+    "jasmine": "^4",
     "jasmine-spec-reporter": "^6",
     "nyc": "^15.1.0",
-    "prettier": "^2.3.2",
+    "prettier": "^2.8.1",
     "source-map-support": "^0.5.19"
   }
 }

@@ -33,7 +33,7 @@ for more example usage of the packages.
 
 The full API documentation is hosted at [cosmos.github.io/cosmjs]. This is a bit
 tricky to navigate and requires basic TypeScript understanding. It is helpful if
-you have want to look up details for advanced use cases. This documentation is
+you want to look up details for advanced use cases. This documentation is
 auto-generated based on the current main branch and can occasionally diverge
 from the latest release.
 
@@ -48,16 +48,15 @@ chains (Cosmos SDK v0.41) can be found
 ## Packages
 
 CosmJS is a library that consists of many smaller npm packages within the
-[@cosmjs namespace](https://www.npmjs.com/org/cosmjs), a so called monorepo.
+[@cosmjs namespace](https://www.npmjs.com/org/cosmjs), a so-called monorepo.
 Here are some of them to get an idea:
 
 | Package                                                 | Description                                                                                                                                                                                                                              | Latest                                                                                                                                |
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| [@cosmjs/stargate](packages/stargate)                 | A client library for the Cosmos SDK 0.40 (cosmoshub-4), 0.41 and 0.42 (Stargate)                                                                                                                                                        | [![npm version](https://img.shields.io/npm/v/@cosmjs/stargate.svg)](https://www.npmjs.com/package/@cosmjs/stargate)                 |
-| [@cosmjs/launchpad](packages/launchpad)                 | A client library for the Cosmos SDK 0.37 (cosmoshub-3), 0.38 and 0.39 (Launchpad)                                                                                                                                                        | [![npm version](https://img.shields.io/npm/v/@cosmjs/launchpad.svg)](https://www.npmjs.com/package/@cosmjs/launchpad)                 |
+| [@cosmjs/stargate](packages/stargate)                   | A client library for the Cosmos SDK 0.40+ (Stargate)                                                                                                                                                                                     | [![npm version](https://img.shields.io/npm/v/@cosmjs/stargate.svg)](https://www.npmjs.com/package/@cosmjs/stargate)                   |
 | [@cosmjs/faucet](packages/faucet)                       | A faucet application for node.js                                                                                                                                                                                                         | [![npm version](https://img.shields.io/npm/v/@cosmjs/faucet.svg)](https://www.npmjs.com/package/@cosmjs/faucet)                       |
 | [@cosmjs/cosmwasm-stargate](packages/cosmwasm-stargate) | Client for Stargate chains with the CosmWasm module enabled                                                                                                                                                                              | [![npm version](https://img.shields.io/npm/v/@cosmjs/cosmwasm-stargate.svg)](https://www.npmjs.com/package/@cosmjs/cosmwasm-stargate) |
-| [@cosmjs/crypto](packages/crypto)                       | Cryptography for blockchain projects, e.g. hashing (SHA-2, Keccak256, Ripemd160), signing (secp256k1, ed25519), HD key derivation (BIPO39, SLIP-0010), KDFs and symmetric encryption for key storage (PBKDF2, Argon2, XChaCha20Poly1305) | [![npm version](https://img.shields.io/npm/v/@cosmjs/crypto.svg)](https://www.npmjs.com/package/@cosmjs/crypto)                       |
+| [@cosmjs/crypto](packages/crypto)                       | Cryptography for blockchain projects, e.g. hashing (SHA-2, Keccak256, Ripemd160), signing (secp256k1, ed25519), HD key derivation (BIP-39, SLIP-0010), KDFs and symmetric encryption for key storage (PBKDF2, Argon2, XChaCha20Poly1305) | [![npm version](https://img.shields.io/npm/v/@cosmjs/crypto.svg)](https://www.npmjs.com/package/@cosmjs/crypto)                       |
 | [@cosmjs/encoding](packages/encoding)                   | Encoding helpers for blockchain projects                                                                                                                                                                                                 | [![npm version](https://img.shields.io/npm/v/@cosmjs/encoding.svg)](https://www.npmjs.com/package/@cosmjs/encoding)                   |
 | [@cosmjs/math](packages/math)                           | Safe integers; decimals for handling financial amounts                                                                                                                                                                                   | [![npm version](https://img.shields.io/npm/v/@cosmjs/math.svg)](https://www.npmjs.com/package/@cosmjs/math)                           |
 
@@ -85,17 +84,77 @@ optipng docs/cosmjs-tree*.png
 
 Currently the codebase supports the following runtime environments:
 
-1. Node.js 12+
+1. Node.js 14+
 2. Modern browsers (Chromium/Firefox/Safari, no Internet Explorer or
    [Edge Spartan](https://en.wikipedia.org/wiki/Microsoft_Edge#Development))
 3. Browser extensions (Chromium/Firefox)
 
-Our current JavaScript target standard is ES2017, giving us native async/await
-support. We use WebAssembly to implement certain cryptographic functions.
+Our current JavaScript target standard is ES2018. We use WebAssembly to
+implement certain cryptographic functions.
 
 We're happy to adjust this list according to users' needs as long as you don't
 ask for Internet Explorer support. If your environment does not support Wasm, we
-can work on a solution with swapable implementations.
+can work on a solution with swappable implementations.
+
+## Webpack Configs
+
+With WebPack 5, you have to be explicit about the usage of Node.js types and
+modules that were simply replaced with re-implementations for browsers in
+Webpack 4.
+
+Configs for 0.28 and later:
+
+```js
+module.exports = [
+  {
+    // ...
+    plugins: [
+      ...,
+      new webpack.ProvidePlugin({
+        Buffer: ["buffer", "Buffer"],
+      }),
+    ],
+    // ...
+    resolve: {
+      fallback: {
+        buffer: false,
+        crypto: false,
+        events: false,
+        path: false,
+        stream: false,
+        string_decoder: false,
+      },
+    },
+  },
+];
+```
+
+Configs for CosmJS < 0.28
+
+```js
+module.exports = [
+  {
+    // ...
+    plugins: [
+      ...,
+      new webpack.ProvidePlugin({
+        Buffer: ["buffer", "Buffer"],
+      }),
+    ],
+    // ...
+    resolve: {
+      fallback: {
+        buffer: false,
+        crypto: false,
+        events: false,
+        path: false,
+        stream: require.resolve("stream-browserify"),
+        string_decoder: false,
+      },
+    },
+  },
+];
+```
 
 ## Roadmap
 
@@ -108,6 +167,16 @@ discussion please reach out to the team.
   https://github.com/CosmWasm/cosmwasm/issues?q=label%3A%22Community+Call+%F0%9F%97%BA%F0%9F%93%9E%22
 
 ## Known limitations
+
+### 0.26
+
+1. When connecting to a Cosmos SDK 0.44+ backend, the verified queries from
+   `AuthExtension` and `BankExtension` as well as
+   `StargateClient.getAccountVerified` will fail because the storage keys are
+   not stable. Unverified queries can be used instead. Those queries are
+   deprecated now and will be removed in 0.27 ([#910]).
+
+[#910]: https://github.com/cosmos/cosmjs/pull/910
 
 ### 0.25
 

@@ -14,7 +14,10 @@ import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { ReadonlyDate } from "readonly-date";
 
 import {
-  assertIsBroadcastTxSuccess,
+  assertIsDeliverTxSuccess,
+  BroadcastTxError,
+  isDeliverTxFailure,
+  isDeliverTxSuccess,
   PrivateStargateClient,
   StargateClient,
   TimeoutError,
@@ -26,11 +29,47 @@ import {
   pendingWithoutSimapp,
   pendingWithoutSlowSimapp,
   simapp,
+  simapp44Enabled,
   slowSimapp,
   tendermintIdMatcher,
   unused,
   validator,
 } from "./testutils.spec";
+
+const resultFailure = {
+  code: 5,
+  height: 219901,
+  rawLog:
+    "failed to execute message; message index: 0: 1855527000ufct is smaller than 20000000000000000000000ufct: insufficient funds",
+  transactionHash: "FDC4FB701AABD465935F7D04AE490D1EF5F2BD4B227601C4E98B57EB077D9B7D",
+  events: [],
+  gasUsed: 54396,
+  gasWanted: 200000,
+};
+const resultSuccess = {
+  code: 0,
+  height: 219894,
+  rawLog:
+    '[{"events":[{"type":"message","attributes":[{"key":"action","value":"send"},{"key":"sender","value":"firma1trqyle9m2nvyafc2n25frkpwed2504y6avgfzr"},{"key":"module","value":"bank"}]},{"type":"transfer","attributes":[{"key":"recipient","value":"firma12er8ls2sf5zess3jgjxz59xat9xtf8hz0hk6n4"},{"key":"sender","value":"firma1trqyle9m2nvyafc2n25frkpwed2504y6avgfzr"},{"key":"amount","value":"2000000ufct"}]}]}]',
+  transactionHash: "C0B416CA868C55C2B8C1BBB8F3CFA233854F13A5CB15D3E9599F50CAF7B3D161",
+  events: [],
+  gasUsed: 61556,
+  gasWanted: 200000,
+};
+
+describe("isDeliverTxFailure", () => {
+  it("works", () => {
+    expect(isDeliverTxFailure(resultFailure)).toEqual(true);
+    expect(isDeliverTxFailure(resultSuccess)).toEqual(false);
+  });
+});
+
+describe("isDeliverTxSuccess", () => {
+  it("works", () => {
+    expect(isDeliverTxSuccess(resultFailure)).toEqual(false);
+    expect(isDeliverTxSuccess(resultSuccess)).toEqual(true);
+  });
+});
 
 describe("StargateClient", () => {
   describe("connect", () => {
@@ -145,7 +184,7 @@ describe("StargateClient", () => {
       const client = await StargateClient.connect(simapp.tendermintUrl);
 
       await expectAsync(client.getSequence(nonExistentAddress)).toBeRejectedWithError(
-        /account does not exist on chain/i,
+        /account '([a-z0-9]{10,90})' does not exist on chain/i,
       );
 
       client.disconnect();
@@ -280,6 +319,18 @@ describe("StargateClient", () => {
     });
   });
 
+  describe("getBalanceStaked", () => {
+    it("works", async () => {
+      pendingWithoutSimapp();
+      const client = await StargateClient.connect(simapp.tendermintUrl);
+      const response = await client.getBalanceStaked(faucet.address0);
+
+      expect(response).toEqual({ denom: "ustake", amount: "63474" });
+
+      client.disconnect();
+    });
+  });
+
   describe("broadcastTx", () => {
     it("broadcasts a transaction", async () => {
       pendingWithoutSimapp();
@@ -315,7 +366,15 @@ describe("StargateClient", () => {
       const { accountNumber, sequence } = (await client.getSequence(address))!;
       const feeAmount = coins(2000, "ucosm");
       const gasLimit = 200000;
-      const authInfoBytes = makeAuthInfoBytes([{ pubkey, sequence }], feeAmount, gasLimit);
+      const feeGranter = undefined;
+      const feePayer = undefined;
+      const authInfoBytes = makeAuthInfoBytes(
+        [{ pubkey, sequence }],
+        feeAmount,
+        gasLimit,
+        feeGranter,
+        feePayer,
+      );
 
       const chainId = await client.getChainId();
       const signDoc = makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
@@ -327,7 +386,7 @@ describe("StargateClient", () => {
       });
       const txRawBytes = Uint8Array.from(TxRaw.encode(txRaw).finish());
       const txResult = await client.broadcastTx(txRawBytes);
-      assertIsBroadcastTxSuccess(txResult);
+      assertIsDeliverTxSuccess(txResult);
 
       const { gasUsed, rawLog, transactionHash } = txResult;
       expect(gasUsed).toBeGreaterThan(0);
@@ -372,7 +431,16 @@ describe("StargateClient", () => {
       const { accountNumber, sequence } = (await client.getSequence(address))!;
       const feeAmount = coins(2000, "ucosm");
       const gasLimit = 200000;
-      const authInfoBytes = makeAuthInfoBytes([{ pubkey, sequence }], feeAmount, gasLimit, sequence);
+      const feeGranter = undefined;
+      const feePayer = undefined;
+      const authInfoBytes = makeAuthInfoBytes(
+        [{ pubkey, sequence }],
+        feeAmount,
+        gasLimit,
+        feeGranter,
+        feePayer,
+        sequence,
+      );
 
       const chainId = await client.getChainId();
       const signDoc = makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
@@ -384,7 +452,17 @@ describe("StargateClient", () => {
       });
       const txRawBytes = Uint8Array.from(TxRaw.encode(txRaw).finish());
 
-      await expectAsync(client.broadcastTx(txRawBytes)).toBeRejectedWithError(/invalid recipient address/i);
+      try {
+        await client.broadcastTx(txRawBytes);
+        assert(false, "Expected broadcastTx to throw");
+      } catch (error: any) {
+        expect(error).toMatch(
+          simapp44Enabled() ? /invalid recipient address/i : /Broadcasting transaction failed with code 7/i,
+        );
+        assert(error instanceof BroadcastTxError);
+        expect(error.code).toEqual(7);
+        expect(error.codespace).toEqual("sdk");
+      }
 
       client.disconnect();
     });
@@ -423,9 +501,17 @@ describe("StargateClient", () => {
       const chainId = await client.getChainId();
       const feeAmount = coins(2000, "ucosm");
       const gasLimit = 200000;
+      const feeGranter = undefined;
+      const feePayer = undefined;
 
       const { accountNumber: accountNumber1, sequence: sequence1 } = (await client.getSequence(address))!;
-      const authInfoBytes1 = makeAuthInfoBytes([{ pubkey, sequence: sequence1 }], feeAmount, gasLimit);
+      const authInfoBytes1 = makeAuthInfoBytes(
+        [{ pubkey, sequence: sequence1 }],
+        feeAmount,
+        gasLimit,
+        feeGranter,
+        feePayer,
+      );
       const signDoc1 = makeSignDoc(txBodyBytes, authInfoBytes1, chainId, accountNumber1);
       const { signature: signature1 } = await wallet.signDirect(address, signDoc1);
       const txRaw1 = TxRaw.fromPartial({
@@ -436,10 +522,16 @@ describe("StargateClient", () => {
       const txRawBytes1 = Uint8Array.from(TxRaw.encode(txRaw1).finish());
       const largeTimeoutMs = 30_000;
       const txResult = await client.broadcastTx(txRawBytes1, largeTimeoutMs);
-      assertIsBroadcastTxSuccess(txResult);
+      assertIsDeliverTxSuccess(txResult);
 
       const { accountNumber: accountNumber2, sequence: sequence2 } = (await client.getSequence(address))!;
-      const authInfoBytes2 = makeAuthInfoBytes([{ pubkey, sequence: sequence2 }], feeAmount, gasLimit);
+      const authInfoBytes2 = makeAuthInfoBytes(
+        [{ pubkey, sequence: sequence2 }],
+        feeAmount,
+        gasLimit,
+        feeGranter,
+        feePayer,
+      );
       const signDoc2 = makeSignDoc(txBodyBytes, authInfoBytes2, chainId, accountNumber2);
       const { signature: signature2 } = await wallet.signDirect(address, signDoc2);
       const txRaw2 = TxRaw.fromPartial({

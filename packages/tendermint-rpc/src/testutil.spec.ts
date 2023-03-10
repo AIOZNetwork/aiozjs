@@ -1,12 +1,13 @@
 import { toAscii } from "@cosmjs/encoding";
 import { sleep } from "@cosmjs/utils";
 
-export const chainIdMatcher = /^[-a-zA-Z0-9]{3,30}$/;
+export const nonNegativeIntegerMatcher = /^[0-9]+$/;
 export const anyMatcher = /^.*$/; // Any string, including empty. Does not do more than a type check.
 
 export interface ExpectedValues {
   /** The Tendermint version as reported by Tendermint itself */
-  readonly version: string | RegExp;
+  readonly version: RegExp;
+  readonly chainId: RegExp;
   readonly appCreator: string;
   readonly p2pVersion: number;
   readonly blockVersion: number;
@@ -34,34 +35,36 @@ export interface TendermintInstance {
  *   docker container ls | grep tendermint/tendermint
  *   docker container kill <container id from 1st column>
  */
-export const tendermintInstances: readonly TendermintInstance[] = [
-  {
-    url: "localhost:11133",
-    version: "0.33.x",
-    blockTime: 1000,
-    expected: {
-      version: "0.33.8",
-      appCreator: "Cosmoshi Netowoko",
-      p2pVersion: 7,
-      blockVersion: 10,
-      appVersion: 1,
-    },
-  },
-  {
+export const tendermintInstances = {
+  34: {
     url: "localhost:11134",
     version: "0.34.x",
     blockTime: 500,
     expected: {
-      version: anyMatcher,
+      chainId: /^[-a-zA-Z0-9]{3,30}$/,
+      version: /^$/, // Unfortunately we don't get info here
       appCreator: "Cosmoshi Netowoko",
       p2pVersion: 8,
       blockVersion: 11,
       appVersion: 1,
     },
   },
-];
+  35: {
+    url: "localhost:11135",
+    version: "0.35.x",
+    blockTime: 500,
+    expected: {
+      chainId: /^dockerchain$/,
+      version: /^$/, // Unfortunately we don't get info here
+      appCreator: "Cosmoshi Netowoko",
+      p2pVersion: 8,
+      blockVersion: 11,
+      appVersion: 1,
+    },
+  },
+};
 
-export const defaultInstance: TendermintInstance = tendermintInstances[0];
+export const defaultInstance: TendermintInstance = tendermintInstances[34];
 
 export function tendermintEnabled(): boolean {
   return !!process.env.TENDERMINT_ENABLED;

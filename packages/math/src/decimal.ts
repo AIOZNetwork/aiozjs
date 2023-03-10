@@ -24,7 +24,10 @@ export class Decimal {
     let whole: string;
     let fractional: string;
 
-    if (input.search(/\./) === -1) {
+    if (input === "") {
+      whole = "0";
+      fractional = "";
+    } else if (input.search(/\./) === -1) {
       // integer format, no separator
       whole = input;
       fractional = "";
@@ -58,6 +61,28 @@ export class Decimal {
     return new Decimal(atomics, fractionalDigits);
   }
 
+  /**
+   * Creates a Decimal with value 0.0 and the given number of fractial digits.
+   *
+   * Fractional digits are not relevant for the value but needed to be able
+   * to perform arithmetic operations with other decimals.
+   */
+  public static zero(fractionalDigits: number): Decimal {
+    Decimal.verifyFractionalDigits(fractionalDigits);
+    return new Decimal("0", fractionalDigits);
+  }
+
+  /**
+   * Creates a Decimal with value 1.0 and the given number of fractial digits.
+   *
+   * Fractional digits are not relevant for the value but needed to be able
+   * to perform arithmetic operations with other decimals.
+   */
+  public static one(fractionalDigits: number): Decimal {
+    Decimal.verifyFractionalDigits(fractionalDigits);
+    return new Decimal("1" + "0".repeat(fractionalDigits), fractionalDigits);
+  }
+
   private static verifyFractionalDigits(fractionalDigits: number): void {
     if (!Number.isInteger(fractionalDigits)) throw new Error("Fractional digits is not an integer");
     if (fractionalDigits < 0) throw new Error("Fractional digits must not be negative");
@@ -85,10 +110,47 @@ export class Decimal {
   };
 
   private constructor(atomics: string, fractionalDigits: number) {
+    if (!atomics.match(/^[0-9]+$/)) {
+      throw new Error(
+        "Invalid string format. Only non-negative integers in decimal representation supported.",
+      );
+    }
+
     this.data = {
       atomics: new BN(atomics),
       fractionalDigits: fractionalDigits,
     };
+  }
+
+  /** Creates a new instance with the same value */
+  private clone(): Decimal {
+    return new Decimal(this.atomics, this.fractionalDigits);
+  }
+
+  /** Returns the greatest decimal <= this which has no fractional part (rounding down) */
+  public floor(): Decimal {
+    const factor = new BN(10).pow(new BN(this.data.fractionalDigits));
+    const whole = this.data.atomics.div(factor);
+    const fractional = this.data.atomics.mod(factor);
+
+    if (fractional.isZero()) {
+      return this.clone();
+    } else {
+      return Decimal.fromAtomics(whole.mul(factor).toString(), this.fractionalDigits);
+    }
+  }
+
+  /** Returns the smallest decimal >= this which has no fractional part (rounding up) */
+  public ceil(): Decimal {
+    const factor = new BN(10).pow(new BN(this.data.fractionalDigits));
+    const whole = this.data.atomics.div(factor);
+    const fractional = this.data.atomics.mod(factor);
+
+    if (fractional.isZero()) {
+      return this.clone();
+    } else {
+      return Decimal.fromAtomics(whole.addn(1).mul(factor).toString(), this.fractionalDigits);
+    }
   }
 
   public toString(): string {

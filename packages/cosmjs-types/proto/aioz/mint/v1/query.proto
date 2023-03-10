@@ -2,10 +2,11 @@ syntax = "proto3";
 package aioz.mint.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "aioz/mint/v1/mint.proto";
 
-option go_package = "x/mint/types";
+option go_package = "github.com/AIOZNetwork/go-aioz/x/mint/types";
 
 // Query provides defines the gRPC querier service.
 service Query {
@@ -44,7 +45,11 @@ message QueryInflationRequest {}
 message QueryInflationResponse {
 
   // inflation is the current minting inflation value.
-  bytes inflation = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  bytes inflation = 1 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
 }
 
 // QueryAnnualInflationRequest is the request type for the Query/AnnualInflation
@@ -56,7 +61,11 @@ message QueryAnnualInflationRequest {}
 message QueryAnnualInflationResponse {
 
   // annual_inflation is the current minting annual inflation value.
-  bytes annual_inflation = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  bytes annual_inflation = 1 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
 }
 
 // QueryAnnualProvisionsRequest is the request type for the
@@ -68,6 +77,9 @@ message QueryAnnualProvisionsRequest {}
 message QueryAnnualProvisionsResponse {
 
   // annual_provisions is the current minting annual provisions value.
-  bytes annual_provisions = 1
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  bytes annual_provisions = 1 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
 }

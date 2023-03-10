@@ -31,6 +31,18 @@ describe("Decimal", () => {
       expect(Decimal.fromAtomics("44", 3).toString()).toEqual("0.044");
       expect(Decimal.fromAtomics("44", 4).toString()).toEqual("0.0044");
     });
+
+    it("throws for atomics that are not non-negative integers", () => {
+      expect(() => Decimal.fromAtomics("0xAA", 0)).toThrowError(
+        "Invalid string format. Only non-negative integers in decimal representation supported.",
+      );
+      expect(() => Decimal.fromAtomics("", 0)).toThrowError(
+        "Invalid string format. Only non-negative integers in decimal representation supported.",
+      );
+      expect(() => Decimal.fromAtomics("-1", 0)).toThrowError(
+        "Invalid string format. Only non-negative integers in decimal representation supported.",
+      );
+    });
   });
 
   describe("fromUserInput", () => {
@@ -130,6 +142,86 @@ describe("Decimal", () => {
       expect(Decimal.fromUserInput(".1", 3).atomics).toEqual("100");
       expect(Decimal.fromUserInput(".12", 3).atomics).toEqual("120");
       expect(Decimal.fromUserInput(".123", 3).atomics).toEqual("123");
+    });
+  });
+
+  describe("zero", () => {
+    it("works", () => {
+      expect(Decimal.zero(0).toString()).toEqual("0");
+      expect(Decimal.zero(1).toString()).toEqual("0");
+      expect(Decimal.zero(2).toString()).toEqual("0");
+      expect(Decimal.zero(30).toString()).toEqual("0");
+
+      expect(Decimal.zero(0).fractionalDigits).toEqual(0);
+      expect(Decimal.zero(1).fractionalDigits).toEqual(1);
+      expect(Decimal.zero(2).fractionalDigits).toEqual(2);
+      expect(Decimal.zero(30).fractionalDigits).toEqual(30);
+
+      expect(Decimal.zero(0).atomics).toEqual("0");
+      expect(Decimal.zero(1).atomics).toEqual("0");
+      expect(Decimal.zero(2).atomics).toEqual("0");
+      expect(Decimal.zero(30).atomics).toEqual("0");
+
+      expect(() => Decimal.zero(NaN)).toThrowError(/Fractional digits is not an integer/i);
+      expect(() => Decimal.zero(1.2)).toThrowError(/Fractional digits is not an integer/i);
+    });
+  });
+
+  describe("one", () => {
+    it("works", () => {
+      expect(Decimal.one(0).toString()).toEqual("1");
+      expect(Decimal.one(1).toString()).toEqual("1");
+      expect(Decimal.one(2).toString()).toEqual("1");
+      expect(Decimal.one(30).toString()).toEqual("1");
+
+      expect(Decimal.one(0).fractionalDigits).toEqual(0);
+      expect(Decimal.one(1).fractionalDigits).toEqual(1);
+      expect(Decimal.one(2).fractionalDigits).toEqual(2);
+      expect(Decimal.one(30).fractionalDigits).toEqual(30);
+
+      expect(Decimal.one(0).atomics).toEqual("1");
+      expect(Decimal.one(1).atomics).toEqual("10");
+      expect(Decimal.one(2).atomics).toEqual("100");
+      expect(Decimal.one(30).atomics).toEqual("1000000000000000000000000000000");
+
+      expect(() => Decimal.one(NaN)).toThrowError(/Fractional digits is not an integer/i);
+      expect(() => Decimal.one(1.2)).toThrowError(/Fractional digits is not an integer/i);
+    });
+  });
+
+  describe("floor", () => {
+    it("works", () => {
+      // whole numbers
+      expect(Decimal.fromUserInput("0", 0).floor().toString()).toEqual("0");
+      expect(Decimal.fromUserInput("1", 0).floor().toString()).toEqual("1");
+      expect(Decimal.fromUserInput("44", 0).floor().toString()).toEqual("44");
+      expect(Decimal.fromUserInput("0", 3).floor().toString()).toEqual("0");
+      expect(Decimal.fromUserInput("1", 3).floor().toString()).toEqual("1");
+      expect(Decimal.fromUserInput("44", 3).floor().toString()).toEqual("44");
+
+      // with fractional part
+      expect(Decimal.fromUserInput("0.001", 3).floor().toString()).toEqual("0");
+      expect(Decimal.fromUserInput("1.999", 3).floor().toString()).toEqual("1");
+      expect(Decimal.fromUserInput("0.000000000000000001", 18).floor().toString()).toEqual("0");
+      expect(Decimal.fromUserInput("1.999999999999999999", 18).floor().toString()).toEqual("1");
+    });
+  });
+
+  describe("ceil", () => {
+    it("works", () => {
+      // whole numbers
+      expect(Decimal.fromUserInput("0", 0).ceil().toString()).toEqual("0");
+      expect(Decimal.fromUserInput("1", 0).ceil().toString()).toEqual("1");
+      expect(Decimal.fromUserInput("44", 0).ceil().toString()).toEqual("44");
+      expect(Decimal.fromUserInput("0", 3).ceil().toString()).toEqual("0");
+      expect(Decimal.fromUserInput("1", 3).ceil().toString()).toEqual("1");
+      expect(Decimal.fromUserInput("44", 3).ceil().toString()).toEqual("44");
+
+      // with fractional part
+      expect(Decimal.fromUserInput("0.001", 3).ceil().toString()).toEqual("1");
+      expect(Decimal.fromUserInput("1.999", 3).ceil().toString()).toEqual("2");
+      expect(Decimal.fromUserInput("0.000000000000000001", 18).ceil().toString()).toEqual("1");
+      expect(Decimal.fromUserInput("1.999999999999999999", 18).ceil().toString()).toEqual("2");
     });
   });
 

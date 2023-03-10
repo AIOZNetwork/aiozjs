@@ -1,0 +1,14 @@
+syntax = "proto3";
+package aioz.bonus.v1;
+
+import "gogoproto/gogo.proto";
+import "aioz/bonus/v1/params.proto";
+
+option go_package = "github.com/AIOZNetwork/go-aioz/x/bonus/types";
+
+// GenesisState defines the bonus module's genesis state.
+message GenesisState {
+
+  // params defines all the parameters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}

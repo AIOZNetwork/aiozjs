@@ -1,6 +1,6 @@
 import { Bech32, fromHex, toBase64 } from "@cosmjs/encoding";
 
-import { pubkeyToAddressHex, pubkeyToAddress, pubkeyToRawAddress } from "./addresses";
+import { pubkeyToAddress, pubkeyToAddressHex, pubkeyToRawAddress } from "./addresses";
 import { decodeBech32Pubkey } from "./encoding";
 import { MultisigThresholdPubkey } from "./pubkeys";
 

@@ -1,4 +1,8 @@
-version: 2
+version: 2.1
+
+orbs:
+  browser-tools: circleci/browser-tools@1.2.2
+
 workflows:
   version: 2
   workflow:
@@ -19,23 +23,30 @@ workflows:
       - lint:
           requires:
             - build
-      - test:
+      - test-backends:
           requires:
             - build
-      - test-node-v12:
+          matrix:
+            parameters:
+              simapp: ["simapp44", "simapp46"]
+      - test-node:
           requires:
             - build
+          matrix:
+            parameters:
+              node-version: ["14", "16"]
       - test-chrome:
           requires:
             - build
       - coverage:
           requires:
             - build
+      - faucet-docker
 
 jobs:
   build:
     docker:
-      - image: circleci/node:12-buster
+      - image: circleci/node:16.13-bullseye
     steps:
       - run:
           name: Install Git Large File Storage (LFS)
@@ -56,7 +67,10 @@ jobs:
           root: .
           paths:
             - packages/*/build/*
-  test:
+  test-backends:
+    parameters:
+      simapp:
+        type: string
     machine:
       # We can't use a containerized environment since it requires remote docker to start custom containers.
       # However, we can't access the remote docker's network from the primary container. This is a
@@ -65,30 +79,26 @@ jobs:
       # executor in local jobs." (https://circleci.com/docs/2.0/local-cli/#limitations-of-running-jobs-locally)
       #
       # Available images: https://circleci.com/docs/2.0/configuration-reference/#available-machine-images
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2004:202107-02
     steps:
       - run:
           name: Install Git Large File Storage (LFS)
           # In the current image, `sudo apt install git-lfs` requires `sudo apt update` which is too slow
           command: |
-            wget -O "$HOME/git-lfs.deb" https://packagecloud.io/github/git-lfs/packages/ubuntu/focal/git-lfs_2.12.1_amd64.deb/download.deb
+            wget -O "$HOME/git-lfs.deb" https://packagecloud.io/github/git-lfs/packages/ubuntu/focal/git-lfs_2.13.3_amd64.deb/download.deb
             sudo dpkg -i "$HOME/git-lfs.deb"
       - checkout
-      - run: # start early for less wait time below
-          name: Start launchpad
-          command: ./scripts/launchpad/start.sh
-          background: true
       - run: # start early for less wait time below
           name: Start wasmd
           command: ./scripts/wasmd/start.sh
           background: true
       - run:
           name: Start simapp
-          command: ./scripts/simapp/start.sh
+          command: ./scripts/<< parameters.simapp >>/start.sh
           background: true
       - run:
           name: Start slow simapp
-          command: ./scripts/simapp/slow_start.sh
+          command: ./scripts/<< parameters.simapp >>/slow_start.sh
           background: true
       - run:
           name: Start Tendermint blockchains
@@ -100,20 +110,22 @@ jobs:
           name: Merge build folders into project (merge with hardlinks)
           command: cp --recursive --link /tmp/builds/* .
       - run:
-          # The images ubuntu-1604 comes with preinstalled nvm, which does not work well with non-login shells
+          # The images comes with preinstalled nvm, which does not work well with non-login shells
           name: Uninstall nvm
           # Moving to trash is faster than deleting (gvfs-trash is not installed on this image)
-          command: mkdir -p ~/.local/share/Trash && mv "$NVM_DIR" ~/.npm ~/.local/share/Trash
+          command: |
+            nvm --version && nvm ls
+            mkdir -p ~/.local/share/Trash && mv "$NVM_DIR" ~/.npm ~/.local/share/Trash
       - run:
           name: Install nodejs
           # In the current image, `sudo apt install nodejs` requires `sudo apt update` which is too slow
           command: |
-            wget -O "$HOME/nodejs.deb" https://deb.nodesource.com/node_12.x/pool/main/n/nodejs/nodejs_12.22.1-deb-1nodesource1_amd64.deb
+            wget -O "$HOME/nodejs.deb" https://deb.nodesource.com/node_16.x/pool/main/n/nodejs/nodejs_16.13.2-deb-1nodesource1_amd64.deb
             sudo dpkg -i "$HOME/nodejs.deb"
       - run:
           name: Install yarn
           command: |
-            wget -O "$HOME/yarn.deb" https://dl.yarnpkg.com/debian/pool/main/y/yarn/yarn_1.22.4_all.deb
+            wget -O "$HOME/yarn.deb" https://dl.yarnpkg.com/debian/pool/main/y/yarn/yarn_1.22.15_all.deb
             sudo dpkg -i "$HOME/yarn.deb"
       - run:
           name: Version information
@@ -128,25 +140,26 @@ jobs:
           name: Install Dependencies
           command: yarn install --immutable --immutable-cache --check-cache
       - run:
-          name: Initialize launchpad (deploy contracts and friends)
-          command: ./scripts/launchpad/init.sh
-      - run:
           name: Initialize wasmd (deploy contracts and friends)
           command: ./scripts/wasmd/init.sh
       - run:
           name: Start socket server
           command: ./scripts/socketserver/start.sh
       - run:
+          name: Start http server
+          command: ./scripts/httpserver/start.sh
+      - run:
+          name: Run tests
           environment:
-            LAUNCHPAD_ENABLED: 1
-            ERC20_ENABLED: 1
-            SIMAPP_ENABLED: 1
-            SLOW_SIMAPP_ENABLED: 1
+            HTTPSERVER_ENABLED: 1
             TENDERMINT_ENABLED: 1
             SOCKETSERVER_ENABLED: 1
             SKIP_BUILD: 1
             WASMD_ENABLED: 1
-          command: yarn test --stream
+          command: |
+            [ "<< parameters.simapp >>" = "simapp44" ] && export SIMAPP44_ENABLED=1 SLOW_SIMAPP44_ENABLED=1
+            [ "<< parameters.simapp >>" = "simapp46" ] && export SIMAPP46_ENABLED=1 SLOW_SIMAPP46_ENABLED=1
+            yarn test --stream
       - run:
           name: Run CLI selftest
           working_directory: packages/cli
@@ -157,24 +170,28 @@ jobs:
           name: Run CLI examples
           working_directory: packages/cli
           environment:
+            HTTPSERVER_ENABLED: 1
+            TENDERMINT_ENABLED: 1
+            SOCKETSERVER_ENABLED: 1
             SKIP_BUILD: 1
+            WASMD_ENABLED: 1
           command: |
-            yarn node ./bin/cosmwasm-cli --init examples/cosmwasm.ts --code "process.exit(0)"
-            yarn node ./bin/cosmwasm-cli --init examples/delegate.ts --code "process.exit(0)"
-            yarn node ./bin/cosmwasm-cli --init examples/faucet_addresses.ts --code "process.exit(0)"
-            yarn node ./bin/cosmwasm-cli --init examples/generate_address.ts --code "process.exit(0)"
-            yarn node ./bin/cosmwasm-cli --init examples/local_faucet.ts --code "process.exit(0)"
-            yarn node ./bin/cosmwasm-cli --init examples/mask.ts --code "process.exit(0)"
+            [ "<< parameters.simapp >>" = "simapp44" ] && export SIMAPP44_ENABLED=1 SLOW_SIMAPP44_ENABLED=1
+            [ "<< parameters.simapp >>" = "simapp46" ] && export SIMAPP46_ENABLED=1 SLOW_SIMAPP46_ENABLED=1
+            ./run_examples.sh
       - run:
           name: Stop chains
           command: |
+            ./scripts/httpserver/stop.sh
             ./scripts/socketserver/stop.sh
             ./scripts/tendermint/all_stop.sh
-            ./scripts/simapp/stop.sh
-            ./scripts/simapp/slow_stop.sh
+            ./scripts/<< parameters.simapp >>/stop.sh
+            ./scripts/<< parameters.simapp >>/slow_stop.sh
             ./scripts/wasmd/stop.sh
-            ./scripts/launchpad/stop.sh
-  test-node-v12:
+  test-node:
+    parameters:
+      node-version:
+        type: string
     machine:
       # We can't use a containerized environment since it requires remote docker to start custom containers.
       # However, we can't access the remote docker's network from the primary container. This is a
@@ -183,30 +200,27 @@ jobs:
       # executor in local jobs." (https://circleci.com/docs/2.0/local-cli/#limitations-of-running-jobs-locally)
       #
       # Available images: https://circleci.com/docs/2.0/configuration-reference/#available-machine-images
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2004:202107-02
+    resource_class: large
     steps:
       - run:
           name: Install Git Large File Storage (LFS)
           # In the current image, `sudo apt install git-lfs` requires `sudo apt update` which is too slow
           command: |
-            wget -O "$HOME/git-lfs.deb" https://packagecloud.io/github/git-lfs/packages/ubuntu/focal/git-lfs_2.12.1_amd64.deb/download.deb
+            wget -O "$HOME/git-lfs.deb" https://packagecloud.io/github/git-lfs/packages/ubuntu/focal/git-lfs_2.13.3_amd64.deb/download.deb
             sudo dpkg -i "$HOME/git-lfs.deb"
       - checkout
-      - run: # start early for less wait time below
-          name: Start launchpad
-          command: ./scripts/launchpad/start.sh
-          background: true
       - run: # start early for less wait time below
           name: Start wasmd
           command: ./scripts/wasmd/start.sh
           background: true
       - run:
           name: Start simapp
-          command: ./scripts/simapp/start.sh
+          command: ./scripts/simapp44/start.sh
           background: true
       - run:
           name: Start slow simapp
-          command: ./scripts/simapp/slow_start.sh
+          command: ./scripts/simapp44/slow_start.sh
           background: true
       - run:
           name: Start Tendermint blockchains
@@ -218,20 +232,26 @@ jobs:
           name: Merge build folders into project (merge with hardlinks)
           command: cp --recursive --link /tmp/builds/* .
       - run:
-          # The images ubuntu-1604 comes with preinstalled nvm, which does not work well with non-login shells
+          # The images comes with preinstalled nvm, which does not work well with non-login shells
           name: Uninstall nvm
           # Moving to trash is faster than deleting (gvfs-trash is not installed on this image)
-          command: mkdir -p ~/.local/share/Trash && mv "$NVM_DIR" ~/.npm ~/.local/share/Trash
+          command: |
+            nvm --version && nvm ls
+            mkdir -p ~/.local/share/Trash && mv "$NVM_DIR" ~/.npm ~/.local/share/Trash
       - run:
           name: Install nodejs
           # In the current image, `sudo apt install nodejs` requires `sudo apt update` which is too slow
           command: |
-            wget -O "$HOME/nodejs.deb" https://deb.nodesource.com/node_12.x/pool/main/n/nodejs/nodejs_12.20.1-deb-1nodesource1_amd64.deb
+            declare -A node_links=(
+              ["14"]="https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.18.0-deb-1nodesource1_amd64.deb"
+              ["16"]="https://deb.nodesource.com/node_16.x/pool/main/n/nodejs/nodejs_16.13.2-deb-1nodesource1_amd64.deb"
+            )
+            wget -O "$HOME/nodejs.deb" "${node_links[<< parameters.node-version >>]}"
             sudo dpkg -i "$HOME/nodejs.deb"
       - run:
           name: Install yarn
           command: |
-            wget -O "$HOME/yarn.deb" https://dl.yarnpkg.com/debian/pool/main/y/yarn/yarn_1.22.4_all.deb
+            wget -O "$HOME/yarn.deb" https://dl.yarnpkg.com/debian/pool/main/y/yarn/yarn_1.22.15_all.deb
             sudo dpkg -i "$HOME/yarn.deb"
       - run:
           name: Version information
@@ -246,20 +266,19 @@ jobs:
           name: Install Dependencies
           command: yarn install --immutable --immutable-cache --check-cache
       - run:
-          name: Initialize launchpad (deploy contracts and friends)
-          command: ./scripts/launchpad/init.sh
-      - run:
           name: Initialize wasmd (deploy contracts and friends)
           command: ./scripts/wasmd/init.sh
       - run:
           name: Start socket server
           command: ./scripts/socketserver/start.sh
       - run:
+          name: Start http server
+          command: ./scripts/httpserver/start.sh
+      - run:
           environment:
-            LAUNCHPAD_ENABLED: 1
-            ERC20_ENABLED: 1
-            SIMAPP_ENABLED: 1
-            SLOW_SIMAPP_ENABLED: 1
+            HTTPSERVER_ENABLED: 1
+            SIMAPP44_ENABLED: 1
+            SLOW_SIMAPP44_ENABLED: 1
             TENDERMINT_ENABLED: 1
             SOCKETSERVER_ENABLED: 1
             SKIP_BUILD: 1
@@ -276,17 +295,23 @@ jobs:
           name: Run CLI examples
           working_directory: packages/cli
           environment:
+            HTTPSERVER_ENABLED: 1
+            SIMAPP44_ENABLED: 1
+            SLOW_SIMAPP44_ENABLED: 1
+            TENDERMINT_ENABLED: 1
+            SOCKETSERVER_ENABLED: 1
             SKIP_BUILD: 1
+            WASMD_ENABLED: 1
           command: ./run_examples.sh
       - run:
           name: Stop chains
           command: |
+            ./scripts/httpserver/stop.sh
             ./scripts/socketserver/stop.sh
             ./scripts/tendermint/all_stop.sh
-            ./scripts/simapp/stop.sh
-            ./scripts/simapp/slow_stop.sh
+            ./scripts/simapp44/stop.sh
+            ./scripts/simapp44/slow_stop.sh
             ./scripts/wasmd/stop.sh
-            ./scripts/launchpad/stop.sh
   test-chrome:
     machine:
       # We can't use a containerized environment since it requires remote docker to start custom containers.
@@ -296,30 +321,28 @@ jobs:
       # executor in local jobs." (https://circleci.com/docs/2.0/local-cli/#limitations-of-running-jobs-locally)
       #
       # Available images: https://circleci.com/docs/2.0/configuration-reference/#available-machine-images
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2004:202107-02
+    resource_class: large
     steps:
+      - browser-tools/install-chrome # Slow because apt update but what can you do 🤷‍
       - run:
           name: Install Git Large File Storage (LFS)
           # In the current image, `sudo apt install git-lfs` requires `sudo apt update` which is too slow
           command: |
-            wget -O "$HOME/git-lfs.deb" https://packagecloud.io/github/git-lfs/packages/ubuntu/focal/git-lfs_2.12.1_amd64.deb/download.deb
+            wget -O "$HOME/git-lfs.deb" https://packagecloud.io/github/git-lfs/packages/ubuntu/focal/git-lfs_2.13.3_amd64.deb/download.deb
             sudo dpkg -i "$HOME/git-lfs.deb"
       - checkout
-      - run: # start early for less wait time below
-          name: Start launchpad
-          command: ./scripts/launchpad/start.sh
-          background: true
       - run: # start early for less wait time below
           name: Start wasmd
           command: ./scripts/wasmd/start.sh
           background: true
       - run:
           name: Start simapp
-          command: ./scripts/simapp/start.sh
+          command: ./scripts/simapp44/start.sh
           background: true
       - run:
           name: Start slow simapp
-          command: ./scripts/simapp/slow_start.sh
+          command: ./scripts/simapp44/slow_start.sh
           background: true
       - run:
           name: Start Tendermint blockchains
@@ -331,20 +354,22 @@ jobs:
           name: Merge build folders into project (merge with hardlinks)
           command: cp --recursive --link /tmp/builds/* .
       - run:
-          # The images ubuntu-1604 comes with preinstalled nvm, which does not work well with non-login shells
+          # The images comes with preinstalled nvm, which does not work well with non-login shells
           name: Uninstall nvm
           # Moving to trash is faster than deleting (gvfs-trash is not installed on this image)
-          command: mkdir -p ~/.local/share/Trash && mv "$NVM_DIR" ~/.npm ~/.local/share/Trash
+          command: |
+            nvm --version && nvm ls
+            mkdir -p ~/.local/share/Trash && mv "$NVM_DIR" ~/.npm ~/.local/share/Trash
       - run:
           name: Install nodejs
           # In the current image, `sudo apt install nodejs` requires `sudo apt update` which is too slow
           command: |
-            wget -O "$HOME/nodejs.deb" https://deb.nodesource.com/node_12.x/pool/main/n/nodejs/nodejs_12.22.1-deb-1nodesource1_amd64.deb
+            wget -O "$HOME/nodejs.deb" https://deb.nodesource.com/node_16.x/pool/main/n/nodejs/nodejs_16.13.2-deb-1nodesource1_amd64.deb
             sudo dpkg -i "$HOME/nodejs.deb"
       - run:
           name: Install yarn
           command: |
-            wget -O "$HOME/yarn.deb" https://dl.yarnpkg.com/debian/pool/main/y/yarn/yarn_1.22.4_all.deb
+            wget -O "$HOME/yarn.deb" https://dl.yarnpkg.com/debian/pool/main/y/yarn/yarn_1.22.15_all.deb
             sudo dpkg -i "$HOME/yarn.deb"
       - run:
           name: Version information
@@ -359,20 +384,19 @@ jobs:
           name: Install Dependencies
           command: yarn install --immutable --immutable-cache --check-cache
       - run:
-          name: Initialize launchpad (deploy contracts and friends)
-          command: ./scripts/launchpad/init.sh
-      - run:
           name: Initialize wasmd (deploy contracts and friends)
           command: ./scripts/wasmd/init.sh
       - run:
           name: Start socket server
           command: ./scripts/socketserver/start.sh
       - run:
+          name: Start http server
+          command: ./scripts/httpserver/start.sh
+      - run:
           environment:
-            LAUNCHPAD_ENABLED: 1
-            ERC20_ENABLED: 1
-            SIMAPP_ENABLED: 1
-            SLOW_SIMAPP_ENABLED: 1
+            HTTPSERVER_ENABLED: 1
+            SIMAPP44_ENABLED: 1
+            SLOW_SIMAPP44_ENABLED: 1
             TENDERMINT_ENABLED: 1
             SOCKETSERVER_ENABLED: 1
             SKIP_BUILD: 1
@@ -381,12 +405,12 @@ jobs:
       - run:
           name: Stop chains
           command: |
+            ./scripts/httpserver/stop.sh
             ./scripts/socketserver/stop.sh
             ./scripts/tendermint/all_stop.sh
-            ./scripts/simapp/stop.sh
-            ./scripts/simapp/slow_stop.sh
+            ./scripts/simapp44/stop.sh
+            ./scripts/simapp44/slow_stop.sh
             ./scripts/wasmd/stop.sh
-            ./scripts/launchpad/stop.sh
   coverage:
     machine:
       # We can't use a containerized environment since it requires remote docker to start custom containers.
@@ -396,30 +420,27 @@ jobs:
       # executor in local jobs." (https://circleci.com/docs/2.0/local-cli/#limitations-of-running-jobs-locally)
       #
       # Available images: https://circleci.com/docs/2.0/configuration-reference/#available-machine-images
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2004:202107-02
+    resource_class: large
     steps:
       - run:
           name: Install Git Large File Storage (LFS)
           # In the current image, `sudo apt install git-lfs` requires `sudo apt update` which is too slow
           command: |
-            wget -O "$HOME/git-lfs.deb" https://packagecloud.io/github/git-lfs/packages/ubuntu/focal/git-lfs_2.12.1_amd64.deb/download.deb
+            wget -O "$HOME/git-lfs.deb" https://packagecloud.io/github/git-lfs/packages/ubuntu/focal/git-lfs_2.13.3_amd64.deb/download.deb
             sudo dpkg -i "$HOME/git-lfs.deb"
       - checkout
-      - run: # start early for less wait time below
-          name: Start launchpad
-          command: ./scripts/launchpad/start.sh
-          background: true
       - run: # start early for less wait time below
           name: Start wasmd
           command: ./scripts/wasmd/start.sh
           background: true
       - run:
           name: Start simapp
-          command: ./scripts/simapp/start.sh
+          command: ./scripts/simapp44/start.sh
           background: true
       - run:
           name: Start slow simapp
-          command: ./scripts/simapp/slow_start.sh
+          command: ./scripts/simapp44/slow_start.sh
           background: true
       - run:
           name: Start Tendermint blockchains
@@ -431,20 +452,22 @@ jobs:
           name: Merge build folders into project (merge with hardlinks)
           command: cp --recursive --link /tmp/builds/* .
       - run:
-          # The images ubuntu-1604 comes with preinstalled nvm, which does not work well with non-login shells
+          # The images comes with preinstalled nvm, which does not work well with non-login shells
           name: Uninstall nvm
           # Moving to trash is faster than deleting (gvfs-trash is not installed on this image)
-          command: mkdir -p ~/.local/share/Trash && mv "$NVM_DIR" ~/.npm ~/.local/share/Trash
+          command: |
+            nvm --version && nvm ls
+            mkdir -p ~/.local/share/Trash && mv "$NVM_DIR" ~/.npm ~/.local/share/Trash
       - run:
           name: Install nodejs
           # In the current image, `sudo apt install nodejs` requires `sudo apt update` which is too slow
           command: |
-            wget -O "$HOME/nodejs.deb" https://deb.nodesource.com/node_12.x/pool/main/n/nodejs/nodejs_12.22.1-deb-1nodesource1_amd64.deb
+            wget -O "$HOME/nodejs.deb" https://deb.nodesource.com/node_16.x/pool/main/n/nodejs/nodejs_16.13.2-deb-1nodesource1_amd64.deb
             sudo dpkg -i "$HOME/nodejs.deb"
       - run:
           name: Install yarn
           command: |
-            wget -O "$HOME/yarn.deb" https://dl.yarnpkg.com/debian/pool/main/y/yarn/yarn_1.22.4_all.deb
+            wget -O "$HOME/yarn.deb" https://dl.yarnpkg.com/debian/pool/main/y/yarn/yarn_1.22.15_all.deb
             sudo dpkg -i "$HOME/yarn.deb"
       - run:
           name: Version information
@@ -459,20 +482,19 @@ jobs:
           name: Install Dependencies
           command: yarn install --immutable --immutable-cache --check-cache
       - run:
-          name: Initialize launchpad (deploy contracts and friends)
-          command: ./scripts/launchpad/init.sh
-      - run:
           name: Initialize wasmd (deploy contracts and friends)
           command: ./scripts/wasmd/init.sh
       - run:
           name: Start socket server
           command: ./scripts/socketserver/start.sh
       - run:
+          name: Start http server
+          command: ./scripts/httpserver/start.sh
+      - run:
           environment:
-            LAUNCHPAD_ENABLED: 1
-            ERC20_ENABLED: 1
-            SIMAPP_ENABLED: 1
-            SLOW_SIMAPP_ENABLED: 1
+            HTTPSERVER_ENABLED: 1
+            SIMAPP44_ENABLED: 1
+            SLOW_SIMAPP44_ENABLED: 1
             TENDERMINT_ENABLED: 1
             SOCKETSERVER_ENABLED: 1
             SKIP_BUILD: 1
@@ -484,15 +506,15 @@ jobs:
       - run:
           name: Stop chains
           command: |
+            ./scripts/httpserver/stop.sh
             ./scripts/socketserver/stop.sh
             ./scripts/tendermint/all_stop.sh
-            ./scripts/simapp/stop.sh
-            ./scripts/simapp/slow_stop.sh
+            ./scripts/simapp44/stop.sh
+            ./scripts/simapp44/slow_stop.sh
             ./scripts/wasmd/stop.sh
-            ./scripts/launchpad/stop.sh
   docs-build:
     docker:
-      - image: circleci/node:12-buster
+      - image: circleci/node:16.13-bullseye
     steps:
       - run:
           name: Install Git Large File Storage (LFS)
@@ -523,7 +545,7 @@ jobs:
           paths: docs_deployment
   docs-deploy:
     docker:
-      - image: circleci/node:12-buster
+      - image: circleci/node:16.13-bullseye
     steps:
       - attach_workspace:
           at: .
@@ -541,7 +563,7 @@ jobs:
           command: npx gh-pages@3.0.0 --message "Update docs [skip ci]" --dist docs_deployment --user "CI deployment <ci@cosmwasm.com>" --repo "git@github.com:cosmos/cosmjs.git"
   lint:
     docker:
-      - image: circleci/node:12-buster
+      - image: circleci/node:16.13-bullseye
     steps:
       - run:
           name: Install Git Large File Storage (LFS)
@@ -576,3 +598,32 @@ jobs:
       - run:
           name: Format shell scripts
           command: yarn format-shell
+  faucet-docker:
+    docker:
+      - image: cimg/go:1.17.8
+    steps:
+      - run:
+          name: Install Git Large File Storage (LFS)
+          command: |
+            sudo apt update
+            sudo apt install git-lfs
+      - checkout
+      - setup_remote_docker:
+          # >= v20.10 https://wiki.alpinelinux.org/wiki/Release_Notes_for_Alpine_3.14.0#faccessat2
+          version: 20.10.11
+      - run:
+          name: Build faucet Docker image
+          # Use ${CIRCLE_TAG}
+          command: |
+            docker build --pull -t "confio/faucet:$CIRCLE_SHA1" -f packages/faucet/Dockerfile .
+      - run:
+          name: Check docker image can be executed
+          command: |
+            docker run --rm "confio/faucet:$CIRCLE_SHA1" version
+            docker run --rm "confio/faucet:$CIRCLE_SHA1" generate
+      # - run:
+      #     name: Push image to Docker Hub
+      #     command: |
+      #       docker login --password-stdin -u "$DOCKER_USER" \<<<"$DOCKER_PASS"
+      #       docker push "confio/faucet:$CIRCLE_SHA1"
+      #       docker logout

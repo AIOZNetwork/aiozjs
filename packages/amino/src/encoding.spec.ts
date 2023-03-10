@@ -1,22 +1,24 @@
-import { Bech32, fromBase64 } from "@cosmjs/encoding";
+import { Random } from "@cosmjs/crypto";
+import { fromBase64, fromBech32, fromHex } from "@cosmjs/encoding";
 
 import {
   decodeAminoPubkey,
   decodeBech32Pubkey,
   encodeAminoPubkey,
   encodeBech32Pubkey,
+  encodeEd25519Pubkey,
   encodeSecp256k1Pubkey,
 } from "./encoding";
 import { Pubkey } from "./pubkeys";
 import {
   testgroup1,
-  testgroup1Address,
+  testgroup1PubkeyBech32,
   testgroup2,
-  testgroup2Address,
+  testgroup2PubkeyBech32,
   testgroup3,
-  testgroup3Address,
+  testgroup3PubkeyBech32,
   testgroup4,
-  testgroup4Address,
+  testgroup4PubkeyBech32,
 } from "./testutils.spec";
 
 describe("encoding", () => {
@@ -37,9 +39,28 @@ describe("encoding", () => {
     });
   });
 
+  describe("encodeEd25519Pubkey", () => {
+    it("encodes a compressed pubkey", () => {
+      const pubkey = fromBase64("ICKLJPyWYIF35GpOclg0gu957WYJe4PHzyn2scCZoek=");
+      expect(encodeEd25519Pubkey(pubkey)).toEqual({
+        type: "tendermint/PubKeyEd25519",
+        value: "ICKLJPyWYIF35GpOclg0gu957WYJe4PHzyn2scCZoek=",
+      });
+    });
+
+    it("throws for wrong pubkey lengths", () => {
+      expect(() => encodeEd25519Pubkey(Random.getBytes(31))).toThrowError(
+        /ed25519 public key must be 32 bytes long/i,
+      );
+      expect(() => encodeEd25519Pubkey(Random.getBytes(64))).toThrowError(
+        /ed25519 public key must be 32 bytes long/i,
+      );
+    });
+  });
+
   describe("decodeAminoPubkey", () => {
     it("works for secp256k1", () => {
-      const amino = Bech32.decode(
+      const amino = fromBech32(
         "cosmospub1addwnpepqd8sgxq7aw348ydctp3n5ajufgxp395hksxjzc6565yfp56scupfqhlgyg5",
       ).data;
       expect(decodeAminoPubkey(amino)).toEqual({
@@ -51,7 +72,7 @@ describe("encoding", () => {
     it("works for ed25519", () => {
       // Encoded from `corald tendermint show-validator`
       // Decoded from http://localhost:26657/validators
-      const amino = Bech32.decode(
+      const amino = fromBech32(
         "coralvalconspub1zcjduepqvxg72ccnl9r65fv0wn3amlk4sfzqfe2k36l073kjx2qyaf6sk23qw7j8wq",
       ).data;
       expect(decodeAminoPubkey(amino)).toEqual({
@@ -62,6 +83,53 @@ describe("encoding", () => {
 
     it("works for sr25519", () => {
       pending("No test data available");
+    });
+
+    it("works for multisig", () => {
+      const pubkeyData = fromBech32(
+        "cosmospub1addwnpepqd8sgxq7aw348ydctp3n5ajufgxp395hksxjzc6565yfp56scupfqhlgyg5",
+      ).data;
+      const pubkey = {
+        type: "tendermint/PubKeySecp256k1",
+        value: "A08EGB7ro1ORuFhjOnZcSgwYlpe0DSFjVNUIkNNQxwKQ",
+      };
+
+      const data1 = fromHex("22C1F7E20805");
+      expect(decodeAminoPubkey(data1)).toEqual({
+        type: "tendermint/PubKeyMultisigThreshold",
+        value: {
+          threshold: "5",
+          pubkeys: [],
+        },
+      });
+
+      const data2 = Uint8Array.from([...fromHex("22C1F7E2081a"), 0x12, pubkeyData.length, ...pubkeyData]);
+      expect(decodeAminoPubkey(data2)).toEqual({
+        type: "tendermint/PubKeyMultisigThreshold",
+        value: {
+          threshold: "26",
+          pubkeys: [pubkey],
+        },
+      });
+
+      const data3 = Uint8Array.from([
+        ...fromHex("22C1F7E2081a"),
+        0x12,
+        pubkeyData.length,
+        ...pubkeyData,
+        0x12,
+        pubkeyData.length,
+        ...pubkeyData,
+      ]);
+      expect(decodeAminoPubkey(data3)).toEqual({
+        type: "tendermint/PubKeyMultisigThreshold",
+        value: {
+          threshold: "26",
+          pubkeys: [pubkey, pubkey],
+        },
+      });
+
+      expect(() => decodeAminoPubkey(fromHex("22C1F7E20705"))).toThrowError(/expecting 0x08 prefix/i);
     });
   });
 
@@ -95,6 +163,12 @@ describe("encoding", () => {
         value: "YZHlYxP5R6olj3Tj3f7VgkQE5VaOvv9G0jKATqdQsqI=",
       });
     });
+
+    it("works for multisig", () => {
+      expect(decodeBech32Pubkey(testgroup1PubkeyBech32)).toEqual(testgroup1);
+      expect(decodeBech32Pubkey(testgroup2PubkeyBech32)).toEqual(testgroup2);
+      expect(decodeBech32Pubkey(testgroup3PubkeyBech32)).toEqual(testgroup3);
+    });
   });
 
   describe("encodeAminoPubkey", () => {
@@ -103,7 +177,7 @@ describe("encoding", () => {
         type: "tendermint/PubKeySecp256k1",
         value: "A08EGB7ro1ORuFhjOnZcSgwYlpe0DSFjVNUIkNNQxwKQ",
       };
-      const expected = Bech32.decode(
+      const expected = fromBech32(
         "cosmospub1addwnpepqd8sgxq7aw348ydctp3n5ajufgxp395hksxjzc6565yfp56scupfqhlgyg5",
       ).data;
       expect(encodeAminoPubkey(pubkey)).toEqual(expected);
@@ -116,7 +190,7 @@ describe("encoding", () => {
         type: "tendermint/PubKeyEd25519",
         value: "YZHlYxP5R6olj3Tj3f7VgkQE5VaOvv9G0jKATqdQsqI=",
       };
-      const expected = Bech32.decode(
+      const expected = fromBech32(
         "coralvalconspub1zcjduepqvxg72ccnl9r65fv0wn3amlk4sfzqfe2k36l073kjx2qyaf6sk23qw7j8wq",
       ).data;
       expect(encodeAminoPubkey(pubkey)).toEqual(expected);
@@ -147,16 +221,16 @@ describe("encoding", () => {
     });
 
     it("works for multisig", () => {
-      const expected1 = Bech32.decode(testgroup1Address).data;
+      const expected1 = fromBech32(testgroup1PubkeyBech32).data;
       expect(encodeAminoPubkey(testgroup1)).toEqual(expected1);
 
-      const expected2 = Bech32.decode(testgroup2Address).data;
+      const expected2 = fromBech32(testgroup2PubkeyBech32).data;
       expect(encodeAminoPubkey(testgroup2)).toEqual(expected2);
 
-      const expected3 = Bech32.decode(testgroup3Address).data;
+      const expected3 = fromBech32(testgroup3PubkeyBech32).data;
       expect(encodeAminoPubkey(testgroup3)).toEqual(expected3);
 
-      const expected4 = Bech32.decode(testgroup4Address).data;
+      const expected4 = fromBech32(testgroup4PubkeyBech32).data;
       expect(encodeAminoPubkey(testgroup4)).toEqual(expected4);
     });
   });

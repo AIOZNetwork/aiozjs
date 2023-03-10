@@ -8,6 +8,7 @@ export type Response =
   | AbciQueryResponse
   | BlockResponse
   | BlockResultsResponse
+  | BlockSearchResponse
   | BlockchainResponse
   | BroadcastTxAsyncResponse
   | BroadcastTxSyncResponse
@@ -15,6 +16,7 @@ export type Response =
   | CommitResponse
   | GenesisResponse
   | HealthResponse
+  | NumUnconfirmedTxsResponse
   | StatusResponse
   | TxResponse
   | TxSearchResponse
@@ -43,7 +45,9 @@ export interface AbciQueryResponse {
   readonly height?: number;
   readonly index?: number;
   readonly code?: number; // non-falsy for errors
+  readonly codespace: string;
   readonly log?: string;
+  readonly info: string;
 }
 
 export interface BlockResponse {
@@ -54,7 +58,7 @@ export interface BlockResponse {
 export interface BlockResultsResponse {
   readonly height: number;
   readonly results: readonly TxData[];
-  readonly validatorUpdates: readonly Validator[];
+  readonly validatorUpdates: readonly ValidatorUpdate[];
   readonly consensusUpdates?: ConsensusParams;
   readonly beginBlockEvents: readonly Event[];
   readonly endBlockEvents: readonly Event[];
@@ -70,8 +74,12 @@ export interface BlockchainResponse {
   readonly blockMetas: readonly BlockMeta[];
 }
 
-/** No data in here because RPC method BroadcastTxAsync "returns right away, with no response" */
-export interface BroadcastTxAsyncResponse {}
+/**
+ * No transaction data in here because RPC method BroadcastTxAsync "returns right away, with no response"
+ */
+export interface BroadcastTxAsyncResponse {
+  readonly hash: Uint8Array;
+}
 
 export interface BroadcastTxSyncResponse extends TxData {
   readonly hash: Uint8Array;
@@ -118,6 +126,11 @@ export interface GenesisResponse {
 }
 
 export type HealthResponse = null;
+
+export interface NumUnconfirmedTxsResponse {
+  readonly total: number;
+  readonly totalBytes: number;
+}
 
 export interface StatusResponse {
   readonly nodeInfo: NodeInfo;
@@ -181,7 +194,7 @@ export interface Event {
 
 export interface TxData {
   readonly code: number;
-  readonly codeSpace?: string;
+  readonly codespace?: string;
   readonly log?: string;
   readonly data?: Uint8Array;
   readonly events: readonly Event[];
@@ -222,16 +235,16 @@ export interface Block {
    */
   readonly lastCommit: Commit | null;
   readonly txs: readonly Uint8Array[];
-  readonly evidence?: readonly Evidence[];
+  readonly evidence: readonly Evidence[];
 }
 
-export interface Evidence {
-  readonly type: string;
-  readonly validator: Validator;
-  readonly height: number;
-  readonly time: number;
-  readonly totalVotingPower: number;
-}
+/**
+ * We lost track on how the evidence structure actually looks like.
+ * This is any now and passed to the caller untouched.
+ *
+ * See also https://github.com/cosmos/cosmjs/issues/980.
+ */
+export type Evidence = any;
 
 export interface Commit {
   readonly blockId: BlockId;
@@ -314,6 +327,9 @@ export interface NodeInfo {
   /** IP and port */
   readonly listenAddr: string;
   readonly network: string;
+  /**
+   * The Tendermint version. Can be empty (see https://github.com/cosmos/cosmos-sdk/issues/7963).
+   */
   readonly version: string;
   readonly channels: string; // ???
   readonly moniker: string;
@@ -336,8 +352,13 @@ export interface SyncInfo {
 export interface Validator {
   readonly address: Uint8Array;
   readonly pubkey?: ValidatorPubkey;
-  readonly votingPower: number;
+  readonly votingPower: bigint;
   readonly proposerPriority?: number;
+}
+
+export interface ValidatorUpdate {
+  readonly pubkey: ValidatorPubkey;
+  readonly votingPower: bigint;
 }
 
 export interface ConsensusParams {
