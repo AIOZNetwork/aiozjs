@@ -12,11 +12,21 @@ import { DelegationResponse } from "cosmjs-types/cosmos/staking/v1beta1/staking"
 import { Account, accountFromAny, AccountParser } from "./accounts";
 import { Event, fromTendermint34Event } from "./events";
 import {
+  Aiozrc20Extension,
   AuthExtension,
   BankExtension,
+  Bech32ibcExtension,
+  DistributionExtension,
+  GravityExtension,
+  IbcExtension,
   SdkStakingExtension,
+  setupAiozrc20Extension,
   setupAuthExtension,
   setupBankExtension,
+  setupBech32ibcExtension,
+  setupDistributionExtension,
+  setupGravityExtension,
+  setupIbcExtension,
   setupSdkStakingExtension,
   setupStakingExtension,
   setupTxExtension,
@@ -183,7 +193,17 @@ export interface StargateClientOptions {
 export class StargateClient {
   private readonly tmClient: Tendermint34Client | undefined;
   private readonly queryClient:
-    | (QueryClient & AuthExtension & BankExtension & SdkStakingExtension & StakingExtension & TxExtension)
+    | (QueryClient &
+        AuthExtension &
+        BankExtension &
+        SdkStakingExtension &
+        StakingExtension &
+        DistributionExtension &
+        Aiozrc20Extension &
+        IbcExtension &
+        Bech32ibcExtension &
+        GravityExtension &
+        TxExtension)
     | undefined;
   private chainId: string | undefined;
   private readonly accountParser: AccountParser;
@@ -205,6 +225,11 @@ export class StargateClient {
         setupBankExtension,
         setupSdkStakingExtension,
         setupStakingExtension,
+        setupDistributionExtension,
+        setupAiozrc20Extension,
+        setupIbcExtension,
+        setupBech32ibcExtension,
+        setupGravityExtension,
         setupTxExtension,
       );
     }
@@ -226,7 +251,17 @@ export class StargateClient {
   }
 
   protected getQueryClient():
-    | (QueryClient & AuthExtension & BankExtension & SdkStakingExtension & StakingExtension & TxExtension)
+    | (QueryClient &
+        AuthExtension &
+        BankExtension &
+        SdkStakingExtension &
+        StakingExtension &
+        DistributionExtension &
+        Aiozrc20Extension &
+        IbcExtension &
+        Bech32ibcExtension &
+        GravityExtension &
+        TxExtension)
     | undefined {
     return this.queryClient;
   }
@@ -236,6 +271,11 @@ export class StargateClient {
     BankExtension &
     SdkStakingExtension &
     StakingExtension &
+    DistributionExtension &
+    Aiozrc20Extension &
+    IbcExtension &
+    Bech32ibcExtension &
+    GravityExtension &
     TxExtension {
     if (!this.queryClient) {
       throw new Error("Query client not available. You cannot use online functionality in offline mode.");

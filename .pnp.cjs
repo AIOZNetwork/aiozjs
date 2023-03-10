@@ -21687,6 +21687,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@cosmjs/encoding", "workspace:packages/encoding"],\
             ["@cosmjs/proto-signing", "workspace:packages/proto-signing"],\
             ["@cosmjs/stargate", "workspace:packages/stargate"],\
+            ["@cosmjs/tendermint-rpc", "workspace:packages/tendermint-rpc"],\
             ["@esbuild-plugins/node-globals-polyfill", "virtual:ecfd4703de8521a6be24eec9bfa1f7f4a282a33cd2a1b182ff4273c25203a4ab6994c4f9d43c1a8ed4e8444e6d83dcd54711bed28c376891795765a824c1e287#npm:0.1.1"],\
             ["buffer", "npm:6.0.3"],\
             ["cosmjs-types", "workspace:packages/cosmjs-types"],\

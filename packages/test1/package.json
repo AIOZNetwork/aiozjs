@@ -29,6 +29,7 @@
     "@cosmjs/encoding": "workspace:^",
     "@cosmjs/proto-signing": "workspace:^",
     "@cosmjs/stargate": "workspace:^",
+    "@cosmjs/tendermint-rpc": "workspace:^",
     "buffer": "^6.0.3",
     "cosmjs-types": "workspace:^",
     "long": "^5.2.0",
