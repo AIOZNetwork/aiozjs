@@ -33,6 +33,7 @@
     "buffer": "^6.0.3",
     "cosmjs-types": "workspace:^",
     "long": "^5.2.0",
-    "web3": "^1.7.1"
+    "web3": "^1.7.1",
+    "web3-eth-contract": "^1.9.0"
   }
 }

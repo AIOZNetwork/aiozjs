@@ -56,6 +56,7 @@ export {
   isExtensionOptionDynamicFeeTxEncodeObject,
   isExtensionOptionsWeb3TxEncodeObject,
 } from "./ethermint/extensionoptions";
+export { DynamicFeeTxEncodeObject, evmTypes, isDynamicFeeTxEncodeObject } from "./ethermint/messages";
 export {
   AminoMsgSubmitEvidence,
   createEvidenceAminoConverters,
@@ -141,3 +142,11 @@ export {
   isAminoMsgCreateVestingAccount,
 } from "./vesting/aminomessages";
 export { vestingTypes } from "./vesting/messages";
+export {
+  createMsgWrappedEthereumTxEncodeObjectFromTxData,
+  ExtensionOptionsWrappedEthereumTxEncodeObject,
+  isExtensionOptionsWrappedEthereumTxEncodeObject,
+  isMsgWrappedEthereumTxEncodeObject,
+  MsgWrappedEthereumTxEncodeObject,
+  wetxTypes,
+} from "./wetx/messages";

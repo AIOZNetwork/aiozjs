@@ -1,4 +1,5 @@
 import {
+  addressToHex,
   encodeEthSecp256k1Pubkey,
   encodeSecp256k1Pubkey,
   hexToAddress,
@@ -9,6 +10,7 @@ import { isOfflineDirectSigner, isOfflineEIP712Signer, OfflineSigner, parseChain
 import { fromBase64 } from "@cosmjs/encoding";
 import { Int53, Uint53 } from "@cosmjs/math";
 import {
+  DecodeObject,
   EncodeObject,
   encodePubkey,
   GeneratedType,
@@ -19,6 +21,9 @@ import {
 } from "@cosmjs/proto-signing";
 import { HttpEndpoint, Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { assert, assertDefined } from "@cosmjs/utils";
+import { FeeMarketEIP1559TxData } from "@ethereumjs/tx";
+import { bufferToBigInt, toBuffer } from "@ethereumjs/util";
+import { ExtensionOptionsWrappedEthereumTx } from "cosmjs-types/aioz/wetx/v1/tx";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { MsgDelegate, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
@@ -36,13 +41,17 @@ import {
   aiozrc20Types,
   authzTypes,
   bankTypes,
+  createMsgWrappedEthereumTxEncodeObjectFromTxData,
   distributionTypes,
   ethermintTypes,
+  evmTypes,
   ExtensionOptionsWeb3TxEncodeObject,
+  ExtensionOptionsWrappedEthereumTxEncodeObject,
   feegrantTypes,
   govTypes,
   gravityTypes,
   ibcTypes,
+  isMsgWrappedEthereumTxEncodeObject,
   MsgDelegateEncodeObject,
   MsgSendEncodeObject,
   MsgTransferEncodeObject,
@@ -50,6 +59,7 @@ import {
   MsgWithdrawDelegatorRewardEncodeObject,
   stakingTypes,
   vestingTypes,
+  wetxTypes,
 } from "./modules";
 import {
   createAiozrc20AminoConverters,
@@ -78,6 +88,8 @@ export const defaultRegistryTypes: ReadonlyArray<[string, GeneratedType]> = [
   ...aiozrc20Types,
   ...gravityTypes,
   ...ethermintTypes,
+  ...evmTypes,
+  ...wetxTypes,
 ];
 
 function createDefaultRegistry(): Registry {
@@ -321,6 +333,24 @@ export class SigningStargateClient extends StargateClient {
     return this.signAndBroadcast(hexToAddress(senderAddress, this.prefix), [transferMsg], fee, memo);
   }
 
+  public async sendWrappedEthereumTx(
+    senderAddress: string,
+    txData: FeeMarketEIP1559TxData,
+    feeDenom = "attoaioz",
+    memo = "",
+  ): Promise<DeliverTxResponse> {
+    const msg = createMsgWrappedEthereumTxEncodeObjectFromTxData(
+      this.registry,
+      addressToHex(senderAddress),
+      txData,
+    );
+    const gasLimit = bufferToBigInt(toBuffer(txData.gasLimit));
+    const maxFeePerGas = bufferToBigInt(toBuffer(txData.maxFeePerGas));
+    const fee = calculateFee(Number(gasLimit), maxFeePerGas.toString() + feeDenom);
+
+    return this.signAndBroadcast(hexToAddress(senderAddress, this.prefix), [msg], fee, memo);
+  }
+
   public async signAndBroadcast(
     signerAddress: string,
     messages: readonly EncodeObject[],
@@ -372,7 +402,9 @@ export class SigningStargateClient extends StargateClient {
     }
 
     return isOfflineDirectSigner(this.signer)
-      ? this.signDirect(signerAddress, messages, fee, memo, signerData)
+      ? isMsgWrappedEthereumTxEncodeObject(messages[0])
+        ? this.signWetx(signerAddress, messages, fee, memo, signerData)
+        : this.signDirect(signerAddress, messages, fee, memo, signerData)
       : isOfflineEIP712Signer(this.signer)
       ? this.signEIP712(signerAddress, messages, fee, memo, signerData)
       : this.signAmino(signerAddress, messages, fee, memo, signerData);
@@ -458,6 +490,75 @@ export class SigningStargateClient extends StargateClient {
         messages: messages,
         memo: memo,
       },
+    };
+    const txBodyBytes = this.registry.encode(txBodyEncodeObject);
+    const gasLimit = Int53.fromString(fee.gas).toNumber();
+    const authInfoBytes = makeAuthInfoBytes(
+      [{ pubkey, sequence }],
+      fee.amount,
+      gasLimit,
+      fee.granter,
+      fee.payer,
+    );
+    const signDoc = makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
+    const { signature, signed } = await this.signer.signDirect(signerAddress, signDoc);
+    return TxRaw.fromPartial({
+      bodyBytes: signed.bodyBytes,
+      authInfoBytes: signed.authInfoBytes,
+      signatures: [fromBase64(signature.signature)],
+    });
+  }
+
+  private async signWetx(
+    signerAddress: string,
+    messages: readonly EncodeObject[],
+    fee: StdFee,
+    memo: string,
+    { accountNumber, sequence, chainId }: SignerData,
+  ): Promise<TxRaw> {
+    assert(isOfflineDirectSigner(this.signer));
+    const accountFromSigner = (await this.signer.getAccounts()).find(
+      (account) => account.address === signerAddress,
+    );
+    if (!accountFromSigner) {
+      throw new Error("Failed to retrieve account from signer");
+    }
+    const account = {
+      ...accountFromSigner,
+      algo: this.pubkeyAlgo || accountFromSigner.algo,
+    };
+    const pubkey =
+      account.algo == "eth_secp256k1"
+        ? encodePubkey(encodeEthSecp256k1Pubkey(account.pubkey))
+        : encodePubkey(encodeSecp256k1Pubkey(account.pubkey));
+    const extension: ExtensionOptionsWrappedEthereumTxEncodeObject = {
+      typeUrl: "/aioz.wetx.v1.ExtensionOptionsWrappedEthereumTx",
+      value: ExtensionOptionsWrappedEthereumTx.fromPartial({}),
+    };
+    const extensionBytes = this.registry.encode(extension);
+    const txBody = {
+      messages: messages.map((msg: EncodeObject) => {
+        if (isMsgWrappedEthereumTxEncodeObject(msg)) {
+          if (msg.value.msgEthereumTx?.data) {
+            const txData = this.registry.decode(msg.value.msgEthereumTx.data as DecodeObject);
+            if ("nonce" in txData) {
+              txData.nonce = Long.fromNumber(sequence);
+              const encodedTxData = this.registry.encode({
+                typeUrl: msg.value.msgEthereumTx.data.typeUrl,
+                value: txData,
+              });
+              msg.value.msgEthereumTx.data.value = encodedTxData;
+            }
+          }
+        }
+        return msg;
+      }),
+      memo: memo,
+      extensionOptions: [Any.fromPartial({ typeUrl: extension.typeUrl, value: extensionBytes })],
+    };
+    const txBodyEncodeObject: TxBodyEncodeObject = {
+      typeUrl: "/cosmos.tx.v1beta1.TxBody",
+      value: txBody,
     };
     const txBodyBytes = this.registry.encode(txBodyEncodeObject);
     const gasLimit = Int53.fromString(fee.gas).toNumber();

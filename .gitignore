@@ -35,4 +35,5 @@ coverage/
 !.yarn/sdks
 # We are not using yarn's deferred versioning for now (see https://yarnpkg.com/features/release-workflow)
 # !.yarn/versions
-packages/cosmjs-types/.yarn/cache/*
+packages/*/.yarn/cache/*
+packages/*/dist/*
