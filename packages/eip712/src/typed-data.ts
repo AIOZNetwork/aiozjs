@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/naming-convention */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
-import { keccak } from 'ethereumjs-util';
-import { rawEncode } from 'ethereumjs-abi';
-
+import { rawEncode } from "ethereumjs-abi";
+import { keccak } from "ethereumjs-util";
 
 /**
  * Represents the version of `signTypedData` being used.
@@ -15,10 +17,10 @@ import { rawEncode } from 'ethereumjs-abi';
  *
  * V4 is based on EIP-712, and includes full support of arrays and recursive data structures.
  */
- export enum SignTypedDataVersion {
-  V1 = 'V1',
-  V3 = 'V3',
-  V4 = 'V4',
+export enum SignTypedDataVersion {
+  V1 = "V1",
+  V3 = "V3",
+  V4 = "V4",
 }
 
 export interface MessageTypeProperty {
@@ -62,27 +64,27 @@ export interface TypedMessage<T extends MessageTypes> {
 }
 
 export const TYPED_MESSAGE_SCHEMA = {
-  type: 'object',
+  type: "object",
   properties: {
     types: {
-      type: 'object',
+      type: "object",
       additionalProperties: {
-        type: 'array',
+        type: "array",
         items: {
-          type: 'object',
+          type: "object",
           properties: {
-            name: { type: 'string' },
-            type: { type: 'string', enum: getSolidityTypes() },
+            name: { type: "string" },
+            type: { type: "string", enum: getSolidityTypes() },
           },
-          required: ['name', 'type'],
+          required: ["name", "type"],
         },
       },
     },
-    primaryType: { type: 'string' },
-    domain: { type: 'object' },
-    message: { type: 'object' },
+    primaryType: { type: "string" },
+    domain: { type: "object" },
+    message: { type: "object" },
   },
-  required: ['types', 'primaryType', 'domain', 'message'],
+  required: ["types", "primaryType", "domain", "message"],
 };
 
 /**
@@ -90,17 +92,11 @@ export const TYPED_MESSAGE_SCHEMA = {
  *
  * @returns A list of all Solidity types.
  */
-function getSolidityTypes() {
-  const types = ['bool', 'address', 'string', 'bytes'];
-  const ints = Array.from(new Array(32)).map(
-    (_, index) => `int${(index + 1) * 8}`,
-  );
-  const uints = Array.from(new Array(32)).map(
-    (_, index) => `uint${(index + 1) * 8}`,
-  );
-  const bytes = Array.from(new Array(32)).map(
-    (_, index) => `bytes${index + 1}`,
-  );
+function getSolidityTypes(): string[] {
+  const types = ["bool", "address", "string", "bytes"];
+  const ints = Array.from(new Array(32)).map((_, index) => `int${(index + 1) * 8}`);
+  const uints = Array.from(new Array(32)).map((_, index) => `uint${(index + 1) * 8}`);
+  const bytes = Array.from(new Array(32)).map((_, index) => `bytes${index + 1}`);
 
   return [...types, ...ints, ...uints, ...bytes];
 }
@@ -112,17 +108,12 @@ function getSolidityTypes() {
  * @param allowedVersions - A list of allowed versions. If omitted, all versions are assumed to be
  * allowed.
  */
-function validateVersion(
-  version: SignTypedDataVersion,
-  allowedVersions?: SignTypedDataVersion[],
-) {
+function validateVersion(version: SignTypedDataVersion, allowedVersions?: SignTypedDataVersion[]): void {
   if (!Object.keys(SignTypedDataVersion).includes(version)) {
     throw new Error(`Invalid version: '${version}'`);
   } else if (allowedVersions && !allowedVersions.includes(version)) {
     throw new Error(
-      `SignTypedDataVersion not allowed: '${version}'. Allowed versions are: ${allowedVersions.join(
-        ', ',
-      )}`,
+      `SignTypedDataVersion not allowed: '${version}'. Allowed versions are: ${allowedVersions.join(", ")}`,
     );
   }
 }
@@ -148,9 +139,9 @@ function encodeField(
 
   if (types[type] !== undefined) {
     return [
-      'bytes32',
+      "bytes32",
       version === SignTypedDataVersion.V4 && value == null // eslint-disable-line no-eq-null
-        ? '0x0000000000000000000000000000000000000000000000000000000000000000'
+        ? "0x0000000000000000000000000000000000000000000000000000000000000000"
         : keccak(encodeData(type, value, types, version)),
     ];
   }
@@ -159,30 +150,27 @@ function encodeField(
     throw new Error(`missing value for field ${name} of type ${type}`);
   }
 
-  if (type === 'bytes') {
-    return ['bytes32', keccak(value)];
+  if (type === "bytes") {
+    return ["bytes32", keccak(value)];
   }
 
-  if (type === 'string') {
+  if (type === "string") {
     // convert string to buffer - prevents ethUtil from interpreting strings like '0xabcd' as hex
-    if (typeof value === 'string') {
-      value = Buffer.from(value, 'utf8');
+    if (typeof value === "string") {
+      // eslint-disable-next-line no-param-reassign
+      value = Buffer.from(value, "utf8");
     }
-    return ['bytes32', keccak(value)];
+    return ["bytes32", keccak(value)];
   }
 
-  if (type.lastIndexOf(']') === type.length - 1) {
+  if (type.lastIndexOf("]") === type.length - 1) {
     if (version === SignTypedDataVersion.V3) {
-      throw new Error(
-        'Arrays are unimplemented in encodeData; use V4 extension',
-      );
+      throw new Error("Arrays are unimplemented in encodeData; use V4 extension");
     }
-    const parsedType = type.slice(0, type.lastIndexOf('['));
-    const typeValuePairs = value.map((item: any) =>
-      encodeField(types, name, parsedType, item, version),
-    );
+    const parsedType = type.slice(0, type.lastIndexOf("["));
+    const typeValuePairs = value.map((item: any) => encodeField(types, name, parsedType, item, version));
     return [
-      'bytes32',
+      "bytes32",
       keccak(
         rawEncode(
           typeValuePairs.map(([t]: any) => t),
@@ -212,20 +200,14 @@ function encodeData(
 ): Buffer {
   validateVersion(version, [SignTypedDataVersion.V3, SignTypedDataVersion.V4]);
 
-  const encodedTypes = ['bytes32'];
+  const encodedTypes = ["bytes32"];
   const encodedValues: unknown[] = [hashType(primaryType, types)];
 
   for (const field of types[primaryType]) {
     if (version === SignTypedDataVersion.V3 && data[field.name] === undefined) {
       continue;
     }
-    const [type, value] = encodeField(
-      types,
-      field.name,
-      field.type,
-      data[field.name],
-      version,
-    );
+    const [type, value] = encodeField(types, field.name, field.type, data[field.name], version);
     encodedTypes.push(type);
     encodedValues.push(value);
   }
@@ -240,11 +222,8 @@ function encodeData(
  * @param types - Type definitions for all types included in the message.
  * @returns An encoded representation of the primary type.
  */
-function encodeType(
-  primaryType: string,
-  types: Record<string, MessageTypeProperty[]>,
-): string {
-  let result = '';
+function encodeType(primaryType: string, types: Record<string, MessageTypeProperty[]>): string {
+  let result = "";
   const unsortedDeps = findTypeDependencies(primaryType, types);
   unsortedDeps.delete(primaryType);
 
@@ -255,9 +234,7 @@ function encodeType(
       throw new Error(`No type definition specified: ${type}`);
     }
 
-    result += `${type}(${types[type]
-      .map(({ name, type: t }) => `${t} ${name}`)
-      .join(',')})`;
+    result += `${type}(${types[type].map(({ name, type: t }) => `${t} ${name}`).join(",")})`;
   }
 
   return result;
@@ -276,6 +253,7 @@ function findTypeDependencies(
   types: Record<string, MessageTypeProperty[]>,
   results: Set<string> = new Set(),
 ): Set<string> {
+  // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-non-null-assertion
   [primaryType] = primaryType.match(/^\w*/u)!;
   if (results.has(primaryType) || types[primaryType] === undefined) {
     return results;
@@ -316,11 +294,8 @@ function hashStruct(
  * @param types - Type definitions for all types included in the message.
  * @returns The hash of the object type.
  */
-function hashType(
-  primaryType: string,
-  types: Record<string, MessageTypeProperty[]>,
-): Buffer {
-  return keccak(Buffer.from(encodeType(primaryType, types), 'utf8'));
+function hashType(primaryType: string, types: Record<string, MessageTypeProperty[]>): Buffer {
+  return keccak(Buffer.from(encodeType(primaryType, types), "utf8"));
 }
 
 /**
@@ -329,9 +304,7 @@ function hashType(
  * @param data - The typed message object.
  * @returns The typed message object with only allowed fields.
  */
-function sanitizeData<T extends MessageTypes>(
-  data: TypedMessage<T>,
-): TypedMessage<T> {
+function sanitizeData<T extends MessageTypes>(data: TypedMessage<T>): TypedMessage<T> {
   const sanitizedData: Partial<TypedMessage<T>> = {};
   for (const key in TYPED_MESSAGE_SCHEMA.properties) {
     if (data[key as keyof typeof data]) {
@@ -339,7 +312,7 @@ function sanitizeData<T extends MessageTypes>(
     }
   }
 
-  if ('types' in sanitizedData) {
+  if ("types" in sanitizedData) {
     sanitizedData.types = { EIP712Domain: [], ...sanitizedData.types };
   }
   return sanitizedData as Required<TypedMessage<T>>;
@@ -364,17 +337,10 @@ export function eip712Hash<T extends MessageTypes>(
   validateVersion(version, [SignTypedDataVersion.V3, SignTypedDataVersion.V4]);
 
   const sanitizedData = sanitizeData(typedData);
-  const parts = [Buffer.from('1901', 'hex')];
-  parts.push(
-    hashStruct(
-      'EIP712Domain',
-      sanitizedData.domain,
-      sanitizedData.types,
-      version,
-    ),
-  );
+  const parts = [Buffer.from("1901", "hex")];
+  parts.push(hashStruct("EIP712Domain", sanitizedData.domain, sanitizedData.types, version));
 
-  if (sanitizedData.primaryType !== 'EIP712Domain') {
+  if (sanitizedData.primaryType !== "EIP712Domain") {
     parts.push(
       hashStruct(
         // TODO: Validate that this is a string, so this type cast can be removed.

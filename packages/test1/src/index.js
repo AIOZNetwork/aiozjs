@@ -699,7 +699,7 @@ async function main() {
       coinGeckoId: "aioz-network",
     },
     coinType: 60,
-    gasPriceStep: { low: 1000000000, average: 1000000000, high: 1000000000 },
+    gasPriceStep: { low: 500000000, average: 1000000000, high: 2000000000 },
     features: ["ibc-transfer", "stargate", "no-legacy-stdTx", "ibc-go", "eth-address-gen", "eth-key-sign"],
   });
   await window.keplr.enable(chainId);
@@ -784,8 +784,7 @@ async function main() {
     accessList: [],
     type: "0x02",
   };
-  const memo0 = "";
-  const result0 = await client.sendWrappedEthereumTx(firstAccount.address, txData0, "attoaioz", memo0);
+  const result0 = await client.sendWrappedEthereumTx(firstAccount.address, txData0, "attoaioz");
   console.log(result0);
 
   const convertContract = new Contract(converterABI, converterAddress);
@@ -815,7 +814,6 @@ async function main() {
     accessList: [],
     type: "0x02",
   };
-  const memo = "";
 
   const fee = calculateFee(gasUsed, "1000000000attoaioz");
   // const result = await client.sendTokens(firstAccount.address, recipient, [amount], fee, "Have fun with your star coins");
@@ -836,7 +834,7 @@ async function main() {
   //   "send ibc",
   // )
   // const result = await client.delegateTokens(firstAccount.address, validator, amount, fee, "Have fun with your star coins");
-  const result = await client.sendWrappedEthereumTx(firstAccount.address, txData, "attoaioz", memo);
+  const result = await client.sendWrappedEthereumTx(firstAccount.address, txData, "attoaioz");
   // const result = await client.signAndBroadcast(firstAccount.address, [msg], fee, memo);
 
   console.log(result);

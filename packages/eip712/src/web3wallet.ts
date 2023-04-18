@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+
 import { ethAddressChecksum, hexToAddress, StdSignDoc } from "@cosmjs/amino";
 import { Secp256k1 } from "@cosmjs/crypto";
 import { fromHex } from "@cosmjs/encoding";
@@ -6,10 +8,10 @@ import { AbstractProvider } from "web3-core";
 
 import { getMsgTypes } from "./message-types";
 import { AccountData, EIP712SignResponse, OfflineEIP712Signer } from "./signer";
-import { eip712Hash, MessageTypes, SignTypedDataVersion } from "./typed-data";
+import { eip712Hash, MessageTypes, SignTypedDataVersion, TypedMessage } from "./typed-data";
 import { parseChainId, recoverPublicKey } from "./utils";
 
-function generateEIP712(types: MessageTypes, chainId: number, message: any) {
+function generateEIP712(types: MessageTypes, chainId: number, message: any): TypedMessage<MessageTypes> {
   return {
     types,
     primaryType: "Tx",
@@ -24,7 +26,7 @@ function generateEIP712(types: MessageTypes, chainId: number, message: any) {
   };
 }
 
-function generateTypes(msgValues: object): MessageTypes {
+function generateTypes(msgValues: Record<string, unknown>): MessageTypes {
   const types = {
     EIP712Domain: [
       { name: "name", type: "string" },
@@ -42,7 +44,7 @@ function generateTypes(msgValues: object): MessageTypes {
       { name: "sequence", type: "string" },
     ],
     Fee: [
-      { name: "feePayer", type: "string" },
+      { name: "payer", type: "string" },
       { name: "amount", type: "Coin[]" },
       { name: "gas", type: "string" },
     ],
@@ -89,7 +91,7 @@ export class Web3Wallet implements OfflineEIP712Signer {
   }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  public async signEIP712(address: string, signDoc: any): Promise<EIP712SignResponse> {
+  public async signEIP712(address: string, signDoc: StdSignDoc): Promise<EIP712SignResponse> {
     if (address !== (await this.address())) {
       throw new Error(`Address ${address} not found in wallet`);
     }
@@ -101,7 +103,7 @@ export class Web3Wallet implements OfflineEIP712Signer {
       throw new Error(`signing eip712 currently support only 1 tx message`);
     }
 
-    signDoc.fee.payer = await this.address();
+    (signDoc as any).fee.payer = await this.address();
 
     const from = await this.addressHex();
     const types = generateTypes(getMsgTypes(signDoc.msgs[0].type));

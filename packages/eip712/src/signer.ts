@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { OfflineAminoSigner, StdSignDoc } from "@cosmjs/amino";
-import { Algo, OfflineDirectSigner } from "@cosmjs/proto-signing";
+import { OfflineDirectSigner } from "@cosmjs/proto-signing";
 
 export interface AccountData {
   readonly address: string;
