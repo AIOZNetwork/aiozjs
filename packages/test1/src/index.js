@@ -13,7 +13,7 @@ import { Web3Wallet } from "@cosmjs/eip712";
 import {
   SigningStargateClient,
   StargateClient,
-  parseChainId,
+  parseChainIdRevision,
   calculateFee,
   defaultRegistryTypes,
 } from "@cosmjs/stargate";
@@ -818,18 +818,18 @@ async function main() {
   const fee = calculateFee(gasUsed, "1000000000attoaioz");
   // const result = await client.sendTokens(firstAccount.address, recipient, [amount], fee, "Have fun with your star coins");
   // const cpHeight = await cpClient.getHeight();
-  // const cpRevision = parseChainId(cpChainId);
+  // const cpRevision = parseChainIdRevision(cpChainId);
   // const result = await client.sendIbcTokens(
   //   firstAccount.address,
   //   ibcRecipient,
   //   amount,
-  //   'transfer',
-  //   'channel-14',
+  //   "transfer",
+  //   "channel-14",
   //   {
   //     revisionNumber: Long.fromNumber(cpRevision),
-  //     revisionHeight: Long.fromNumber(cpHeight + 1000)
+  //     revisionHeight: Long.fromNumber(cpHeight + 1000),
   //   },
-  //   Math.trunc(Date.now()/1000) + 5000,
+  //   Math.trunc(Date.now() / 1000) + 5000,
   //   fee,
   //   "send ibc",
   // )

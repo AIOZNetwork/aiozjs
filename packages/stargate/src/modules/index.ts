@@ -104,6 +104,7 @@ export { GravityExtension, setupGravityExtension } from "./gravity/queries";
 export { AminoMsgTransfer, createIbcAminoConverters, isAminoMsgTransfer } from "./ibc/aminomessages";
 export { ibcTypes, isMsgTransferEncodeObject, MsgTransferEncodeObject } from "./ibc/messages";
 export { IbcExtension, setupIbcExtension } from "./ibc/queries";
+export { parseChainIdRevision } from "./ibc/utils";
 export { MintExtension, MintParams, setupMintExtension } from "./mint/queries";
 export {
   AminoMsgBeginRedelegate,

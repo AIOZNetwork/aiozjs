@@ -92,6 +92,7 @@ export {
   MsgVoteEncodeObject,
   MsgVoteWeightedEncodeObject,
   MsgWithdrawDelegatorRewardEncodeObject,
+  parseChainIdRevision,
   SdkStakingExtension,
   setupAiozrc20Extension,
   setupAuthExtension,
