@@ -37,7 +37,7 @@ export function isAminoMsgCancelSendToEvmChain(msg: AminoMsg): msg is AminoMsgCa
 
 export function createGravityAminoConverters(): AminoConverters {
   return {
-    "/aioz.aiozrc20.v1.MsgSendToEvmChain": {
+    "/gravity.v1.MsgSendToEvmChain": {
       aminoType: "gravity/MsgSendToEvmChain",
       toAmino: ({
         sender,
@@ -66,7 +66,7 @@ export function createGravityAminoConverters(): AminoConverters {
         bridgeFee: bridge_fee,
       }),
     },
-    "/aioz.aiozrc20.v1.MsgCancelSendToEvmChain": {
+    "/gravity.v1.MsgCancelSendToEvmChain": {
       aminoType: "gravity/MsgCancelSendToEvmChain",
       toAmino: ({
         sender,

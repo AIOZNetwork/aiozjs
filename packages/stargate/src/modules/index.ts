@@ -99,6 +99,8 @@ export {
   gravityTypes,
   isMsgCancelSendToEvmChainEncodeObject,
   isMsgSendToEvmChainEncodeObject,
+  MsgCancelSendToEvmChainEncodeObject,
+  MsgSendToEvmChainEncodeObject,
 } from "./gravity/messages";
 export { GravityExtension, setupGravityExtension } from "./gravity/queries";
 export { AminoMsgTransfer, createIbcAminoConverters, isAminoMsgTransfer } from "./ibc/aminomessages";
