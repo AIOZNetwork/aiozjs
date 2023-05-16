@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { Params } from "./genesis";
-import { Valset, PendingIbcAutoForward } from "./types";
-import { MsgValsetConfirm, MsgConfirmBatch, MsgConfirmLogicCall, EvmChainAddress } from "./msgs";
+import { Valset, DelegateKeys, EvmChainAddress, PendingIbcAutoForward } from "./types";
+import { MsgValsetConfirm, MsgConfirmBatch, MsgConfirmLogicCall } from "./msgs";
 import { BatchFees } from "./pool";
 import { OutgoingTxBatch, OutgoingLogicCall, OutgoingTransferTx } from "./batch";
 import { Attestation } from "./attestation";
@@ -218,6 +218,10 @@ export interface QueryAttestationsRequest {
 export interface QueryAttestationsResponse {
   attestations: Attestation[];
 }
+export interface QueryDelegateKeys {}
+export interface QueryDelegateKeysResponse {
+  delegateKeys: DelegateKeys[];
+}
 export interface QueryDelegateKeysByValidatorAddress {
   validatorAddress: string;
 }
@@ -251,6 +255,7 @@ export interface QueryPendingSendToEvmChainResponse {
 export interface QueryPendingIbcAutoForwards {
   /** limit defines the number of pending forwards to return, in order of their SendToCosmos.EventNonce */
   limit: Long;
+  chainName: string;
 }
 export interface QueryPendingIbcAutoForwardsResponse {
   pendingIbcAutoForwards: PendingIbcAutoForward[];
@@ -3113,6 +3118,114 @@ export const QueryAttestationsResponse = {
   },
 };
 
+function createBaseQueryDelegateKeys(): QueryDelegateKeys {
+  return {};
+}
+
+export const QueryDelegateKeys = {
+  encode(_: QueryDelegateKeys, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryDelegateKeys {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryDelegateKeys();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(_: any): QueryDelegateKeys {
+    return {};
+  },
+
+  toJSON(_: QueryDelegateKeys): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryDelegateKeys>, I>>(_: I): QueryDelegateKeys {
+    const message = createBaseQueryDelegateKeys();
+    return message;
+  },
+};
+
+function createBaseQueryDelegateKeysResponse(): QueryDelegateKeysResponse {
+  return {
+    delegateKeys: [],
+  };
+}
+
+export const QueryDelegateKeysResponse = {
+  encode(message: QueryDelegateKeysResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.delegateKeys) {
+      DelegateKeys.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryDelegateKeysResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryDelegateKeysResponse();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        case 1:
+          message.delegateKeys.push(DelegateKeys.decode(reader, reader.uint32()));
+          break;
+
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(object: any): QueryDelegateKeysResponse {
+    return {
+      delegateKeys: Array.isArray(object?.delegateKeys)
+        ? object.delegateKeys.map((e: any) => DelegateKeys.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: QueryDelegateKeysResponse): unknown {
+    const obj: any = {};
+
+    if (message.delegateKeys) {
+      obj.delegateKeys = message.delegateKeys.map((e) => (e ? DelegateKeys.toJSON(e) : undefined));
+    } else {
+      obj.delegateKeys = [];
+    }
+
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryDelegateKeysResponse>, I>>(
+    object: I,
+  ): QueryDelegateKeysResponse {
+    const message = createBaseQueryDelegateKeysResponse();
+    message.delegateKeys = object.delegateKeys?.map((e) => DelegateKeys.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 function createBaseQueryDelegateKeysByValidatorAddress(): QueryDelegateKeysByValidatorAddress {
   return {
     validatorAddress: "",
@@ -3701,6 +3814,7 @@ export const QueryPendingSendToEvmChainResponse = {
 function createBaseQueryPendingIbcAutoForwards(): QueryPendingIbcAutoForwards {
   return {
     limit: Long.UZERO,
+    chainName: "",
   };
 }
 
@@ -3708,6 +3822,10 @@ export const QueryPendingIbcAutoForwards = {
   encode(message: QueryPendingIbcAutoForwards, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (!message.limit.isZero()) {
       writer.uint32(8).uint64(message.limit);
+    }
+
+    if (message.chainName !== "") {
+      writer.uint32(18).string(message.chainName);
     }
 
     return writer;
@@ -3726,6 +3844,10 @@ export const QueryPendingIbcAutoForwards = {
           message.limit = reader.uint64() as Long;
           break;
 
+        case 2:
+          message.chainName = reader.string();
+          break;
+
         default:
           reader.skipType(tag & 7);
           break;
@@ -3738,12 +3860,14 @@ export const QueryPendingIbcAutoForwards = {
   fromJSON(object: any): QueryPendingIbcAutoForwards {
     return {
       limit: isSet(object.limit) ? Long.fromValue(object.limit) : Long.UZERO,
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
     };
   },
 
   toJSON(message: QueryPendingIbcAutoForwards): unknown {
     const obj: any = {};
     message.limit !== undefined && (obj.limit = (message.limit || Long.UZERO).toString());
+    message.chainName !== undefined && (obj.chainName = message.chainName);
     return obj;
   },
 
@@ -3753,6 +3877,7 @@ export const QueryPendingIbcAutoForwards = {
     const message = createBaseQueryPendingIbcAutoForwards();
     message.limit =
       object.limit !== undefined && object.limit !== null ? Long.fromValue(object.limit) : Long.UZERO;
+    message.chainName = object.chainName ?? "";
     return message;
   },
 };
@@ -3862,13 +3987,14 @@ export interface Query {
     request: QueryLastObservedEvmNonceRequest,
   ): Promise<QueryLastObservedEvmNonceResponse>;
   GetAttestations(request: QueryAttestationsRequest): Promise<QueryAttestationsResponse>;
-  GetDelegateKeyByValidator(
+  GetDelegateKeys(request?: QueryDelegateKeys): Promise<QueryDelegateKeysResponse>;
+  GetDelegateKeysByValidator(
     request: QueryDelegateKeysByValidatorAddress,
   ): Promise<QueryDelegateKeysByValidatorAddressResponse>;
-  GetDelegateKeyByEvmAddress(
+  GetDelegateKeysByEvmAddress(
     request: QueryDelegateKeysByEvmAddress,
   ): Promise<QueryDelegateKeysByEvmAddressResponse>;
-  GetDelegateKeyByOrchestrator(
+  GetDelegateKeysByOrchestrator(
     request: QueryDelegateKeysByOrchestratorAddress,
   ): Promise<QueryDelegateKeysByOrchestratorAddressResponse>;
   GetPendingSendToEvmChain(request: QueryPendingSendToEvmChain): Promise<QueryPendingSendToEvmChainResponse>;
@@ -3902,9 +4028,10 @@ export class QueryClientImpl implements Query {
     this.GetLastObservedEvmBlock = this.GetLastObservedEvmBlock.bind(this);
     this.GetLastObservedEvmNonce = this.GetLastObservedEvmNonce.bind(this);
     this.GetAttestations = this.GetAttestations.bind(this);
-    this.GetDelegateKeyByValidator = this.GetDelegateKeyByValidator.bind(this);
-    this.GetDelegateKeyByEvmAddress = this.GetDelegateKeyByEvmAddress.bind(this);
-    this.GetDelegateKeyByOrchestrator = this.GetDelegateKeyByOrchestrator.bind(this);
+    this.GetDelegateKeys = this.GetDelegateKeys.bind(this);
+    this.GetDelegateKeysByValidator = this.GetDelegateKeysByValidator.bind(this);
+    this.GetDelegateKeysByEvmAddress = this.GetDelegateKeysByEvmAddress.bind(this);
+    this.GetDelegateKeysByOrchestrator = this.GetDelegateKeysByOrchestrator.bind(this);
     this.GetPendingSendToEvmChain = this.GetPendingSendToEvmChain.bind(this);
     this.GetPendingIbcAutoForwards = this.GetPendingIbcAutoForwards.bind(this);
   }
@@ -4049,27 +4176,33 @@ export class QueryClientImpl implements Query {
     return promise.then((data) => QueryAttestationsResponse.decode(new _m0.Reader(data)));
   }
 
-  GetDelegateKeyByValidator(
+  GetDelegateKeys(request: QueryDelegateKeys = {}): Promise<QueryDelegateKeysResponse> {
+    const data = QueryDelegateKeys.encode(request).finish();
+    const promise = this.rpc.request("gravity.v1.Query", "GetDelegateKeys", data);
+    return promise.then((data) => QueryDelegateKeysResponse.decode(new _m0.Reader(data)));
+  }
+
+  GetDelegateKeysByValidator(
     request: QueryDelegateKeysByValidatorAddress,
   ): Promise<QueryDelegateKeysByValidatorAddressResponse> {
     const data = QueryDelegateKeysByValidatorAddress.encode(request).finish();
-    const promise = this.rpc.request("gravity.v1.Query", "GetDelegateKeyByValidator", data);
+    const promise = this.rpc.request("gravity.v1.Query", "GetDelegateKeysByValidator", data);
     return promise.then((data) => QueryDelegateKeysByValidatorAddressResponse.decode(new _m0.Reader(data)));
   }
 
-  GetDelegateKeyByEvmAddress(
+  GetDelegateKeysByEvmAddress(
     request: QueryDelegateKeysByEvmAddress,
   ): Promise<QueryDelegateKeysByEvmAddressResponse> {
     const data = QueryDelegateKeysByEvmAddress.encode(request).finish();
-    const promise = this.rpc.request("gravity.v1.Query", "GetDelegateKeyByEvmAddress", data);
+    const promise = this.rpc.request("gravity.v1.Query", "GetDelegateKeysByEvmAddress", data);
     return promise.then((data) => QueryDelegateKeysByEvmAddressResponse.decode(new _m0.Reader(data)));
   }
 
-  GetDelegateKeyByOrchestrator(
+  GetDelegateKeysByOrchestrator(
     request: QueryDelegateKeysByOrchestratorAddress,
   ): Promise<QueryDelegateKeysByOrchestratorAddressResponse> {
     const data = QueryDelegateKeysByOrchestratorAddress.encode(request).finish();
-    const promise = this.rpc.request("gravity.v1.Query", "GetDelegateKeyByOrchestrator", data);
+    const promise = this.rpc.request("gravity.v1.Query", "GetDelegateKeysByOrchestrator", data);
     return promise.then((data) =>
       QueryDelegateKeysByOrchestratorAddressResponse.decode(new _m0.Reader(data)),
     );

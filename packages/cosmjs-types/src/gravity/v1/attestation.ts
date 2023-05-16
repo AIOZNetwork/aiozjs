@@ -120,11 +120,11 @@ export interface Attestation {
   claim?: Any;
 }
 /**
- * ERC20Token unique identifier for an Ethereum ERC20 token.
+ * ERC20Token unique identifier for an Evm chain ERC20 token.
  * CONTRACT:
- * The contract address on ETH of the token, this could be a Cosmos
+ * The contract address on EVM chain of the token, this could be a Cosmos
  * originated token, if so it will be the ERC20 address of the representation
- * (note: developers should look up the token symbol using the address on ETH to display for UI)
+ * (note: developers should look up the token symbol using the address on EVM chain to display for UI)
  */
 
 export interface ERC20Token {
@@ -132,33 +132,35 @@ export interface ERC20Token {
   amount: string;
 }
 export interface EventObservation {
-  attestationType: string;
   chainName: string;
+  nonce: string;
+  attestationType: string;
   bridgeContract: string;
   bridgeChainId: string;
   attestationId: string;
-  nonce: string;
-}
-export interface EventInvalidSendToCosmosReceiver {
-  chainName: string;
-  amount: string;
-  nonce: string;
-  token: string;
-  sender: string;
+  success: string;
 }
 export interface EventSendToCosmos {
   chainName: string;
-  amount: string;
   nonce: string;
+  amount: string;
+  token: string;
+}
+export interface EventSendToCosmosInvalid {
+  chainName: string;
+  nonce: string;
+  amount: string;
   token: string;
 }
 export interface EventSendToCosmosLocal {
+  chainName: string;
   nonce: string;
   receiver: string;
   token: string;
   amount: string;
 }
 export interface EventSendToCosmosPendingIbcAutoForward {
+  chainName: string;
   nonce: string;
   receiver: string;
   token: string;
@@ -166,6 +168,7 @@ export interface EventSendToCosmosPendingIbcAutoForward {
   channel: string;
 }
 export interface EventSendToCosmosExecutedIbcAutoForward {
+  chainName: string;
   nonce: string;
   receiver: string;
   token: string;
@@ -174,19 +177,23 @@ export interface EventSendToCosmosExecutedIbcAutoForward {
   timeoutTime: string;
   timeoutHeight: string;
 }
-export interface EventInvalidSendToEvmChainReceiver {
-  chainName: string;
-  amount: string;
-  nonce: string;
-  token: string;
-  sender: string;
-}
 export interface EventSendFromEvmChainToEvmChain {
   chainName: string;
-  amount: string;
   nonce: string;
   token: string;
+  amount: string;
+  bridgeFee: string;
+  chainFee: string;
   toChainName: string;
+  receiver: string;
+  sender: string;
+  txId: string;
+}
+export interface EventSendFromEvmChainToEvmChainInvalid {
+  chainName: string;
+  nonce: string;
+  amount: string;
+  token: string;
 }
 
 function createBaseAttestation(): Attestation {
@@ -359,39 +366,44 @@ export const ERC20Token = {
 
 function createBaseEventObservation(): EventObservation {
   return {
-    attestationType: "",
     chainName: "",
+    nonce: "",
+    attestationType: "",
     bridgeContract: "",
     bridgeChainId: "",
     attestationId: "",
-    nonce: "",
+    success: "",
   };
 }
 
 export const EventObservation = {
   encode(message: EventObservation, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.attestationType !== "") {
-      writer.uint32(10).string(message.attestationType);
-    }
-
     if (message.chainName !== "") {
-      writer.uint32(18).string(message.chainName);
-    }
-
-    if (message.bridgeContract !== "") {
-      writer.uint32(26).string(message.bridgeContract);
-    }
-
-    if (message.bridgeChainId !== "") {
-      writer.uint32(34).string(message.bridgeChainId);
-    }
-
-    if (message.attestationId !== "") {
-      writer.uint32(42).string(message.attestationId);
+      writer.uint32(10).string(message.chainName);
     }
 
     if (message.nonce !== "") {
-      writer.uint32(50).string(message.nonce);
+      writer.uint32(18).string(message.nonce);
+    }
+
+    if (message.attestationType !== "") {
+      writer.uint32(26).string(message.attestationType);
+    }
+
+    if (message.bridgeContract !== "") {
+      writer.uint32(34).string(message.bridgeContract);
+    }
+
+    if (message.bridgeChainId !== "") {
+      writer.uint32(42).string(message.bridgeChainId);
+    }
+
+    if (message.attestationId !== "") {
+      writer.uint32(50).string(message.attestationId);
+    }
+
+    if (message.success !== "") {
+      writer.uint32(58).string(message.success);
     }
 
     return writer;
@@ -407,27 +419,31 @@ export const EventObservation = {
 
       switch (tag >>> 3) {
         case 1:
-          message.attestationType = reader.string();
-          break;
-
-        case 2:
           message.chainName = reader.string();
           break;
 
+        case 2:
+          message.nonce = reader.string();
+          break;
+
         case 3:
-          message.bridgeContract = reader.string();
+          message.attestationType = reader.string();
           break;
 
         case 4:
-          message.bridgeChainId = reader.string();
+          message.bridgeContract = reader.string();
           break;
 
         case 5:
-          message.attestationId = reader.string();
+          message.bridgeChainId = reader.string();
           break;
 
         case 6:
-          message.nonce = reader.string();
+          message.attestationId = reader.string();
+          break;
+
+        case 7:
+          message.success = reader.string();
           break;
 
         default:
@@ -441,140 +457,37 @@ export const EventObservation = {
 
   fromJSON(object: any): EventObservation {
     return {
-      attestationType: isSet(object.attestationType) ? String(object.attestationType) : "",
       chainName: isSet(object.chainName) ? String(object.chainName) : "",
+      nonce: isSet(object.nonce) ? String(object.nonce) : "",
+      attestationType: isSet(object.attestationType) ? String(object.attestationType) : "",
       bridgeContract: isSet(object.bridgeContract) ? String(object.bridgeContract) : "",
       bridgeChainId: isSet(object.bridgeChainId) ? String(object.bridgeChainId) : "",
       attestationId: isSet(object.attestationId) ? String(object.attestationId) : "",
-      nonce: isSet(object.nonce) ? String(object.nonce) : "",
+      success: isSet(object.success) ? String(object.success) : "",
     };
   },
 
   toJSON(message: EventObservation): unknown {
     const obj: any = {};
-    message.attestationType !== undefined && (obj.attestationType = message.attestationType);
     message.chainName !== undefined && (obj.chainName = message.chainName);
+    message.nonce !== undefined && (obj.nonce = message.nonce);
+    message.attestationType !== undefined && (obj.attestationType = message.attestationType);
     message.bridgeContract !== undefined && (obj.bridgeContract = message.bridgeContract);
     message.bridgeChainId !== undefined && (obj.bridgeChainId = message.bridgeChainId);
     message.attestationId !== undefined && (obj.attestationId = message.attestationId);
-    message.nonce !== undefined && (obj.nonce = message.nonce);
+    message.success !== undefined && (obj.success = message.success);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<EventObservation>, I>>(object: I): EventObservation {
     const message = createBaseEventObservation();
-    message.attestationType = object.attestationType ?? "";
     message.chainName = object.chainName ?? "";
+    message.nonce = object.nonce ?? "";
+    message.attestationType = object.attestationType ?? "";
     message.bridgeContract = object.bridgeContract ?? "";
     message.bridgeChainId = object.bridgeChainId ?? "";
     message.attestationId = object.attestationId ?? "";
-    message.nonce = object.nonce ?? "";
-    return message;
-  },
-};
-
-function createBaseEventInvalidSendToCosmosReceiver(): EventInvalidSendToCosmosReceiver {
-  return {
-    chainName: "",
-    amount: "",
-    nonce: "",
-    token: "",
-    sender: "",
-  };
-}
-
-export const EventInvalidSendToCosmosReceiver = {
-  encode(message: EventInvalidSendToCosmosReceiver, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.chainName !== "") {
-      writer.uint32(10).string(message.chainName);
-    }
-
-    if (message.amount !== "") {
-      writer.uint32(18).string(message.amount);
-    }
-
-    if (message.nonce !== "") {
-      writer.uint32(26).string(message.nonce);
-    }
-
-    if (message.token !== "") {
-      writer.uint32(34).string(message.token);
-    }
-
-    if (message.sender !== "") {
-      writer.uint32(42).string(message.sender);
-    }
-
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventInvalidSendToCosmosReceiver {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEventInvalidSendToCosmosReceiver();
-
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-
-      switch (tag >>> 3) {
-        case 1:
-          message.chainName = reader.string();
-          break;
-
-        case 2:
-          message.amount = reader.string();
-          break;
-
-        case 3:
-          message.nonce = reader.string();
-          break;
-
-        case 4:
-          message.token = reader.string();
-          break;
-
-        case 5:
-          message.sender = reader.string();
-          break;
-
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-
-    return message;
-  },
-
-  fromJSON(object: any): EventInvalidSendToCosmosReceiver {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      amount: isSet(object.amount) ? String(object.amount) : "",
-      nonce: isSet(object.nonce) ? String(object.nonce) : "",
-      token: isSet(object.token) ? String(object.token) : "",
-      sender: isSet(object.sender) ? String(object.sender) : "",
-    };
-  },
-
-  toJSON(message: EventInvalidSendToCosmosReceiver): unknown {
-    const obj: any = {};
-    message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.amount !== undefined && (obj.amount = message.amount);
-    message.nonce !== undefined && (obj.nonce = message.nonce);
-    message.token !== undefined && (obj.token = message.token);
-    message.sender !== undefined && (obj.sender = message.sender);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<EventInvalidSendToCosmosReceiver>, I>>(
-    object: I,
-  ): EventInvalidSendToCosmosReceiver {
-    const message = createBaseEventInvalidSendToCosmosReceiver();
-    message.chainName = object.chainName ?? "";
-    message.amount = object.amount ?? "";
-    message.nonce = object.nonce ?? "";
-    message.token = object.token ?? "";
-    message.sender = object.sender ?? "";
+    message.success = object.success ?? "";
     return message;
   },
 };
@@ -582,8 +495,8 @@ export const EventInvalidSendToCosmosReceiver = {
 function createBaseEventSendToCosmos(): EventSendToCosmos {
   return {
     chainName: "",
-    amount: "",
     nonce: "",
+    amount: "",
     token: "",
   };
 }
@@ -594,12 +507,12 @@ export const EventSendToCosmos = {
       writer.uint32(10).string(message.chainName);
     }
 
-    if (message.amount !== "") {
-      writer.uint32(18).string(message.amount);
+    if (message.nonce !== "") {
+      writer.uint32(18).string(message.nonce);
     }
 
-    if (message.nonce !== "") {
-      writer.uint32(26).string(message.nonce);
+    if (message.amount !== "") {
+      writer.uint32(26).string(message.amount);
     }
 
     if (message.token !== "") {
@@ -623,11 +536,11 @@ export const EventSendToCosmos = {
           break;
 
         case 2:
-          message.amount = reader.string();
+          message.nonce = reader.string();
           break;
 
         case 3:
-          message.nonce = reader.string();
+          message.amount = reader.string();
           break;
 
         case 4:
@@ -646,8 +559,8 @@ export const EventSendToCosmos = {
   fromJSON(object: any): EventSendToCosmos {
     return {
       chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      amount: isSet(object.amount) ? String(object.amount) : "",
       nonce: isSet(object.nonce) ? String(object.nonce) : "",
+      amount: isSet(object.amount) ? String(object.amount) : "",
       token: isSet(object.token) ? String(object.token) : "",
     };
   },
@@ -655,8 +568,8 @@ export const EventSendToCosmos = {
   toJSON(message: EventSendToCosmos): unknown {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.amount !== undefined && (obj.amount = message.amount);
     message.nonce !== undefined && (obj.nonce = message.nonce);
+    message.amount !== undefined && (obj.amount = message.amount);
     message.token !== undefined && (obj.token = message.token);
     return obj;
   },
@@ -664,8 +577,102 @@ export const EventSendToCosmos = {
   fromPartial<I extends Exact<DeepPartial<EventSendToCosmos>, I>>(object: I): EventSendToCosmos {
     const message = createBaseEventSendToCosmos();
     message.chainName = object.chainName ?? "";
-    message.amount = object.amount ?? "";
     message.nonce = object.nonce ?? "";
+    message.amount = object.amount ?? "";
+    message.token = object.token ?? "";
+    return message;
+  },
+};
+
+function createBaseEventSendToCosmosInvalid(): EventSendToCosmosInvalid {
+  return {
+    chainName: "",
+    nonce: "",
+    amount: "",
+    token: "",
+  };
+}
+
+export const EventSendToCosmosInvalid = {
+  encode(message: EventSendToCosmosInvalid, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.chainName !== "") {
+      writer.uint32(10).string(message.chainName);
+    }
+
+    if (message.nonce !== "") {
+      writer.uint32(18).string(message.nonce);
+    }
+
+    if (message.amount !== "") {
+      writer.uint32(26).string(message.amount);
+    }
+
+    if (message.token !== "") {
+      writer.uint32(34).string(message.token);
+    }
+
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): EventSendToCosmosInvalid {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEventSendToCosmosInvalid();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        case 1:
+          message.chainName = reader.string();
+          break;
+
+        case 2:
+          message.nonce = reader.string();
+          break;
+
+        case 3:
+          message.amount = reader.string();
+          break;
+
+        case 4:
+          message.token = reader.string();
+          break;
+
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(object: any): EventSendToCosmosInvalid {
+    return {
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
+      nonce: isSet(object.nonce) ? String(object.nonce) : "",
+      amount: isSet(object.amount) ? String(object.amount) : "",
+      token: isSet(object.token) ? String(object.token) : "",
+    };
+  },
+
+  toJSON(message: EventSendToCosmosInvalid): unknown {
+    const obj: any = {};
+    message.chainName !== undefined && (obj.chainName = message.chainName);
+    message.nonce !== undefined && (obj.nonce = message.nonce);
+    message.amount !== undefined && (obj.amount = message.amount);
+    message.token !== undefined && (obj.token = message.token);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<EventSendToCosmosInvalid>, I>>(
+    object: I,
+  ): EventSendToCosmosInvalid {
+    const message = createBaseEventSendToCosmosInvalid();
+    message.chainName = object.chainName ?? "";
+    message.nonce = object.nonce ?? "";
+    message.amount = object.amount ?? "";
     message.token = object.token ?? "";
     return message;
   },
@@ -673,6 +680,7 @@ export const EventSendToCosmos = {
 
 function createBaseEventSendToCosmosLocal(): EventSendToCosmosLocal {
   return {
+    chainName: "",
     nonce: "",
     receiver: "",
     token: "",
@@ -682,20 +690,24 @@ function createBaseEventSendToCosmosLocal(): EventSendToCosmosLocal {
 
 export const EventSendToCosmosLocal = {
   encode(message: EventSendToCosmosLocal, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.chainName !== "") {
+      writer.uint32(10).string(message.chainName);
+    }
+
     if (message.nonce !== "") {
-      writer.uint32(10).string(message.nonce);
+      writer.uint32(18).string(message.nonce);
     }
 
     if (message.receiver !== "") {
-      writer.uint32(18).string(message.receiver);
+      writer.uint32(26).string(message.receiver);
     }
 
     if (message.token !== "") {
-      writer.uint32(26).string(message.token);
+      writer.uint32(34).string(message.token);
     }
 
     if (message.amount !== "") {
-      writer.uint32(34).string(message.amount);
+      writer.uint32(42).string(message.amount);
     }
 
     return writer;
@@ -711,18 +723,22 @@ export const EventSendToCosmosLocal = {
 
       switch (tag >>> 3) {
         case 1:
-          message.nonce = reader.string();
+          message.chainName = reader.string();
           break;
 
         case 2:
-          message.receiver = reader.string();
+          message.nonce = reader.string();
           break;
 
         case 3:
-          message.token = reader.string();
+          message.receiver = reader.string();
           break;
 
         case 4:
+          message.token = reader.string();
+          break;
+
+        case 5:
           message.amount = reader.string();
           break;
 
@@ -737,6 +753,7 @@ export const EventSendToCosmosLocal = {
 
   fromJSON(object: any): EventSendToCosmosLocal {
     return {
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
       nonce: isSet(object.nonce) ? String(object.nonce) : "",
       receiver: isSet(object.receiver) ? String(object.receiver) : "",
       token: isSet(object.token) ? String(object.token) : "",
@@ -746,6 +763,7 @@ export const EventSendToCosmosLocal = {
 
   toJSON(message: EventSendToCosmosLocal): unknown {
     const obj: any = {};
+    message.chainName !== undefined && (obj.chainName = message.chainName);
     message.nonce !== undefined && (obj.nonce = message.nonce);
     message.receiver !== undefined && (obj.receiver = message.receiver);
     message.token !== undefined && (obj.token = message.token);
@@ -755,6 +773,7 @@ export const EventSendToCosmosLocal = {
 
   fromPartial<I extends Exact<DeepPartial<EventSendToCosmosLocal>, I>>(object: I): EventSendToCosmosLocal {
     const message = createBaseEventSendToCosmosLocal();
+    message.chainName = object.chainName ?? "";
     message.nonce = object.nonce ?? "";
     message.receiver = object.receiver ?? "";
     message.token = object.token ?? "";
@@ -765,6 +784,7 @@ export const EventSendToCosmosLocal = {
 
 function createBaseEventSendToCosmosPendingIbcAutoForward(): EventSendToCosmosPendingIbcAutoForward {
   return {
+    chainName: "",
     nonce: "",
     receiver: "",
     token: "",
@@ -778,24 +798,28 @@ export const EventSendToCosmosPendingIbcAutoForward = {
     message: EventSendToCosmosPendingIbcAutoForward,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
+    if (message.chainName !== "") {
+      writer.uint32(10).string(message.chainName);
+    }
+
     if (message.nonce !== "") {
-      writer.uint32(10).string(message.nonce);
+      writer.uint32(18).string(message.nonce);
     }
 
     if (message.receiver !== "") {
-      writer.uint32(18).string(message.receiver);
+      writer.uint32(26).string(message.receiver);
     }
 
     if (message.token !== "") {
-      writer.uint32(26).string(message.token);
+      writer.uint32(34).string(message.token);
     }
 
     if (message.amount !== "") {
-      writer.uint32(34).string(message.amount);
+      writer.uint32(42).string(message.amount);
     }
 
     if (message.channel !== "") {
-      writer.uint32(42).string(message.channel);
+      writer.uint32(50).string(message.channel);
     }
 
     return writer;
@@ -811,22 +835,26 @@ export const EventSendToCosmosPendingIbcAutoForward = {
 
       switch (tag >>> 3) {
         case 1:
-          message.nonce = reader.string();
+          message.chainName = reader.string();
           break;
 
         case 2:
-          message.receiver = reader.string();
+          message.nonce = reader.string();
           break;
 
         case 3:
-          message.token = reader.string();
+          message.receiver = reader.string();
           break;
 
         case 4:
-          message.amount = reader.string();
+          message.token = reader.string();
           break;
 
         case 5:
+          message.amount = reader.string();
+          break;
+
+        case 6:
           message.channel = reader.string();
           break;
 
@@ -841,6 +869,7 @@ export const EventSendToCosmosPendingIbcAutoForward = {
 
   fromJSON(object: any): EventSendToCosmosPendingIbcAutoForward {
     return {
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
       nonce: isSet(object.nonce) ? String(object.nonce) : "",
       receiver: isSet(object.receiver) ? String(object.receiver) : "",
       token: isSet(object.token) ? String(object.token) : "",
@@ -851,6 +880,7 @@ export const EventSendToCosmosPendingIbcAutoForward = {
 
   toJSON(message: EventSendToCosmosPendingIbcAutoForward): unknown {
     const obj: any = {};
+    message.chainName !== undefined && (obj.chainName = message.chainName);
     message.nonce !== undefined && (obj.nonce = message.nonce);
     message.receiver !== undefined && (obj.receiver = message.receiver);
     message.token !== undefined && (obj.token = message.token);
@@ -863,6 +893,7 @@ export const EventSendToCosmosPendingIbcAutoForward = {
     object: I,
   ): EventSendToCosmosPendingIbcAutoForward {
     const message = createBaseEventSendToCosmosPendingIbcAutoForward();
+    message.chainName = object.chainName ?? "";
     message.nonce = object.nonce ?? "";
     message.receiver = object.receiver ?? "";
     message.token = object.token ?? "";
@@ -874,6 +905,7 @@ export const EventSendToCosmosPendingIbcAutoForward = {
 
 function createBaseEventSendToCosmosExecutedIbcAutoForward(): EventSendToCosmosExecutedIbcAutoForward {
   return {
+    chainName: "",
     nonce: "",
     receiver: "",
     token: "",
@@ -889,32 +921,36 @@ export const EventSendToCosmosExecutedIbcAutoForward = {
     message: EventSendToCosmosExecutedIbcAutoForward,
     writer: _m0.Writer = _m0.Writer.create(),
   ): _m0.Writer {
+    if (message.chainName !== "") {
+      writer.uint32(10).string(message.chainName);
+    }
+
     if (message.nonce !== "") {
-      writer.uint32(10).string(message.nonce);
+      writer.uint32(18).string(message.nonce);
     }
 
     if (message.receiver !== "") {
-      writer.uint32(18).string(message.receiver);
+      writer.uint32(26).string(message.receiver);
     }
 
     if (message.token !== "") {
-      writer.uint32(26).string(message.token);
+      writer.uint32(34).string(message.token);
     }
 
     if (message.amount !== "") {
-      writer.uint32(34).string(message.amount);
+      writer.uint32(42).string(message.amount);
     }
 
     if (message.channel !== "") {
-      writer.uint32(42).string(message.channel);
+      writer.uint32(50).string(message.channel);
     }
 
     if (message.timeoutTime !== "") {
-      writer.uint32(50).string(message.timeoutTime);
+      writer.uint32(58).string(message.timeoutTime);
     }
 
     if (message.timeoutHeight !== "") {
-      writer.uint32(58).string(message.timeoutHeight);
+      writer.uint32(66).string(message.timeoutHeight);
     }
 
     return writer;
@@ -930,30 +966,34 @@ export const EventSendToCosmosExecutedIbcAutoForward = {
 
       switch (tag >>> 3) {
         case 1:
-          message.nonce = reader.string();
+          message.chainName = reader.string();
           break;
 
         case 2:
-          message.receiver = reader.string();
+          message.nonce = reader.string();
           break;
 
         case 3:
-          message.token = reader.string();
+          message.receiver = reader.string();
           break;
 
         case 4:
-          message.amount = reader.string();
+          message.token = reader.string();
           break;
 
         case 5:
-          message.channel = reader.string();
+          message.amount = reader.string();
           break;
 
         case 6:
-          message.timeoutTime = reader.string();
+          message.channel = reader.string();
           break;
 
         case 7:
+          message.timeoutTime = reader.string();
+          break;
+
+        case 8:
           message.timeoutHeight = reader.string();
           break;
 
@@ -968,6 +1008,7 @@ export const EventSendToCosmosExecutedIbcAutoForward = {
 
   fromJSON(object: any): EventSendToCosmosExecutedIbcAutoForward {
     return {
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
       nonce: isSet(object.nonce) ? String(object.nonce) : "",
       receiver: isSet(object.receiver) ? String(object.receiver) : "",
       token: isSet(object.token) ? String(object.token) : "",
@@ -980,6 +1021,7 @@ export const EventSendToCosmosExecutedIbcAutoForward = {
 
   toJSON(message: EventSendToCosmosExecutedIbcAutoForward): unknown {
     const obj: any = {};
+    message.chainName !== undefined && (obj.chainName = message.chainName);
     message.nonce !== undefined && (obj.nonce = message.nonce);
     message.receiver !== undefined && (obj.receiver = message.receiver);
     message.token !== undefined && (obj.token = message.token);
@@ -994,6 +1036,7 @@ export const EventSendToCosmosExecutedIbcAutoForward = {
     object: I,
   ): EventSendToCosmosExecutedIbcAutoForward {
     const message = createBaseEventSendToCosmosExecutedIbcAutoForward();
+    message.chainName = object.chainName ?? "";
     message.nonce = object.nonce ?? "";
     message.receiver = object.receiver ?? "";
     message.token = object.token ?? "";
@@ -1005,119 +1048,18 @@ export const EventSendToCosmosExecutedIbcAutoForward = {
   },
 };
 
-function createBaseEventInvalidSendToEvmChainReceiver(): EventInvalidSendToEvmChainReceiver {
-  return {
-    chainName: "",
-    amount: "",
-    nonce: "",
-    token: "",
-    sender: "",
-  };
-}
-
-export const EventInvalidSendToEvmChainReceiver = {
-  encode(message: EventInvalidSendToEvmChainReceiver, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.chainName !== "") {
-      writer.uint32(10).string(message.chainName);
-    }
-
-    if (message.amount !== "") {
-      writer.uint32(18).string(message.amount);
-    }
-
-    if (message.nonce !== "") {
-      writer.uint32(26).string(message.nonce);
-    }
-
-    if (message.token !== "") {
-      writer.uint32(34).string(message.token);
-    }
-
-    if (message.sender !== "") {
-      writer.uint32(42).string(message.sender);
-    }
-
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventInvalidSendToEvmChainReceiver {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEventInvalidSendToEvmChainReceiver();
-
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-
-      switch (tag >>> 3) {
-        case 1:
-          message.chainName = reader.string();
-          break;
-
-        case 2:
-          message.amount = reader.string();
-          break;
-
-        case 3:
-          message.nonce = reader.string();
-          break;
-
-        case 4:
-          message.token = reader.string();
-          break;
-
-        case 5:
-          message.sender = reader.string();
-          break;
-
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-
-    return message;
-  },
-
-  fromJSON(object: any): EventInvalidSendToEvmChainReceiver {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      amount: isSet(object.amount) ? String(object.amount) : "",
-      nonce: isSet(object.nonce) ? String(object.nonce) : "",
-      token: isSet(object.token) ? String(object.token) : "",
-      sender: isSet(object.sender) ? String(object.sender) : "",
-    };
-  },
-
-  toJSON(message: EventInvalidSendToEvmChainReceiver): unknown {
-    const obj: any = {};
-    message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.amount !== undefined && (obj.amount = message.amount);
-    message.nonce !== undefined && (obj.nonce = message.nonce);
-    message.token !== undefined && (obj.token = message.token);
-    message.sender !== undefined && (obj.sender = message.sender);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<EventInvalidSendToEvmChainReceiver>, I>>(
-    object: I,
-  ): EventInvalidSendToEvmChainReceiver {
-    const message = createBaseEventInvalidSendToEvmChainReceiver();
-    message.chainName = object.chainName ?? "";
-    message.amount = object.amount ?? "";
-    message.nonce = object.nonce ?? "";
-    message.token = object.token ?? "";
-    message.sender = object.sender ?? "";
-    return message;
-  },
-};
-
 function createBaseEventSendFromEvmChainToEvmChain(): EventSendFromEvmChainToEvmChain {
   return {
     chainName: "",
-    amount: "",
     nonce: "",
     token: "",
+    amount: "",
+    bridgeFee: "",
+    chainFee: "",
     toChainName: "",
+    receiver: "",
+    sender: "",
+    txId: "",
   };
 }
 
@@ -1127,20 +1069,40 @@ export const EventSendFromEvmChainToEvmChain = {
       writer.uint32(10).string(message.chainName);
     }
 
-    if (message.amount !== "") {
-      writer.uint32(18).string(message.amount);
-    }
-
     if (message.nonce !== "") {
-      writer.uint32(26).string(message.nonce);
+      writer.uint32(18).string(message.nonce);
     }
 
     if (message.token !== "") {
-      writer.uint32(34).string(message.token);
+      writer.uint32(26).string(message.token);
+    }
+
+    if (message.amount !== "") {
+      writer.uint32(34).string(message.amount);
+    }
+
+    if (message.bridgeFee !== "") {
+      writer.uint32(42).string(message.bridgeFee);
+    }
+
+    if (message.chainFee !== "") {
+      writer.uint32(50).string(message.chainFee);
     }
 
     if (message.toChainName !== "") {
-      writer.uint32(42).string(message.toChainName);
+      writer.uint32(58).string(message.toChainName);
+    }
+
+    if (message.receiver !== "") {
+      writer.uint32(66).string(message.receiver);
+    }
+
+    if (message.sender !== "") {
+      writer.uint32(74).string(message.sender);
+    }
+
+    if (message.txId !== "") {
+      writer.uint32(82).string(message.txId);
     }
 
     return writer;
@@ -1160,19 +1122,39 @@ export const EventSendFromEvmChainToEvmChain = {
           break;
 
         case 2:
-          message.amount = reader.string();
-          break;
-
-        case 3:
           message.nonce = reader.string();
           break;
 
-        case 4:
+        case 3:
           message.token = reader.string();
           break;
 
+        case 4:
+          message.amount = reader.string();
+          break;
+
         case 5:
+          message.bridgeFee = reader.string();
+          break;
+
+        case 6:
+          message.chainFee = reader.string();
+          break;
+
+        case 7:
           message.toChainName = reader.string();
+          break;
+
+        case 8:
+          message.receiver = reader.string();
+          break;
+
+        case 9:
+          message.sender = reader.string();
+          break;
+
+        case 10:
+          message.txId = reader.string();
           break;
 
         default:
@@ -1187,20 +1169,30 @@ export const EventSendFromEvmChainToEvmChain = {
   fromJSON(object: any): EventSendFromEvmChainToEvmChain {
     return {
       chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      amount: isSet(object.amount) ? String(object.amount) : "",
       nonce: isSet(object.nonce) ? String(object.nonce) : "",
       token: isSet(object.token) ? String(object.token) : "",
+      amount: isSet(object.amount) ? String(object.amount) : "",
+      bridgeFee: isSet(object.bridgeFee) ? String(object.bridgeFee) : "",
+      chainFee: isSet(object.chainFee) ? String(object.chainFee) : "",
       toChainName: isSet(object.toChainName) ? String(object.toChainName) : "",
+      receiver: isSet(object.receiver) ? String(object.receiver) : "",
+      sender: isSet(object.sender) ? String(object.sender) : "",
+      txId: isSet(object.txId) ? String(object.txId) : "",
     };
   },
 
   toJSON(message: EventSendFromEvmChainToEvmChain): unknown {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.amount !== undefined && (obj.amount = message.amount);
     message.nonce !== undefined && (obj.nonce = message.nonce);
     message.token !== undefined && (obj.token = message.token);
+    message.amount !== undefined && (obj.amount = message.amount);
+    message.bridgeFee !== undefined && (obj.bridgeFee = message.bridgeFee);
+    message.chainFee !== undefined && (obj.chainFee = message.chainFee);
     message.toChainName !== undefined && (obj.toChainName = message.toChainName);
+    message.receiver !== undefined && (obj.receiver = message.receiver);
+    message.sender !== undefined && (obj.sender = message.sender);
+    message.txId !== undefined && (obj.txId = message.txId);
     return obj;
   },
 
@@ -1209,10 +1201,112 @@ export const EventSendFromEvmChainToEvmChain = {
   ): EventSendFromEvmChainToEvmChain {
     const message = createBaseEventSendFromEvmChainToEvmChain();
     message.chainName = object.chainName ?? "";
-    message.amount = object.amount ?? "";
     message.nonce = object.nonce ?? "";
     message.token = object.token ?? "";
+    message.amount = object.amount ?? "";
+    message.bridgeFee = object.bridgeFee ?? "";
+    message.chainFee = object.chainFee ?? "";
     message.toChainName = object.toChainName ?? "";
+    message.receiver = object.receiver ?? "";
+    message.sender = object.sender ?? "";
+    message.txId = object.txId ?? "";
+    return message;
+  },
+};
+
+function createBaseEventSendFromEvmChainToEvmChainInvalid(): EventSendFromEvmChainToEvmChainInvalid {
+  return {
+    chainName: "",
+    nonce: "",
+    amount: "",
+    token: "",
+  };
+}
+
+export const EventSendFromEvmChainToEvmChainInvalid = {
+  encode(
+    message: EventSendFromEvmChainToEvmChainInvalid,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.chainName !== "") {
+      writer.uint32(10).string(message.chainName);
+    }
+
+    if (message.nonce !== "") {
+      writer.uint32(18).string(message.nonce);
+    }
+
+    if (message.amount !== "") {
+      writer.uint32(26).string(message.amount);
+    }
+
+    if (message.token !== "") {
+      writer.uint32(34).string(message.token);
+    }
+
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): EventSendFromEvmChainToEvmChainInvalid {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEventSendFromEvmChainToEvmChainInvalid();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        case 1:
+          message.chainName = reader.string();
+          break;
+
+        case 2:
+          message.nonce = reader.string();
+          break;
+
+        case 3:
+          message.amount = reader.string();
+          break;
+
+        case 4:
+          message.token = reader.string();
+          break;
+
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(object: any): EventSendFromEvmChainToEvmChainInvalid {
+    return {
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
+      nonce: isSet(object.nonce) ? String(object.nonce) : "",
+      amount: isSet(object.amount) ? String(object.amount) : "",
+      token: isSet(object.token) ? String(object.token) : "",
+    };
+  },
+
+  toJSON(message: EventSendFromEvmChainToEvmChainInvalid): unknown {
+    const obj: any = {};
+    message.chainName !== undefined && (obj.chainName = message.chainName);
+    message.nonce !== undefined && (obj.nonce = message.nonce);
+    message.amount !== undefined && (obj.amount = message.amount);
+    message.token !== undefined && (obj.token = message.token);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<EventSendFromEvmChainToEvmChainInvalid>, I>>(
+    object: I,
+  ): EventSendFromEvmChainToEvmChainInvalid {
+    const message = createBaseEventSendFromEvmChainToEvmChainInvalid();
+    message.chainName = object.chainName ?? "";
+    message.nonce = object.nonce ?? "";
+    message.amount = object.amount ?? "";
+    message.token = object.token ?? "";
     return message;
   },
 };

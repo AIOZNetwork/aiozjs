@@ -1,0 +1,54 @@
+syntax = "proto3";
+package gravity.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "gravity/v1/attestation.proto";
+
+option go_package = "github.com/Gravity-Bridge/Gravity-Bridge/module/x/gravity/types";
+
+// OutgoingTxBatch represents a batch of transactions going from gravity to EVM chain
+message OutgoingTxBatch {
+  uint64                      batch_nonce          = 1;
+  uint64                      batch_timeout        = 2;
+  repeated OutgoingTransferTx transactions         = 3 [(gogoproto.nullable) = false];
+  string                      token_contract       = 4;
+  uint64                      cosmos_block_created = 5;
+}
+
+// OutgoingTransferTx represents an individual send from gravity to EVM chain
+message OutgoingTransferTx {
+  uint64     id           = 1;
+  string     sender       = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string     dest_address = 3;
+  ERC20Token erc20_token = 4 [(gogoproto.nullable) = false];
+  ERC20Token erc20_fee = 5 [(gogoproto.nullable) = false];
+}
+
+// OutgoingLogicCall represents an individual logic call from gravity to EVM chain
+message OutgoingLogicCall {
+  repeated ERC20Token transfers              = 1 [(gogoproto.nullable) = false];
+  repeated ERC20Token fees                   = 2 [(gogoproto.nullable) = false];
+  string              logic_contract_address = 3;
+  bytes               payload                = 4;
+  uint64              timeout                = 5;
+  bytes               invalidation_id        = 6;
+  uint64              invalidation_nonce     = 7;
+  uint64              cosmos_block_created   = 8;
+}
+
+message EventOutgoingBatchCanceled {
+  string chain_name      = 1;
+  string bridge_contract = 2;
+  string bridge_chain_id = 3;
+  string batch_id = 4;
+  string nonce = 5;
+}
+
+message EventOutgoingBatch {
+  string chain_name      = 1;
+  string bridge_contract = 2;
+  string bridge_chain_id = 3;
+  string batch_id = 4;
+  string nonce = 5;
+}

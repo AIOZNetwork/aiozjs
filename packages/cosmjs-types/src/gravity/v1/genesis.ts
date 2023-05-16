@@ -1,48 +1,48 @@
 /* eslint-disable */
 import { Coin } from "../../cosmos/base/v1beta1/coin";
-import { Valset, ERC20ToDenom } from "./types";
-import { MsgValsetConfirm, MsgConfirmBatch, MsgConfirmLogicCall, MsgSetOrchestratorAddress } from "./msgs";
+import { Valset, DelegateKeys, ERC20ToDenom, PendingIbcAutoForward } from "./types";
+import { MsgValsetConfirm, MsgConfirmBatch, MsgConfirmLogicCall } from "./msgs";
 import { OutgoingTxBatch, OutgoingLogicCall, OutgoingTransferTx } from "./batch";
 import { Attestation } from "./attestation";
+import { Long, isSet, bytesFromBase64, base64FromBytes, DeepPartial, Exact } from "../../helpers";
 import * as _m0 from "protobufjs/minimal";
-import { isSet, DeepPartial, Exact, Long, bytesFromBase64, isObject, base64FromBytes } from "../../helpers";
 export const protobufPackage = "gravity.v1";
-export interface Params_EvmChainsEntry {
-  key: string;
-  value?: EvmChainParams;
-}
 /**
  * The slashing fractions for the various gravity related slashing conditions. The first three
  * refer to not submitting a particular message, the third for submitting a different claim
- * for the same Ethereum event
+ * for the same EVM chain event
  *
  * unbond_slashing_valsets_window
  *
  * The unbond slashing valsets window is used to determine how many blocks after starting to unbond
  * a validator needs to continue signing blocks. The goal of this paramater is that when a validator leaves
  * the set, if their leaving creates enough change in the validator set to justify an update they will sign
- * a validator set update for the Ethereum bridge that does not include themselves. Allowing us to remove them
- * from the Ethereum bridge and replace them with the new set gracefully.
+ * a validator set update for the EVM chain bridge that does not include themselves. Allowing us to remove them
+ * from the EVM chain bridge and replace them with the new set gracefully.
  *
  * valset_reward
  *
- * These parameters allow for the bridge oracle to resolve a fork on the Ethereum chain without halting
+ * These parameters allow for the bridge oracle to resolve a fork on the EVM chain without halting
  * the chain. Once set reset bridge state will roll back events to the nonce provided in reset_bridge_nonce
  * if and only if those events have not yet been observed (executed on the Cosmos chain). This allows for easy
- * handling of cases where for example an Ethereum hardfork has occured and more than 1/3 of the vlaidtor set
+ * handling of cases where for example an EVM chain hardfork has occured and more than 1/3 of the vlaidtor set
  * disagrees with the rest. Normally this would require a chain halt, manual genesis editing and restar to resolve
  * with this feature a governance proposal can be used instead
  *
  * bridge_active
  *
  * This boolean flag can be used by governance to temporarily halt the bridge due to a vulnerability or other issue
- * In this context halting the bridge means prevent the execution of any oracle events from Ethereum and preventing
- * the creation of new batches that may be relayed to Ethereum.
+ * In this context halting the bridge means prevent the execution of any oracle events from EVM chain and preventing
+ * the creation of new batches that may be relayed to EVM chain.
  * This does not prevent the creation of validator sets
  * or slashing for not submitting validator set signatures as either of these might allow key signers to leave the validator
- * set and steal funds on Ethereum without consequence.
- * The practical outcome of this flag being set to 'false' is that deposits from Ethereum will not show up and withdraws from
- * Cosmos will not execute on Ethereum.
+ * set and steal funds on EVM chain without consequence.
+ * The practical outcome of this flag being set to 'false' is that deposits from EVM chain will not show up and withdraws from
+ * Cosmos will not execute on EVM chain.
+ *
+ * min_chain_fee_basis_points
+ *
+ * The minimum SendToEvmChain `chain_fee` amount, in terms of basis points. e.g. 10% fee = 1000, and 0.02% fee = 2
  */
 
 export interface Params {
@@ -69,36 +69,31 @@ export interface Params {
   /**
    * bool bridge_active = 18 [deprecated = true];
    * addresses on this blacklist are forbidden from depositing or withdrawing
-   * from Ethereum to the bridge
+   * from EVM chain to the bridge
    */
 
   evmChainBlacklist: string[];
-  evmChains: {
-    [key: string]: EvmChainParams;
-  };
+  minChainFeeBasisPoints: Long;
+  evmChains: EvmChainParams[];
 }
 export interface EvmChainParams {
+  chainName: string;
   contractSourceHash: string;
   bridgeAddress: string;
   bridgeChainId: Long;
   averageBlockTime: Long;
   bridgeActive: boolean;
 }
-export interface GenesisState_EvmChainsEntry {
-  key: string;
-  value?: EvmChainData;
-}
 /** GenesisState struct, containing all persistant data required by the Gravity module */
 
 export interface GenesisState {
   params?: Params;
-  evmChains: {
-    [key: string]: EvmChainData;
-  };
+  evmChains: EvmChainData[];
 }
 /** EvmChainData struct, containing all persistant data per EVM chain required by the Gravity module */
 
 export interface EvmChainData {
+  chainName: string;
   gravityNonces?: GravityNonces;
   valsets: Valset[];
   valsetConfirms: MsgValsetConfirm[];
@@ -107,9 +102,10 @@ export interface EvmChainData {
   logicCalls: OutgoingLogicCall[];
   logicCallConfirms: MsgConfirmLogicCall[];
   attestations: Attestation[];
-  delegateKeys: MsgSetOrchestratorAddress[];
+  delegateKeys: DelegateKeys[];
   erc20ToDenoms: ERC20ToDenom[];
   unbatchedTransfers: OutgoingTransferTx[];
+  pendingIbcAutoForwards: PendingIbcAutoForward[];
 }
 /** GravityCounters contains the many noces and counters required to maintain the bridge state in the genesis */
 
@@ -146,78 +142,6 @@ export interface GravityNonces {
   lastBatchId: Long;
 }
 
-function createBaseParams_EvmChainsEntry(): Params_EvmChainsEntry {
-  return {
-    key: "",
-    value: undefined,
-  };
-}
-
-export const Params_EvmChainsEntry = {
-  encode(message: Params_EvmChainsEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.key !== "") {
-      writer.uint32(10).string(message.key);
-    }
-
-    if (message.value !== undefined) {
-      EvmChainParams.encode(message.value, writer.uint32(18).fork()).ldelim();
-    }
-
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Params_EvmChainsEntry {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseParams_EvmChainsEntry();
-
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-
-      switch (tag >>> 3) {
-        case 1:
-          message.key = reader.string();
-          break;
-
-        case 2:
-          message.value = EvmChainParams.decode(reader, reader.uint32());
-          break;
-
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-
-    return message;
-  },
-
-  fromJSON(object: any): Params_EvmChainsEntry {
-    return {
-      key: isSet(object.key) ? String(object.key) : "",
-      value: isSet(object.value) ? EvmChainParams.fromJSON(object.value) : undefined,
-    };
-  },
-
-  toJSON(message: Params_EvmChainsEntry): unknown {
-    const obj: any = {};
-    message.key !== undefined && (obj.key = message.key);
-    message.value !== undefined &&
-      (obj.value = message.value ? EvmChainParams.toJSON(message.value) : undefined);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Params_EvmChainsEntry>, I>>(object: I): Params_EvmChainsEntry {
-    const message = createBaseParams_EvmChainsEntry();
-    message.key = object.key ?? "";
-    message.value =
-      object.value !== undefined && object.value !== null
-        ? EvmChainParams.fromPartial(object.value)
-        : undefined;
-    return message;
-  },
-};
-
 function createBaseParams(): Params {
   return {
     gravityId: "",
@@ -233,7 +157,8 @@ function createBaseParams(): Params {
     slashFractionBadEvmSignature: new Uint8Array(),
     valsetReward: undefined,
     evmChainBlacklist: [],
-    evmChains: {},
+    minChainFeeBasisPoints: Long.UZERO,
+    evmChains: [],
   };
 }
 
@@ -291,15 +216,14 @@ export const Params = {
       writer.uint32(154).string(v!);
     }
 
-    Object.entries(message.evmChains).forEach(([key, value]) => {
-      Params_EvmChainsEntry.encode(
-        {
-          key: key as any,
-          value,
-        },
-        writer.uint32(810).fork(),
-      ).ldelim();
-    });
+    if (!message.minChainFeeBasisPoints.isZero()) {
+      writer.uint32(160).uint64(message.minChainFeeBasisPoints);
+    }
+
+    for (const v of message.evmChains) {
+      EvmChainParams.encode(v!, writer.uint32(810).fork()).ldelim();
+    }
+
     return writer;
   },
 
@@ -364,13 +288,12 @@ export const Params = {
           message.evmChainBlacklist.push(reader.string());
           break;
 
+        case 20:
+          message.minChainFeeBasisPoints = reader.uint64() as Long;
+          break;
+
         case 101:
-          const entry101 = Params_EvmChainsEntry.decode(reader, reader.uint32());
-
-          if (entry101.value !== undefined) {
-            message.evmChains[entry101.key] = entry101.value;
-          }
-
+          message.evmChains.push(EvmChainParams.decode(reader, reader.uint32()));
           break;
 
         default:
@@ -417,14 +340,12 @@ export const Params = {
       evmChainBlacklist: Array.isArray(object?.evmChainBlacklist)
         ? object.evmChainBlacklist.map((e: any) => String(e))
         : [],
-      evmChains: isObject(object.evmChains)
-        ? Object.entries(object.evmChains).reduce<{
-            [key: string]: EvmChainParams;
-          }>((acc, [key, value]) => {
-            acc[key] = EvmChainParams.fromJSON(value);
-            return acc;
-          }, {})
-        : {},
+      minChainFeeBasisPoints: isSet(object.minChainFeeBasisPoints)
+        ? Long.fromValue(object.minChainFeeBasisPoints)
+        : Long.UZERO,
+      evmChains: Array.isArray(object?.evmChains)
+        ? object.evmChains.map((e: any) => EvmChainParams.fromJSON(e))
+        : [],
     };
   },
 
@@ -470,12 +391,13 @@ export const Params = {
       obj.evmChainBlacklist = [];
     }
 
-    obj.evmChains = {};
+    message.minChainFeeBasisPoints !== undefined &&
+      (obj.minChainFeeBasisPoints = (message.minChainFeeBasisPoints || Long.UZERO).toString());
 
     if (message.evmChains) {
-      Object.entries(message.evmChains).forEach(([k, v]) => {
-        obj.evmChains[k] = EvmChainParams.toJSON(v);
-      });
+      obj.evmChains = message.evmChains.map((e) => (e ? EvmChainParams.toJSON(e) : undefined));
+    } else {
+      obj.evmChains = [];
     }
 
     return obj;
@@ -517,21 +439,18 @@ export const Params = {
         ? Coin.fromPartial(object.valsetReward)
         : undefined;
     message.evmChainBlacklist = object.evmChainBlacklist?.map((e) => e) || [];
-    message.evmChains = Object.entries(object.evmChains ?? {}).reduce<{
-      [key: string]: EvmChainParams;
-    }>((acc, [key, value]) => {
-      if (value !== undefined) {
-        acc[key] = EvmChainParams.fromPartial(value);
-      }
-
-      return acc;
-    }, {});
+    message.minChainFeeBasisPoints =
+      object.minChainFeeBasisPoints !== undefined && object.minChainFeeBasisPoints !== null
+        ? Long.fromValue(object.minChainFeeBasisPoints)
+        : Long.UZERO;
+    message.evmChains = object.evmChains?.map((e) => EvmChainParams.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseEvmChainParams(): EvmChainParams {
   return {
+    chainName: "",
     contractSourceHash: "",
     bridgeAddress: "",
     bridgeChainId: Long.UZERO,
@@ -542,24 +461,28 @@ function createBaseEvmChainParams(): EvmChainParams {
 
 export const EvmChainParams = {
   encode(message: EvmChainParams, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.chainName !== "") {
+      writer.uint32(10).string(message.chainName);
+    }
+
     if (message.contractSourceHash !== "") {
-      writer.uint32(10).string(message.contractSourceHash);
+      writer.uint32(18).string(message.contractSourceHash);
     }
 
     if (message.bridgeAddress !== "") {
-      writer.uint32(18).string(message.bridgeAddress);
+      writer.uint32(26).string(message.bridgeAddress);
     }
 
     if (!message.bridgeChainId.isZero()) {
-      writer.uint32(24).uint64(message.bridgeChainId);
+      writer.uint32(32).uint64(message.bridgeChainId);
     }
 
     if (!message.averageBlockTime.isZero()) {
-      writer.uint32(32).uint64(message.averageBlockTime);
+      writer.uint32(40).uint64(message.averageBlockTime);
     }
 
     if (message.bridgeActive === true) {
-      writer.uint32(40).bool(message.bridgeActive);
+      writer.uint32(48).bool(message.bridgeActive);
     }
 
     return writer;
@@ -575,22 +498,26 @@ export const EvmChainParams = {
 
       switch (tag >>> 3) {
         case 1:
-          message.contractSourceHash = reader.string();
+          message.chainName = reader.string();
           break;
 
         case 2:
-          message.bridgeAddress = reader.string();
+          message.contractSourceHash = reader.string();
           break;
 
         case 3:
-          message.bridgeChainId = reader.uint64() as Long;
+          message.bridgeAddress = reader.string();
           break;
 
         case 4:
-          message.averageBlockTime = reader.uint64() as Long;
+          message.bridgeChainId = reader.uint64() as Long;
           break;
 
         case 5:
+          message.averageBlockTime = reader.uint64() as Long;
+          break;
+
+        case 6:
           message.bridgeActive = reader.bool();
           break;
 
@@ -605,6 +532,7 @@ export const EvmChainParams = {
 
   fromJSON(object: any): EvmChainParams {
     return {
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
       contractSourceHash: isSet(object.contractSourceHash) ? String(object.contractSourceHash) : "",
       bridgeAddress: isSet(object.bridgeAddress) ? String(object.bridgeAddress) : "",
       bridgeChainId: isSet(object.bridgeChainId) ? Long.fromValue(object.bridgeChainId) : Long.UZERO,
@@ -615,6 +543,7 @@ export const EvmChainParams = {
 
   toJSON(message: EvmChainParams): unknown {
     const obj: any = {};
+    message.chainName !== undefined && (obj.chainName = message.chainName);
     message.contractSourceHash !== undefined && (obj.contractSourceHash = message.contractSourceHash);
     message.bridgeAddress !== undefined && (obj.bridgeAddress = message.bridgeAddress);
     message.bridgeChainId !== undefined &&
@@ -627,6 +556,7 @@ export const EvmChainParams = {
 
   fromPartial<I extends Exact<DeepPartial<EvmChainParams>, I>>(object: I): EvmChainParams {
     const message = createBaseEvmChainParams();
+    message.chainName = object.chainName ?? "";
     message.contractSourceHash = object.contractSourceHash ?? "";
     message.bridgeAddress = object.bridgeAddress ?? "";
     message.bridgeChainId =
@@ -642,84 +572,10 @@ export const EvmChainParams = {
   },
 };
 
-function createBaseGenesisState_EvmChainsEntry(): GenesisState_EvmChainsEntry {
-  return {
-    key: "",
-    value: undefined,
-  };
-}
-
-export const GenesisState_EvmChainsEntry = {
-  encode(message: GenesisState_EvmChainsEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.key !== "") {
-      writer.uint32(10).string(message.key);
-    }
-
-    if (message.value !== undefined) {
-      EvmChainData.encode(message.value, writer.uint32(18).fork()).ldelim();
-    }
-
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GenesisState_EvmChainsEntry {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenesisState_EvmChainsEntry();
-
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-
-      switch (tag >>> 3) {
-        case 1:
-          message.key = reader.string();
-          break;
-
-        case 2:
-          message.value = EvmChainData.decode(reader, reader.uint32());
-          break;
-
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-
-    return message;
-  },
-
-  fromJSON(object: any): GenesisState_EvmChainsEntry {
-    return {
-      key: isSet(object.key) ? String(object.key) : "",
-      value: isSet(object.value) ? EvmChainData.fromJSON(object.value) : undefined,
-    };
-  },
-
-  toJSON(message: GenesisState_EvmChainsEntry): unknown {
-    const obj: any = {};
-    message.key !== undefined && (obj.key = message.key);
-    message.value !== undefined &&
-      (obj.value = message.value ? EvmChainData.toJSON(message.value) : undefined);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<GenesisState_EvmChainsEntry>, I>>(
-    object: I,
-  ): GenesisState_EvmChainsEntry {
-    const message = createBaseGenesisState_EvmChainsEntry();
-    message.key = object.key ?? "";
-    message.value =
-      object.value !== undefined && object.value !== null
-        ? EvmChainData.fromPartial(object.value)
-        : undefined;
-    return message;
-  },
-};
-
 function createBaseGenesisState(): GenesisState {
   return {
     params: undefined,
-    evmChains: {},
+    evmChains: [],
   };
 }
 
@@ -729,15 +585,10 @@ export const GenesisState = {
       Params.encode(message.params, writer.uint32(10).fork()).ldelim();
     }
 
-    Object.entries(message.evmChains).forEach(([key, value]) => {
-      GenesisState_EvmChainsEntry.encode(
-        {
-          key: key as any,
-          value,
-        },
-        writer.uint32(18).fork(),
-      ).ldelim();
-    });
+    for (const v of message.evmChains) {
+      EvmChainData.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+
     return writer;
   },
 
@@ -755,12 +606,7 @@ export const GenesisState = {
           break;
 
         case 2:
-          const entry2 = GenesisState_EvmChainsEntry.decode(reader, reader.uint32());
-
-          if (entry2.value !== undefined) {
-            message.evmChains[entry2.key] = entry2.value;
-          }
-
+          message.evmChains.push(EvmChainData.decode(reader, reader.uint32()));
           break;
 
         default:
@@ -775,26 +621,20 @@ export const GenesisState = {
   fromJSON(object: any): GenesisState {
     return {
       params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
-      evmChains: isObject(object.evmChains)
-        ? Object.entries(object.evmChains).reduce<{
-            [key: string]: EvmChainData;
-          }>((acc, [key, value]) => {
-            acc[key] = EvmChainData.fromJSON(value);
-            return acc;
-          }, {})
-        : {},
+      evmChains: Array.isArray(object?.evmChains)
+        ? object.evmChains.map((e: any) => EvmChainData.fromJSON(e))
+        : [],
     };
   },
 
   toJSON(message: GenesisState): unknown {
     const obj: any = {};
     message.params !== undefined && (obj.params = message.params ? Params.toJSON(message.params) : undefined);
-    obj.evmChains = {};
 
     if (message.evmChains) {
-      Object.entries(message.evmChains).forEach(([k, v]) => {
-        obj.evmChains[k] = EvmChainData.toJSON(v);
-      });
+      obj.evmChains = message.evmChains.map((e) => (e ? EvmChainData.toJSON(e) : undefined));
+    } else {
+      obj.evmChains = [];
     }
 
     return obj;
@@ -804,21 +644,14 @@ export const GenesisState = {
     const message = createBaseGenesisState();
     message.params =
       object.params !== undefined && object.params !== null ? Params.fromPartial(object.params) : undefined;
-    message.evmChains = Object.entries(object.evmChains ?? {}).reduce<{
-      [key: string]: EvmChainData;
-    }>((acc, [key, value]) => {
-      if (value !== undefined) {
-        acc[key] = EvmChainData.fromPartial(value);
-      }
-
-      return acc;
-    }, {});
+    message.evmChains = object.evmChains?.map((e) => EvmChainData.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseEvmChainData(): EvmChainData {
   return {
+    chainName: "",
     gravityNonces: undefined,
     valsets: [],
     valsetConfirms: [],
@@ -830,53 +663,62 @@ function createBaseEvmChainData(): EvmChainData {
     delegateKeys: [],
     erc20ToDenoms: [],
     unbatchedTransfers: [],
+    pendingIbcAutoForwards: [],
   };
 }
 
 export const EvmChainData = {
   encode(message: EvmChainData, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.chainName !== "") {
+      writer.uint32(10).string(message.chainName);
+    }
+
     if (message.gravityNonces !== undefined) {
-      GravityNonces.encode(message.gravityNonces, writer.uint32(10).fork()).ldelim();
+      GravityNonces.encode(message.gravityNonces, writer.uint32(18).fork()).ldelim();
     }
 
     for (const v of message.valsets) {
-      Valset.encode(v!, writer.uint32(18).fork()).ldelim();
+      Valset.encode(v!, writer.uint32(26).fork()).ldelim();
     }
 
     for (const v of message.valsetConfirms) {
-      MsgValsetConfirm.encode(v!, writer.uint32(26).fork()).ldelim();
+      MsgValsetConfirm.encode(v!, writer.uint32(34).fork()).ldelim();
     }
 
     for (const v of message.batches) {
-      OutgoingTxBatch.encode(v!, writer.uint32(34).fork()).ldelim();
+      OutgoingTxBatch.encode(v!, writer.uint32(42).fork()).ldelim();
     }
 
     for (const v of message.batchConfirms) {
-      MsgConfirmBatch.encode(v!, writer.uint32(42).fork()).ldelim();
+      MsgConfirmBatch.encode(v!, writer.uint32(50).fork()).ldelim();
     }
 
     for (const v of message.logicCalls) {
-      OutgoingLogicCall.encode(v!, writer.uint32(50).fork()).ldelim();
+      OutgoingLogicCall.encode(v!, writer.uint32(58).fork()).ldelim();
     }
 
     for (const v of message.logicCallConfirms) {
-      MsgConfirmLogicCall.encode(v!, writer.uint32(58).fork()).ldelim();
+      MsgConfirmLogicCall.encode(v!, writer.uint32(66).fork()).ldelim();
     }
 
     for (const v of message.attestations) {
-      Attestation.encode(v!, writer.uint32(66).fork()).ldelim();
+      Attestation.encode(v!, writer.uint32(74).fork()).ldelim();
     }
 
     for (const v of message.delegateKeys) {
-      MsgSetOrchestratorAddress.encode(v!, writer.uint32(74).fork()).ldelim();
+      DelegateKeys.encode(v!, writer.uint32(82).fork()).ldelim();
     }
 
     for (const v of message.erc20ToDenoms) {
-      ERC20ToDenom.encode(v!, writer.uint32(82).fork()).ldelim();
+      ERC20ToDenom.encode(v!, writer.uint32(90).fork()).ldelim();
     }
 
     for (const v of message.unbatchedTransfers) {
-      OutgoingTransferTx.encode(v!, writer.uint32(90).fork()).ldelim();
+      OutgoingTransferTx.encode(v!, writer.uint32(98).fork()).ldelim();
+    }
+
+    for (const v of message.pendingIbcAutoForwards) {
+      PendingIbcAutoForward.encode(v!, writer.uint32(106).fork()).ldelim();
     }
 
     return writer;
@@ -892,47 +734,55 @@ export const EvmChainData = {
 
       switch (tag >>> 3) {
         case 1:
-          message.gravityNonces = GravityNonces.decode(reader, reader.uint32());
+          message.chainName = reader.string();
           break;
 
         case 2:
-          message.valsets.push(Valset.decode(reader, reader.uint32()));
+          message.gravityNonces = GravityNonces.decode(reader, reader.uint32());
           break;
 
         case 3:
-          message.valsetConfirms.push(MsgValsetConfirm.decode(reader, reader.uint32()));
+          message.valsets.push(Valset.decode(reader, reader.uint32()));
           break;
 
         case 4:
-          message.batches.push(OutgoingTxBatch.decode(reader, reader.uint32()));
+          message.valsetConfirms.push(MsgValsetConfirm.decode(reader, reader.uint32()));
           break;
 
         case 5:
-          message.batchConfirms.push(MsgConfirmBatch.decode(reader, reader.uint32()));
+          message.batches.push(OutgoingTxBatch.decode(reader, reader.uint32()));
           break;
 
         case 6:
-          message.logicCalls.push(OutgoingLogicCall.decode(reader, reader.uint32()));
+          message.batchConfirms.push(MsgConfirmBatch.decode(reader, reader.uint32()));
           break;
 
         case 7:
-          message.logicCallConfirms.push(MsgConfirmLogicCall.decode(reader, reader.uint32()));
+          message.logicCalls.push(OutgoingLogicCall.decode(reader, reader.uint32()));
           break;
 
         case 8:
-          message.attestations.push(Attestation.decode(reader, reader.uint32()));
+          message.logicCallConfirms.push(MsgConfirmLogicCall.decode(reader, reader.uint32()));
           break;
 
         case 9:
-          message.delegateKeys.push(MsgSetOrchestratorAddress.decode(reader, reader.uint32()));
+          message.attestations.push(Attestation.decode(reader, reader.uint32()));
           break;
 
         case 10:
-          message.erc20ToDenoms.push(ERC20ToDenom.decode(reader, reader.uint32()));
+          message.delegateKeys.push(DelegateKeys.decode(reader, reader.uint32()));
           break;
 
         case 11:
+          message.erc20ToDenoms.push(ERC20ToDenom.decode(reader, reader.uint32()));
+          break;
+
+        case 12:
           message.unbatchedTransfers.push(OutgoingTransferTx.decode(reader, reader.uint32()));
+          break;
+
+        case 13:
+          message.pendingIbcAutoForwards.push(PendingIbcAutoForward.decode(reader, reader.uint32()));
           break;
 
         default:
@@ -946,6 +796,7 @@ export const EvmChainData = {
 
   fromJSON(object: any): EvmChainData {
     return {
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
       gravityNonces: isSet(object.gravityNonces) ? GravityNonces.fromJSON(object.gravityNonces) : undefined,
       valsets: Array.isArray(object?.valsets) ? object.valsets.map((e: any) => Valset.fromJSON(e)) : [],
       valsetConfirms: Array.isArray(object?.valsetConfirms)
@@ -967,7 +818,7 @@ export const EvmChainData = {
         ? object.attestations.map((e: any) => Attestation.fromJSON(e))
         : [],
       delegateKeys: Array.isArray(object?.delegateKeys)
-        ? object.delegateKeys.map((e: any) => MsgSetOrchestratorAddress.fromJSON(e))
+        ? object.delegateKeys.map((e: any) => DelegateKeys.fromJSON(e))
         : [],
       erc20ToDenoms: Array.isArray(object?.erc20ToDenoms)
         ? object.erc20ToDenoms.map((e: any) => ERC20ToDenom.fromJSON(e))
@@ -975,11 +826,15 @@ export const EvmChainData = {
       unbatchedTransfers: Array.isArray(object?.unbatchedTransfers)
         ? object.unbatchedTransfers.map((e: any) => OutgoingTransferTx.fromJSON(e))
         : [],
+      pendingIbcAutoForwards: Array.isArray(object?.pendingIbcAutoForwards)
+        ? object.pendingIbcAutoForwards.map((e: any) => PendingIbcAutoForward.fromJSON(e))
+        : [],
     };
   },
 
   toJSON(message: EvmChainData): unknown {
     const obj: any = {};
+    message.chainName !== undefined && (obj.chainName = message.chainName);
     message.gravityNonces !== undefined &&
       (obj.gravityNonces = message.gravityNonces ? GravityNonces.toJSON(message.gravityNonces) : undefined);
 
@@ -1028,9 +883,7 @@ export const EvmChainData = {
     }
 
     if (message.delegateKeys) {
-      obj.delegateKeys = message.delegateKeys.map((e) =>
-        e ? MsgSetOrchestratorAddress.toJSON(e) : undefined,
-      );
+      obj.delegateKeys = message.delegateKeys.map((e) => (e ? DelegateKeys.toJSON(e) : undefined));
     } else {
       obj.delegateKeys = [];
     }
@@ -1049,11 +902,20 @@ export const EvmChainData = {
       obj.unbatchedTransfers = [];
     }
 
+    if (message.pendingIbcAutoForwards) {
+      obj.pendingIbcAutoForwards = message.pendingIbcAutoForwards.map((e) =>
+        e ? PendingIbcAutoForward.toJSON(e) : undefined,
+      );
+    } else {
+      obj.pendingIbcAutoForwards = [];
+    }
+
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<EvmChainData>, I>>(object: I): EvmChainData {
     const message = createBaseEvmChainData();
+    message.chainName = object.chainName ?? "";
     message.gravityNonces =
       object.gravityNonces !== undefined && object.gravityNonces !== null
         ? GravityNonces.fromPartial(object.gravityNonces)
@@ -1066,10 +928,12 @@ export const EvmChainData = {
     message.logicCallConfirms =
       object.logicCallConfirms?.map((e) => MsgConfirmLogicCall.fromPartial(e)) || [];
     message.attestations = object.attestations?.map((e) => Attestation.fromPartial(e)) || [];
-    message.delegateKeys = object.delegateKeys?.map((e) => MsgSetOrchestratorAddress.fromPartial(e)) || [];
+    message.delegateKeys = object.delegateKeys?.map((e) => DelegateKeys.fromPartial(e)) || [];
     message.erc20ToDenoms = object.erc20ToDenoms?.map((e) => ERC20ToDenom.fromPartial(e)) || [];
     message.unbatchedTransfers =
       object.unbatchedTransfers?.map((e) => OutgoingTransferTx.fromPartial(e)) || [];
+    message.pendingIbcAutoForwards =
+      object.pendingIbcAutoForwards?.map((e) => PendingIbcAutoForward.fromPartial(e)) || [];
     return message;
   },
 };

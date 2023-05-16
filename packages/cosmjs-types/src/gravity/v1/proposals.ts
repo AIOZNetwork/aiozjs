@@ -39,7 +39,7 @@ export interface AirdropProposal {
  * Ethereum
  * Name: the token name
  * Symbol: the token symbol
- * Description: the token description, not sent to ETH at all, only used on Cosmos
+ * Description: the token description, not sent to EVM chain at all, only used on Cosmos
  * Display: the token display name (only used on Cosmos to decide ERC20 Decimals)
  * Deicmals: the decimals for the display unit
  * ibc_denom is the denom of the token in question on this chain
@@ -59,8 +59,7 @@ export interface IBCMetadataProposal {
 export interface EvmChainProposal {
   title: string;
   description: string;
-  chainName: string;
-  data?: EvmChainData;
+  chainData?: EvmChainData;
   params?: EvmChainParams;
   reservedMainToken: string;
 }
@@ -385,8 +384,7 @@ function createBaseEvmChainProposal(): EvmChainProposal {
   return {
     title: "",
     description: "",
-    chainName: "",
-    data: undefined,
+    chainData: undefined,
     params: undefined,
     reservedMainToken: "",
   };
@@ -402,20 +400,16 @@ export const EvmChainProposal = {
       writer.uint32(18).string(message.description);
     }
 
-    if (message.chainName !== "") {
-      writer.uint32(26).string(message.chainName);
-    }
-
-    if (message.data !== undefined) {
-      EvmChainData.encode(message.data, writer.uint32(34).fork()).ldelim();
+    if (message.chainData !== undefined) {
+      EvmChainData.encode(message.chainData, writer.uint32(26).fork()).ldelim();
     }
 
     if (message.params !== undefined) {
-      EvmChainParams.encode(message.params, writer.uint32(42).fork()).ldelim();
+      EvmChainParams.encode(message.params, writer.uint32(34).fork()).ldelim();
     }
 
     if (message.reservedMainToken !== "") {
-      writer.uint32(50).string(message.reservedMainToken);
+      writer.uint32(42).string(message.reservedMainToken);
     }
 
     return writer;
@@ -439,18 +433,14 @@ export const EvmChainProposal = {
           break;
 
         case 3:
-          message.chainName = reader.string();
+          message.chainData = EvmChainData.decode(reader, reader.uint32());
           break;
 
         case 4:
-          message.data = EvmChainData.decode(reader, reader.uint32());
-          break;
-
-        case 5:
           message.params = EvmChainParams.decode(reader, reader.uint32());
           break;
 
-        case 6:
+        case 5:
           message.reservedMainToken = reader.string();
           break;
 
@@ -467,8 +457,7 @@ export const EvmChainProposal = {
     return {
       title: isSet(object.title) ? String(object.title) : "",
       description: isSet(object.description) ? String(object.description) : "",
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      data: isSet(object.data) ? EvmChainData.fromJSON(object.data) : undefined,
+      chainData: isSet(object.chainData) ? EvmChainData.fromJSON(object.chainData) : undefined,
       params: isSet(object.params) ? EvmChainParams.fromJSON(object.params) : undefined,
       reservedMainToken: isSet(object.reservedMainToken) ? String(object.reservedMainToken) : "",
     };
@@ -478,8 +467,8 @@ export const EvmChainProposal = {
     const obj: any = {};
     message.title !== undefined && (obj.title = message.title);
     message.description !== undefined && (obj.description = message.description);
-    message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.data !== undefined && (obj.data = message.data ? EvmChainData.toJSON(message.data) : undefined);
+    message.chainData !== undefined &&
+      (obj.chainData = message.chainData ? EvmChainData.toJSON(message.chainData) : undefined);
     message.params !== undefined &&
       (obj.params = message.params ? EvmChainParams.toJSON(message.params) : undefined);
     message.reservedMainToken !== undefined && (obj.reservedMainToken = message.reservedMainToken);
@@ -490,9 +479,10 @@ export const EvmChainProposal = {
     const message = createBaseEvmChainProposal();
     message.title = object.title ?? "";
     message.description = object.description ?? "";
-    message.chainName = object.chainName ?? "";
-    message.data =
-      object.data !== undefined && object.data !== null ? EvmChainData.fromPartial(object.data) : undefined;
+    message.chainData =
+      object.chainData !== undefined && object.chainData !== null
+        ? EvmChainData.fromPartial(object.chainData)
+        : undefined;
     message.params =
       object.params !== undefined && object.params !== null
         ? EvmChainParams.fromPartial(object.params)

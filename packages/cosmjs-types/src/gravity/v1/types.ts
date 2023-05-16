@@ -1,8 +1,17 @@
 /* eslint-disable */
 import { Coin } from "../../cosmos/base/v1beta1/coin";
-import { Long, isSet, DeepPartial, Exact } from "../../helpers";
 import * as _m0 from "protobufjs/minimal";
+import { isSet, DeepPartial, Exact, Long } from "../../helpers";
 export const protobufPackage = "gravity.v1";
+export interface EvmChainAddress {
+  chainName: string;
+  evmAddress: string;
+}
+export interface DelegateKeys {
+  validator: string;
+  orchestrator: string;
+  evmAddresses: EvmChainAddress[];
+}
 /** BridgeValidator represents a validator's ETH address and its power */
 
 export interface BridgeValidator {
@@ -51,7 +60,9 @@ export interface ERC20ToDenom {
  */
 
 export interface PendingIbcAutoForward {
+  sender: string;
   /** the destination address. sdk.AccAddress does not preserve foreign prefixes */
+
   foreignReceiver: string;
   /** the token sent from ethereum to the ibc-enabled chain over `IbcChannel` */
 
@@ -63,6 +74,162 @@ export interface PendingIbcAutoForward {
 
   eventNonce: Long;
 }
+
+function createBaseEvmChainAddress(): EvmChainAddress {
+  return {
+    chainName: "",
+    evmAddress: "",
+  };
+}
+
+export const EvmChainAddress = {
+  encode(message: EvmChainAddress, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.chainName !== "") {
+      writer.uint32(10).string(message.chainName);
+    }
+
+    if (message.evmAddress !== "") {
+      writer.uint32(18).string(message.evmAddress);
+    }
+
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): EvmChainAddress {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEvmChainAddress();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        case 1:
+          message.chainName = reader.string();
+          break;
+
+        case 2:
+          message.evmAddress = reader.string();
+          break;
+
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(object: any): EvmChainAddress {
+    return {
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
+      evmAddress: isSet(object.evmAddress) ? String(object.evmAddress) : "",
+    };
+  },
+
+  toJSON(message: EvmChainAddress): unknown {
+    const obj: any = {};
+    message.chainName !== undefined && (obj.chainName = message.chainName);
+    message.evmAddress !== undefined && (obj.evmAddress = message.evmAddress);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<EvmChainAddress>, I>>(object: I): EvmChainAddress {
+    const message = createBaseEvmChainAddress();
+    message.chainName = object.chainName ?? "";
+    message.evmAddress = object.evmAddress ?? "";
+    return message;
+  },
+};
+
+function createBaseDelegateKeys(): DelegateKeys {
+  return {
+    validator: "",
+    orchestrator: "",
+    evmAddresses: [],
+  };
+}
+
+export const DelegateKeys = {
+  encode(message: DelegateKeys, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.validator !== "") {
+      writer.uint32(10).string(message.validator);
+    }
+
+    if (message.orchestrator !== "") {
+      writer.uint32(18).string(message.orchestrator);
+    }
+
+    for (const v of message.evmAddresses) {
+      EvmChainAddress.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DelegateKeys {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDelegateKeys();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        case 1:
+          message.validator = reader.string();
+          break;
+
+        case 2:
+          message.orchestrator = reader.string();
+          break;
+
+        case 3:
+          message.evmAddresses.push(EvmChainAddress.decode(reader, reader.uint32()));
+          break;
+
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(object: any): DelegateKeys {
+    return {
+      validator: isSet(object.validator) ? String(object.validator) : "",
+      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
+      evmAddresses: Array.isArray(object?.evmAddresses)
+        ? object.evmAddresses.map((e: any) => EvmChainAddress.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: DelegateKeys): unknown {
+    const obj: any = {};
+    message.validator !== undefined && (obj.validator = message.validator);
+    message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
+
+    if (message.evmAddresses) {
+      obj.evmAddresses = message.evmAddresses.map((e) => (e ? EvmChainAddress.toJSON(e) : undefined));
+    } else {
+      obj.evmAddresses = [];
+    }
+
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DelegateKeys>, I>>(object: I): DelegateKeys {
+    const message = createBaseDelegateKeys();
+    message.validator = object.validator ?? "";
+    message.orchestrator = object.orchestrator ?? "";
+    message.evmAddresses = object.evmAddresses?.map((e) => EvmChainAddress.fromPartial(e)) || [];
+    return message;
+  },
+};
 
 function createBaseBridgeValidator(): BridgeValidator {
   return {
@@ -397,6 +564,7 @@ export const ERC20ToDenom = {
 
 function createBasePendingIbcAutoForward(): PendingIbcAutoForward {
   return {
+    sender: "",
     foreignReceiver: "",
     token: undefined,
     ibcChannel: "",
@@ -406,20 +574,24 @@ function createBasePendingIbcAutoForward(): PendingIbcAutoForward {
 
 export const PendingIbcAutoForward = {
   encode(message: PendingIbcAutoForward, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+
     if (message.foreignReceiver !== "") {
-      writer.uint32(10).string(message.foreignReceiver);
+      writer.uint32(18).string(message.foreignReceiver);
     }
 
     if (message.token !== undefined) {
-      Coin.encode(message.token, writer.uint32(18).fork()).ldelim();
+      Coin.encode(message.token, writer.uint32(26).fork()).ldelim();
     }
 
     if (message.ibcChannel !== "") {
-      writer.uint32(26).string(message.ibcChannel);
+      writer.uint32(34).string(message.ibcChannel);
     }
 
     if (!message.eventNonce.isZero()) {
-      writer.uint32(32).uint64(message.eventNonce);
+      writer.uint32(40).uint64(message.eventNonce);
     }
 
     return writer;
@@ -435,18 +607,22 @@ export const PendingIbcAutoForward = {
 
       switch (tag >>> 3) {
         case 1:
-          message.foreignReceiver = reader.string();
+          message.sender = reader.string();
           break;
 
         case 2:
-          message.token = Coin.decode(reader, reader.uint32());
+          message.foreignReceiver = reader.string();
           break;
 
         case 3:
-          message.ibcChannel = reader.string();
+          message.token = Coin.decode(reader, reader.uint32());
           break;
 
         case 4:
+          message.ibcChannel = reader.string();
+          break;
+
+        case 5:
           message.eventNonce = reader.uint64() as Long;
           break;
 
@@ -461,6 +637,7 @@ export const PendingIbcAutoForward = {
 
   fromJSON(object: any): PendingIbcAutoForward {
     return {
+      sender: isSet(object.sender) ? String(object.sender) : "",
       foreignReceiver: isSet(object.foreignReceiver) ? String(object.foreignReceiver) : "",
       token: isSet(object.token) ? Coin.fromJSON(object.token) : undefined,
       ibcChannel: isSet(object.ibcChannel) ? String(object.ibcChannel) : "",
@@ -470,6 +647,7 @@ export const PendingIbcAutoForward = {
 
   toJSON(message: PendingIbcAutoForward): unknown {
     const obj: any = {};
+    message.sender !== undefined && (obj.sender = message.sender);
     message.foreignReceiver !== undefined && (obj.foreignReceiver = message.foreignReceiver);
     message.token !== undefined && (obj.token = message.token ? Coin.toJSON(message.token) : undefined);
     message.ibcChannel !== undefined && (obj.ibcChannel = message.ibcChannel);
@@ -479,6 +657,7 @@ export const PendingIbcAutoForward = {
 
   fromPartial<I extends Exact<DeepPartial<PendingIbcAutoForward>, I>>(object: I): PendingIbcAutoForward {
     const message = createBasePendingIbcAutoForward();
+    message.sender = object.sender ?? "";
     message.foreignReceiver = object.foreignReceiver ?? "";
     message.token =
       object.token !== undefined && object.token !== null ? Coin.fromPartial(object.token) : undefined;

@@ -3,16 +3,16 @@ import { ERC20Token } from "./attestation";
 import { Long, isSet, DeepPartial, Exact, bytesFromBase64, base64FromBytes } from "../../helpers";
 import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "gravity.v1";
-/** OutgoingTxBatch represents a batch of transactions going from gravity to ETH */
+/** OutgoingTxBatch represents a batch of transactions going from gravity to EVM chain */
 
 export interface OutgoingTxBatch {
   batchNonce: Long;
   batchTimeout: Long;
   transactions: OutgoingTransferTx[];
   tokenContract: string;
-  block: Long;
+  cosmosBlockCreated: Long;
 }
-/** OutgoingTransferTx represents an individual send from gravity to ETH */
+/** OutgoingTransferTx represents an individual send from gravity to EVM chain */
 
 export interface OutgoingTransferTx {
   id: Long;
@@ -21,7 +21,7 @@ export interface OutgoingTransferTx {
   erc20Token?: ERC20Token;
   erc20Fee?: ERC20Token;
 }
-/** OutgoingLogicCall represents an individual logic call from gravity to ETH */
+/** OutgoingLogicCall represents an individual logic call from gravity to EVM chain */
 
 export interface OutgoingLogicCall {
   transfers: ERC20Token[];
@@ -31,7 +31,7 @@ export interface OutgoingLogicCall {
   timeout: Long;
   invalidationId: Uint8Array;
   invalidationNonce: Long;
-  block: Long;
+  cosmosBlockCreated: Long;
 }
 export interface EventOutgoingBatchCanceled {
   chainName: string;
@@ -54,7 +54,7 @@ function createBaseOutgoingTxBatch(): OutgoingTxBatch {
     batchTimeout: Long.UZERO,
     transactions: [],
     tokenContract: "",
-    block: Long.UZERO,
+    cosmosBlockCreated: Long.UZERO,
   };
 }
 
@@ -76,8 +76,8 @@ export const OutgoingTxBatch = {
       writer.uint32(34).string(message.tokenContract);
     }
 
-    if (!message.block.isZero()) {
-      writer.uint32(40).uint64(message.block);
+    if (!message.cosmosBlockCreated.isZero()) {
+      writer.uint32(40).uint64(message.cosmosBlockCreated);
     }
 
     return writer;
@@ -109,7 +109,7 @@ export const OutgoingTxBatch = {
           break;
 
         case 5:
-          message.block = reader.uint64() as Long;
+          message.cosmosBlockCreated = reader.uint64() as Long;
           break;
 
         default:
@@ -129,7 +129,9 @@ export const OutgoingTxBatch = {
         ? object.transactions.map((e: any) => OutgoingTransferTx.fromJSON(e))
         : [],
       tokenContract: isSet(object.tokenContract) ? String(object.tokenContract) : "",
-      block: isSet(object.block) ? Long.fromValue(object.block) : Long.UZERO,
+      cosmosBlockCreated: isSet(object.cosmosBlockCreated)
+        ? Long.fromValue(object.cosmosBlockCreated)
+        : Long.UZERO,
     };
   },
 
@@ -146,7 +148,8 @@ export const OutgoingTxBatch = {
     }
 
     message.tokenContract !== undefined && (obj.tokenContract = message.tokenContract);
-    message.block !== undefined && (obj.block = (message.block || Long.UZERO).toString());
+    message.cosmosBlockCreated !== undefined &&
+      (obj.cosmosBlockCreated = (message.cosmosBlockCreated || Long.UZERO).toString());
     return obj;
   },
 
@@ -162,8 +165,10 @@ export const OutgoingTxBatch = {
         : Long.UZERO;
     message.transactions = object.transactions?.map((e) => OutgoingTransferTx.fromPartial(e)) || [];
     message.tokenContract = object.tokenContract ?? "";
-    message.block =
-      object.block !== undefined && object.block !== null ? Long.fromValue(object.block) : Long.UZERO;
+    message.cosmosBlockCreated =
+      object.cosmosBlockCreated !== undefined && object.cosmosBlockCreated !== null
+        ? Long.fromValue(object.cosmosBlockCreated)
+        : Long.UZERO;
     return message;
   },
 };
@@ -289,7 +294,7 @@ function createBaseOutgoingLogicCall(): OutgoingLogicCall {
     timeout: Long.UZERO,
     invalidationId: new Uint8Array(),
     invalidationNonce: Long.UZERO,
-    block: Long.UZERO,
+    cosmosBlockCreated: Long.UZERO,
   };
 }
 
@@ -323,8 +328,8 @@ export const OutgoingLogicCall = {
       writer.uint32(56).uint64(message.invalidationNonce);
     }
 
-    if (!message.block.isZero()) {
-      writer.uint32(64).uint64(message.block);
+    if (!message.cosmosBlockCreated.isZero()) {
+      writer.uint32(64).uint64(message.cosmosBlockCreated);
     }
 
     return writer;
@@ -368,7 +373,7 @@ export const OutgoingLogicCall = {
           break;
 
         case 8:
-          message.block = reader.uint64() as Long;
+          message.cosmosBlockCreated = reader.uint64() as Long;
           break;
 
         default:
@@ -395,7 +400,9 @@ export const OutgoingLogicCall = {
       invalidationNonce: isSet(object.invalidationNonce)
         ? Long.fromValue(object.invalidationNonce)
         : Long.UZERO,
-      block: isSet(object.block) ? Long.fromValue(object.block) : Long.UZERO,
+      cosmosBlockCreated: isSet(object.cosmosBlockCreated)
+        ? Long.fromValue(object.cosmosBlockCreated)
+        : Long.UZERO,
     };
   },
 
@@ -424,7 +431,8 @@ export const OutgoingLogicCall = {
       ));
     message.invalidationNonce !== undefined &&
       (obj.invalidationNonce = (message.invalidationNonce || Long.UZERO).toString());
-    message.block !== undefined && (obj.block = (message.block || Long.UZERO).toString());
+    message.cosmosBlockCreated !== undefined &&
+      (obj.cosmosBlockCreated = (message.cosmosBlockCreated || Long.UZERO).toString());
     return obj;
   },
 
@@ -441,8 +449,10 @@ export const OutgoingLogicCall = {
       object.invalidationNonce !== undefined && object.invalidationNonce !== null
         ? Long.fromValue(object.invalidationNonce)
         : Long.UZERO;
-    message.block =
-      object.block !== undefined && object.block !== null ? Long.fromValue(object.block) : Long.UZERO;
+    message.cosmosBlockCreated =
+      object.cosmosBlockCreated !== undefined && object.cosmosBlockCreated !== null
+        ? Long.fromValue(object.cosmosBlockCreated)
+        : Long.UZERO;
     return message;
   },
 };

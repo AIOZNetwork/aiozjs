@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { Coin } from "../../cosmos/base/v1beta1/coin";
-import { BridgeValidator } from "./types";
+import { BridgeValidator, EvmChainAddress } from "./types";
 import { Any } from "../../google/protobuf/any";
 import * as _m0 from "protobufjs/minimal";
 import { isSet, DeepPartial, Exact, Long, bytesFromBase64, base64FromBytes, Rpc } from "../../helpers";
@@ -16,9 +16,9 @@ export const protobufPackage = "gravity.v1";
  * ORCHESTRATOR
  * The orchestrator field is a cosmos1... string  (i.e. sdk.AccAddress) that
  * references the key that is being delegated to
- * ETH_ADDRESS
- * This is a hex encoded 0x Ethereum public key that will be used by this validator
- * on Ethereum
+ * EVM_ADDRESS
+ * This is a hex encoded 0x EVM chain public key that will be used by this validator
+ * on EVM chain
  */
 
 export interface MsgSetOrchestratorAddress {
@@ -26,26 +26,22 @@ export interface MsgSetOrchestratorAddress {
   orchestrator: string;
   evmAddresses: EvmChainAddress[];
 }
-export interface EvmChainAddress {
-  chainName: string;
-  evmAddress: string;
-}
 export interface MsgSetOrchestratorAddressResponse {}
 /**
  * MsgValsetConfirm
  * this is the message sent by the validators when they wish to submit their
  * signatures over the validator set at a given block height. A validator must
- * first call MsgSetEvmAddress to set their Ethereum address to be used for
+ * first call MsgSetEvmAddress to set their EVM chain address to be used for
  * signing. Then someone (anyone) must make a ValsetRequest, the request is
  * essentially a messaging mechanism to determine which block all validators
  * should submit signatures over. Finally validators sign the validator set,
- * powers, and Ethereum addresses of the entire validator set at the height of a
+ * powers, and EVM chain addresses of the entire validator set at the height of a
  * ValsetRequest and submit that signature with this message.
  *
  * If a sufficient number of validators (66% of voting power) (A) have set
- * Ethereum addresses and (B) submit ValsetConfirm messages with their
+ * EVM chain addresses and (B) submit ValsetConfirm messages with their
  * signatures it is then possible for anyone to view these signatures in the
- * chain store and submit them to Ethereum to update the validator set
+ * chain store and submit them to EVM chain to update the validator set
  * -------------
  */
 
@@ -66,10 +62,14 @@ export interface MsgValsetConfirmResponse {}
  * AMOUNT:
  * the coin to send across the bridge, note the restriction that this is a
  * single coin not a set of coins that is normal in other Cosmos messages
- * FEE:
+ * BRIDGE_FEE:
  * the fee paid for the bridge, distinct from the fee paid to the chain to
  * actually send this message in the first place. So a successful send has
  * two layers of fees for the user
+ * CHAIN_FEE:
+ * the fee paid to the chain for handling the request, which must be a
+ * certain percentage of the AMOUNT, as determined by governance.
+ * This Msg will be rejected if CHAIN_FEE is insufficient.
  */
 
 export interface MsgSendToEvmChain {
@@ -78,6 +78,7 @@ export interface MsgSendToEvmChain {
   evmDest: string;
   amount?: Coin;
   bridgeFee?: Coin;
+  chainFee?: Coin;
 }
 export interface MsgSendToEvmChainResponse {}
 /**
@@ -160,7 +161,7 @@ export interface MsgSendToCosmosClaimResponse {}
 /**
  * MsgSendFromEvmChainToEvmChainClaim
  * When more than 66% of the active validator set has
- * claimed to have seen the deposit enter the ethereum blockchain coins are
+ * claimed to have seen the deposit enter the EVM chain blockchain coins are
  * issued to the Cosmos address in question
  * -------------
  */
@@ -186,7 +187,9 @@ export interface MsgSendFromEvmChainToEvmChainClaimResponse {}
  */
 
 export interface MsgExecuteIbcAutoForwards {
+  chainName: string;
   /** How many queued forwards to clear, be careful about gas limits */
+
   forwardsToClear: Long;
   /** This message's sender */
 
@@ -436,74 +439,6 @@ export const MsgSetOrchestratorAddress = {
   },
 };
 
-function createBaseEvmChainAddress(): EvmChainAddress {
-  return {
-    chainName: "",
-    evmAddress: "",
-  };
-}
-
-export const EvmChainAddress = {
-  encode(message: EvmChainAddress, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.chainName !== "") {
-      writer.uint32(10).string(message.chainName);
-    }
-
-    if (message.evmAddress !== "") {
-      writer.uint32(18).string(message.evmAddress);
-    }
-
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EvmChainAddress {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEvmChainAddress();
-
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-
-      switch (tag >>> 3) {
-        case 1:
-          message.chainName = reader.string();
-          break;
-
-        case 2:
-          message.evmAddress = reader.string();
-          break;
-
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-
-    return message;
-  },
-
-  fromJSON(object: any): EvmChainAddress {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      evmAddress: isSet(object.evmAddress) ? String(object.evmAddress) : "",
-    };
-  },
-
-  toJSON(message: EvmChainAddress): unknown {
-    const obj: any = {};
-    message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.evmAddress !== undefined && (obj.evmAddress = message.evmAddress);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<EvmChainAddress>, I>>(object: I): EvmChainAddress {
-    const message = createBaseEvmChainAddress();
-    message.chainName = object.chainName ?? "";
-    message.evmAddress = object.evmAddress ?? "";
-    return message;
-  },
-};
-
 function createBaseMsgSetOrchestratorAddressResponse(): MsgSetOrchestratorAddressResponse {
   return {};
 }
@@ -702,6 +637,7 @@ function createBaseMsgSendToEvmChain(): MsgSendToEvmChain {
     evmDest: "",
     amount: undefined,
     bridgeFee: undefined,
+    chainFee: undefined,
   };
 }
 
@@ -725,6 +661,10 @@ export const MsgSendToEvmChain = {
 
     if (message.bridgeFee !== undefined) {
       Coin.encode(message.bridgeFee, writer.uint32(42).fork()).ldelim();
+    }
+
+    if (message.chainFee !== undefined) {
+      Coin.encode(message.chainFee, writer.uint32(50).fork()).ldelim();
     }
 
     return writer;
@@ -759,6 +699,10 @@ export const MsgSendToEvmChain = {
           message.bridgeFee = Coin.decode(reader, reader.uint32());
           break;
 
+        case 6:
+          message.chainFee = Coin.decode(reader, reader.uint32());
+          break;
+
         default:
           reader.skipType(tag & 7);
           break;
@@ -775,6 +719,7 @@ export const MsgSendToEvmChain = {
       evmDest: isSet(object.evmDest) ? String(object.evmDest) : "",
       amount: isSet(object.amount) ? Coin.fromJSON(object.amount) : undefined,
       bridgeFee: isSet(object.bridgeFee) ? Coin.fromJSON(object.bridgeFee) : undefined,
+      chainFee: isSet(object.chainFee) ? Coin.fromJSON(object.chainFee) : undefined,
     };
   },
 
@@ -786,6 +731,8 @@ export const MsgSendToEvmChain = {
     message.amount !== undefined && (obj.amount = message.amount ? Coin.toJSON(message.amount) : undefined);
     message.bridgeFee !== undefined &&
       (obj.bridgeFee = message.bridgeFee ? Coin.toJSON(message.bridgeFee) : undefined);
+    message.chainFee !== undefined &&
+      (obj.chainFee = message.chainFee ? Coin.toJSON(message.chainFee) : undefined);
     return obj;
   },
 
@@ -799,6 +746,10 @@ export const MsgSendToEvmChain = {
     message.bridgeFee =
       object.bridgeFee !== undefined && object.bridgeFee !== null
         ? Coin.fromPartial(object.bridgeFee)
+        : undefined;
+    message.chainFee =
+      object.chainFee !== undefined && object.chainFee !== null
+        ? Coin.fromPartial(object.chainFee)
         : undefined;
     return message;
   },
@@ -1706,6 +1657,7 @@ export const MsgSendFromEvmChainToEvmChainClaimResponse = {
 
 function createBaseMsgExecuteIbcAutoForwards(): MsgExecuteIbcAutoForwards {
   return {
+    chainName: "",
     forwardsToClear: Long.UZERO,
     executor: "",
   };
@@ -1713,12 +1665,16 @@ function createBaseMsgExecuteIbcAutoForwards(): MsgExecuteIbcAutoForwards {
 
 export const MsgExecuteIbcAutoForwards = {
   encode(message: MsgExecuteIbcAutoForwards, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.chainName !== "") {
+      writer.uint32(10).string(message.chainName);
+    }
+
     if (!message.forwardsToClear.isZero()) {
-      writer.uint32(8).uint64(message.forwardsToClear);
+      writer.uint32(16).uint64(message.forwardsToClear);
     }
 
     if (message.executor !== "") {
-      writer.uint32(18).string(message.executor);
+      writer.uint32(26).string(message.executor);
     }
 
     return writer;
@@ -1734,10 +1690,14 @@ export const MsgExecuteIbcAutoForwards = {
 
       switch (tag >>> 3) {
         case 1:
-          message.forwardsToClear = reader.uint64() as Long;
+          message.chainName = reader.string();
           break;
 
         case 2:
+          message.forwardsToClear = reader.uint64() as Long;
+          break;
+
+        case 3:
           message.executor = reader.string();
           break;
 
@@ -1752,6 +1712,7 @@ export const MsgExecuteIbcAutoForwards = {
 
   fromJSON(object: any): MsgExecuteIbcAutoForwards {
     return {
+      chainName: isSet(object.chainName) ? String(object.chainName) : "",
       forwardsToClear: isSet(object.forwardsToClear) ? Long.fromValue(object.forwardsToClear) : Long.UZERO,
       executor: isSet(object.executor) ? String(object.executor) : "",
     };
@@ -1759,6 +1720,7 @@ export const MsgExecuteIbcAutoForwards = {
 
   toJSON(message: MsgExecuteIbcAutoForwards): unknown {
     const obj: any = {};
+    message.chainName !== undefined && (obj.chainName = message.chainName);
     message.forwardsToClear !== undefined &&
       (obj.forwardsToClear = (message.forwardsToClear || Long.UZERO).toString());
     message.executor !== undefined && (obj.executor = message.executor);
@@ -1769,6 +1731,7 @@ export const MsgExecuteIbcAutoForwards = {
     object: I,
   ): MsgExecuteIbcAutoForwards {
     const message = createBaseMsgExecuteIbcAutoForwards();
+    message.chainName = object.chainName ?? "";
     message.forwardsToClear =
       object.forwardsToClear !== undefined && object.forwardsToClear !== null
         ? Long.fromValue(object.forwardsToClear)

@@ -140,7 +140,7 @@ export interface BlockID {
   hash: Uint8Array;
   partSetHeader?: PartSetHeader;
 }
-/** Header defines the structure of a Tendermint block header. */
+/** Header defines the structure of a block header. */
 
 export interface Header {
   /** basic block info */
@@ -194,8 +194,6 @@ export interface Vote {
   type: SignedMsgType;
   height: Long;
   round: number;
-  /** zero if vote is nil. */
-
   blockId?: BlockID;
   timestamp?: Timestamp;
   validatorAddress: Uint8Array;

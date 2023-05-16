@@ -1,0 +1,67 @@
+syntax = "proto3";
+package gravity.v1;
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+option  go_package = "github.com/Gravity-Bridge/Gravity-Bridge/module/x/gravity/types";
+
+message EvmChainAddress {
+  string chain_name  = 1;
+  string evm_address = 2;
+}
+
+message DelegateKeys {
+  string validator    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string orchestrator = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated EvmChainAddress evm_addresses  = 3 [(gogoproto.nullable) = false];
+}
+
+// BridgeValidator represents a validator's ETH address and its power
+message BridgeValidator {
+  uint64 power       = 1;
+  string evm_address = 2;
+}
+
+// Valset is the Ethereum Bridge Multsig Set, each gravity validator also
+// maintains an ETH key to sign messages, these are used to check signatures on
+// ETH because of the significant gas savings
+message Valset {
+  uint64                   nonce   = 1;
+  repeated BridgeValidator members = 2 [(gogoproto.nullable) = false];
+  uint64                   height  = 3;
+  string reward_amount         = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+  // the reward token in it's Ethereum hex address representation
+  string reward_token               = 5;
+  
+}
+
+// LastObservedEvmBlockHeight stores the last observed
+// Ethereum block height along with the Cosmos block height that
+// it was observed at. These two numbers can be used to project
+// outward and always produce batches with timeouts in the future
+// even if no Ethereum block height has been relayed for a long time
+message LastObservedEvmBlockHeight {
+  uint64 cosmos_block_height = 1;
+  uint64 evm_block_height    = 2;
+}
+
+// This records the relationship between an ERC20 token and the denom
+// of the corresponding Cosmos originated asset
+message ERC20ToDenom {
+  string erc20 = 1;
+  string denom = 2;
+}
+
+// PendingIbcAutoForward represents a SendToCosmos transaction with a foreign CosmosReceiver which will be added to the
+// PendingIbcAutoForward queue in attestation_handler and sent over IBC on some submission of a MsgExecuteIbcAutoForwards
+message PendingIbcAutoForward {
+  string sender                  = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string foreign_receiver        = 2;  // the destination address. sdk.AccAddress does not preserve foreign prefixes
+  cosmos.base.v1beta1.Coin token = 3;  // the token sent from ethereum to the ibc-enabled chain over `IbcChannel`
+  string ibc_channel             = 4;  // the IBC channel to send `Amount` over via ibc-transfer module
+  uint64 event_nonce             = 5;  // the EventNonce from the MsgSendToCosmosClaim, used for ordering the queue
+}
