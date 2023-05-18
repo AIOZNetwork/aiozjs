@@ -158,6 +158,29 @@ export const MsgConvertAIOZRC20Types = {
   ],
 };
 
+export const MsgSendToEvmChainTypes = {
+  MsgValue: [
+    { name: "sender", type: "string" },
+    { name: "chain_name", type: "string" },
+    { name: "evm_dest", type: "string" },
+    { name: "amount", type: "TypeAmount" },
+    { name: "bridge_fee", type: "TypeAmount" },
+    { name: "chain_fee", type: "TypeAmount" },
+  ],
+  TypeAmount: [
+    { name: "denom", type: "string" },
+    { name: "amount", type: "string" },
+  ],
+};
+
+export const MsgCancelSendToEvmChainTypes = {
+  MsgValue: [
+    { name: "chain_name", type: "string" },
+    { name: "transaction_id", type: "uint64" },
+    { name: "sender", type: "string" },
+  ],
+};
+
 export function getMsgTypes(type: string): Record<string, unknown> {
   switch (type) {
     case "cosmos-sdk/MsgSend":
@@ -188,6 +211,10 @@ export function getMsgTypes(type: string): Record<string, unknown> {
       return MsgConvertCoinTypes;
     case "aiozrc20/MsgConvertAIOZRC20":
       return MsgConvertAIOZRC20Types;
+    case "gravity/MsgSendToEvmChain":
+      return MsgSendToEvmChainTypes;
+    case "gravity/MsgCancelSendToEvmChain":
+      return MsgCancelSendToEvmChainTypes;
     default:
       throw new Error(`type '${type}' is not supported`);
   }
