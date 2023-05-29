@@ -14,6 +14,7 @@ export interface AminoMsgSendToEvmChain extends AminoMsg {
     readonly evm_dest: string;
     readonly amount?: Coin;
     readonly bridge_fee?: Coin;
+    readonly chain_fee?: Coin;
   };
 }
 
@@ -45,12 +46,14 @@ export function createGravityAminoConverters(): AminoConverters {
         evmDest,
         amount,
         bridgeFee,
+        chainFee,
       }: MsgSendToEvmChain): AminoMsgSendToEvmChain["value"] => ({
         sender: sender,
         chain_name: chainName,
         evm_dest: evmDest,
         amount: amount,
         bridge_fee: bridgeFee,
+        chain_fee: chainFee,
       }),
       fromAmino: ({
         sender,
@@ -58,12 +61,14 @@ export function createGravityAminoConverters(): AminoConverters {
         evm_dest,
         amount,
         bridge_fee,
+        chain_fee,
       }: AminoMsgSendToEvmChain["value"]): MsgSendToEvmChain => ({
         sender: sender,
         chainName: chain_name,
         evmDest: evm_dest,
         amount: amount,
         bridgeFee: bridge_fee,
+        chainFee: chain_fee,
       }),
     },
     "/gravity.v1.MsgCancelSendToEvmChain": {
