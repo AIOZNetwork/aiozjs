@@ -164,10 +164,18 @@ export const MsgSendToEvmChainTypes = {
     { name: "chain_name", type: "string" },
     { name: "evm_dest", type: "string" },
     { name: "amount", type: "TypeAmount" },
-    { name: "bridge_fee", type: "TypeAmount" },
-    { name: "chain_fee", type: "TypeAmount" },
+    { name: "bridge_fee", type: "TypeBridgeFee" },
+    { name: "chain_fee", type: "TypeChainFee" },
   ],
   TypeAmount: [
+    { name: "denom", type: "string" },
+    { name: "amount", type: "string" },
+  ],
+  TypeBridgeFee: [
+    { name: "denom", type: "string" },
+    { name: "amount", type: "string" },
+  ],
+  TypeChainFee: [
     { name: "denom", type: "string" },
     { name: "amount", type: "string" },
   ],
