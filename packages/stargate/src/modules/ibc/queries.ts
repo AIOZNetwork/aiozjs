@@ -4,6 +4,7 @@ import { Uint64 } from "@cosmjs/math";
 import { Any } from "cosmjs-types/google/protobuf/any";
 import {
   QueryClientImpl as TransferQuery,
+  QueryDenomHashResponse,
   QueryDenomTraceResponse,
   QueryDenomTracesResponse,
   QueryParamsResponse as QueryTransferParamsResponse,
@@ -166,6 +167,7 @@ export interface IbcExtension {
       readonly denomTraces: (paginationKey?: Uint8Array) => Promise<QueryDenomTracesResponse>;
       readonly allDenomTraces: () => Promise<QueryDenomTracesResponse>;
       readonly params: () => Promise<QueryTransferParamsResponse>;
+      readonly denomHash: (trace: string) => Promise<QueryDenomHashResponse>;
     };
     readonly verified: {
       readonly channel: {
@@ -503,6 +505,7 @@ export function setupIbcExtension(base: QueryClient): IbcExtension {
           };
         },
         params: async () => transferQueryService.Params({}),
+        denomHash: async (trace: string) => transferQueryService.DenomHash({trace: trace}),
       },
       verified: {
         channel: {

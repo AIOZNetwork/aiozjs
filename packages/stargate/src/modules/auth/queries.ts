@@ -1,4 +1,8 @@
-import { QueryClientImpl } from "cosmjs-types/cosmos/auth/v1beta1/query";
+import {
+  Bech32PrefixRequest,
+  Bech32PrefixResponse,
+  QueryClientImpl,
+} from "cosmjs-types/cosmos/auth/v1beta1/query";
 import { Any } from "cosmjs-types/google/protobuf/any";
 
 import { createProtobufRpcClient, QueryClient } from "../../queryclient";
@@ -13,6 +17,7 @@ export interface AuthExtension {
      * `typeUrl` and decode the `value` using its own type decoder.
      */
     readonly account: (address: string) => Promise<Any | null>;
+    readonly bech32Prefix: () => Promise<Bech32PrefixResponse>;
   };
 }
 
@@ -28,6 +33,7 @@ export function setupAuthExtension(base: QueryClient): AuthExtension {
         const { account } = await queryService.Account({ address: address });
         return account ?? null;
       },
+      bech32Prefix: async () => queryService.Bech32Prefix({}),
     },
   };
 }
