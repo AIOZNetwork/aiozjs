@@ -1,0 +1,17 @@
+syntax = "proto3";
+package aioz.burn.v1;
+
+import "gogoproto/gogo.proto";
+import "aioz/burn/v1/burn.proto";
+
+option go_package = "github.com/AIOZNetwork/go-aioz/x/burn/types";
+
+// GenesisState defines the burn module's genesis state.
+message GenesisState {
+
+  // params defines all the parameters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  // burn_accounts defines the list of burn accounts.
+  repeated BurnAccount burn_accounts = 2;
+}

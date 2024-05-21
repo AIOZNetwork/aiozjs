@@ -52,7 +52,7 @@
     "@ethereumjs/util": "^8.0.5",
     "cosmjs-types": "workspace:^",
     "long": "^4.0.0",
-    "protobufjs": "~6.11.3",
+    "protobufjs": "~7.3.0",
     "xstream": "^11.14.0"
   },
   "devDependencies": {

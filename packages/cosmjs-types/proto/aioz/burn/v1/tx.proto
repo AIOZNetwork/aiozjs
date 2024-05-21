@@ -1,0 +1,50 @@
+syntax = "proto3";
+package aioz.burn.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/msg/v1/msg.proto";
+import "aioz/burn/v1/burn.proto";
+
+option go_package = "github.com/AIOZNetwork/go-aioz/x/burn/types";
+
+// Msg defines the burn Msg service.
+service Msg {
+  // UpdateParams defines a governance operation for updating the x/burn module parameters.
+  // The authority is defined in the keeper.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // SetBurnAccount defines a governance operation for adding or updating burn accounts.
+  // The authority is defined in the keeper.
+  rpc SetBurnAccount(MsgSetBurnAccount) returns (MsgSetBurnAccountResponse);
+}
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // params defines the x/burn parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}
+
+// MsgSetBurnAccount is the Msg/SetBurnAccount request type.
+message MsgSetBurnAccount {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // burn_accounts is the list of entries to add or update.
+  repeated BurnAccount burn_accounts = 2;
+}
+
+// MsgSetBurnAccountResponse defines the Msg/SetBurnAccount response type.
+message MsgSetBurnAccountResponse {}

@@ -40,7 +40,10 @@ export interface ChainConfig {
   /** dao_fork_block corresponds to TheDAO hard-fork switch block (nil no fork) */
 
   daoForkBlock: string;
-  /** dao_fork_support defines whether the nodes supports or opposes the DAO hard-fork */
+  /**
+   * dao_fork_support defines whether the nodes supports or opposes the DAO
+   * hard-fork
+   */
 
   daoForkSupport: boolean;
   /**
@@ -49,7 +52,10 @@ export interface ChainConfig {
    */
 
   eip150Block: string;
-  /** eip150_hash: EIP150 HF hash (needed for header only clients as only gas pricing changed) */
+  /**
+   * eip150_hash: EIP150 HF hash (needed for header only clients as only gas
+   * pricing changed)
+   */
 
   eip150Hash: string;
   /** eip155_block: EIP155Block HF block */
@@ -58,19 +64,31 @@ export interface ChainConfig {
   /** eip158_block: EIP158 HF block */
 
   eip158Block: string;
-  /** byzantium_block: Byzantium switch block (nil no fork, 0 = already on byzantium) */
+  /**
+   * byzantium_block: Byzantium switch block (nil no fork, 0 = already on
+   * byzantium)
+   */
 
   byzantiumBlock: string;
-  /** constantinople_block: Constantinople switch block (nil no fork, 0 = already activated) */
+  /**
+   * constantinople_block: Constantinople switch block (nil no fork, 0 = already
+   * activated)
+   */
 
   constantinopleBlock: string;
   /** petersburg_block: Petersburg switch block (nil same as Constantinople) */
 
   petersburgBlock: string;
-  /** istanbul_block: Istanbul switch block (nil no fork, 0 = already on istanbul) */
+  /**
+   * istanbul_block: Istanbul switch block (nil no fork, 0 = already on
+   * istanbul)
+   */
 
   istanbulBlock: string;
-  /** muir_glacier_block: Eip-2384 (bomb delay) switch block (nil no fork, 0 = already activated) */
+  /**
+   * muir_glacier_block: Eip-2384 (bomb delay) switch block (nil no fork, 0 =
+   * already activated)
+   */
 
   muirGlacierBlock: string;
   /** berlin_block: Berlin switch block (nil = no fork, 0 = already on berlin) */
@@ -79,13 +97,22 @@ export interface ChainConfig {
   /** london_block: London switch block (nil = no fork, 0 = already on london) */
 
   londonBlock: string;
-  /** arrow_glacier_block: Eip-4345 (bomb delay) switch block (nil = no fork, 0 = already activated) */
+  /**
+   * arrow_glacier_block: Eip-4345 (bomb delay) switch block (nil = no fork, 0 =
+   * already activated)
+   */
 
   arrowGlacierBlock: string;
-  /** gray_glacier_block: EIP-5133 (bomb delay) switch block (nil = no fork, 0 = already activated) */
+  /**
+   * gray_glacier_block: EIP-5133 (bomb delay) switch block (nil = no fork, 0 =
+   * already activated)
+   */
 
   grayGlacierBlock: string;
-  /** merge_netsplit_block: Virtual fork after The Merge to use as a network splitter */
+  /**
+   * merge_netsplit_block: Virtual fork after The Merge to use as a network
+   * splitter
+   */
 
   mergeNetsplitBlock: string;
   /** shanghai_block switch block (nil = no fork, 0 = already on shanghai) */
@@ -201,8 +228,8 @@ export interface TraceConfig {
   /** tracer is a custom javascript tracer */
   tracer: string;
   /**
-   * timeout overrides the default timeout of 5 seconds for JavaScript-based tracing
-   * calls
+   * timeout overrides the default timeout of 5 seconds for JavaScript-based
+   * tracing calls
    */
 
   timeout: string;

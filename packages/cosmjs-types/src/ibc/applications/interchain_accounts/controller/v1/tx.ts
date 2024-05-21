@@ -3,17 +3,18 @@ import { InterchainAccountPacketData } from "../../v1/packet";
 import * as _m0 from "protobufjs/minimal";
 import { isSet, DeepPartial, Exact, Long, Rpc } from "../../../../../helpers";
 export const protobufPackage = "ibc.applications.interchain_accounts.controller.v1";
-/** MsgRegisterInterchainAccount defines the payload for Msg/MsgRegisterInterchainAccount */
+/** MsgRegisterInterchainAccount defines the payload for Msg/RegisterAccount */
 
 export interface MsgRegisterInterchainAccount {
   owner: string;
   connectionId: string;
   version: string;
 }
-/** MsgRegisterInterchainAccountResponse defines the response for Msg/MsgRegisterInterchainAccountResponse */
+/** MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount */
 
 export interface MsgRegisterInterchainAccountResponse {
   channelId: string;
+  portId: string;
 }
 /** MsgSendTx defines the payload for Msg/SendTx */
 
@@ -119,6 +120,7 @@ export const MsgRegisterInterchainAccount = {
 function createBaseMsgRegisterInterchainAccountResponse(): MsgRegisterInterchainAccountResponse {
   return {
     channelId: "",
+    portId: "",
   };
 }
 
@@ -129,6 +131,10 @@ export const MsgRegisterInterchainAccountResponse = {
   ): _m0.Writer {
     if (message.channelId !== "") {
       writer.uint32(10).string(message.channelId);
+    }
+
+    if (message.portId !== "") {
+      writer.uint32(18).string(message.portId);
     }
 
     return writer;
@@ -147,6 +153,10 @@ export const MsgRegisterInterchainAccountResponse = {
           message.channelId = reader.string();
           break;
 
+        case 2:
+          message.portId = reader.string();
+          break;
+
         default:
           reader.skipType(tag & 7);
           break;
@@ -159,12 +169,14 @@ export const MsgRegisterInterchainAccountResponse = {
   fromJSON(object: any): MsgRegisterInterchainAccountResponse {
     return {
       channelId: isSet(object.channelId) ? String(object.channelId) : "",
+      portId: isSet(object.portId) ? String(object.portId) : "",
     };
   },
 
   toJSON(message: MsgRegisterInterchainAccountResponse): unknown {
     const obj: any = {};
     message.channelId !== undefined && (obj.channelId = message.channelId);
+    message.portId !== undefined && (obj.portId = message.portId);
     return obj;
   },
 
@@ -173,6 +185,7 @@ export const MsgRegisterInterchainAccountResponse = {
   ): MsgRegisterInterchainAccountResponse {
     const message = createBaseMsgRegisterInterchainAccountResponse();
     message.channelId = object.channelId ?? "";
+    message.portId = object.portId ?? "";
     return message;
   },
 };

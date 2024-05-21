@@ -26,7 +26,8 @@ message TokenPair {
   string denom = 2;
   // shows token mapping enable status
   bool enabled = 3;
-  // AIOZRC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external address)
+  // AIOZRC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external
+  // address)
   Owner contract_owner = 4;
 }
 
@@ -60,8 +61,8 @@ message ToggleTokenPairConversionProposal {
   string title = 1;
   // proposal description
   string description = 2;
-  // token identifier can be either the hex contract address of the AIOZRC20 or the
-  // Cosmos base denomination
+  // token identifier can be either the hex contract address of the AIOZRC20 or
+  // the Cosmos base denomination
   string token = 3;
 }
 
@@ -76,16 +77,18 @@ message UpdateTokenPairProposal {
   // contract address of AIOZRC20 token
   string aiozrc20_address = 3 [ (gogoproto.customname) = "AIOZRC20Address" ];
   // new address of AIOZRC20 token contract
-  string new_aiozrc20_address = 4 [ (gogoproto.customname) = "NewAIOZRC20Address" ];
+  string new_aiozrc20_address = 4
+      [ (gogoproto.customname) = "NewAIOZRC20Address" ];
 }
 
-// SetConverterAddressProposal is a gov Content type to set/update the converter address.
+// SetConverterAddressProposal is a gov Content type to set/update the converter
+// address.
 message SetConverterAddressProposal {
   option (gogoproto.equal) = true;
   // title of the proposal
   string title = 1;
   // proposal description
   string description = 2;
-  // contract address of the converter, let empty to deploy a default one
+  // implementation contract address of the converter, let empty to deploy a default one
   string upgrade_address = 3;
 }

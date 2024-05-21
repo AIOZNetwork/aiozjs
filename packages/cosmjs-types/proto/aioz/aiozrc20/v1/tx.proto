@@ -15,8 +15,8 @@ service Msg {
   rpc ConvertCoin(MsgConvertCoin) returns (MsgConvertCoinResponse) {
     option (google.api.http).get = "/aioz/aiozrc20/v1/tx/convert_coin";
   };
-  // ConvertAIOZRC20 mints a Cosmos coin representation of the AIOZRC20 token contract
-  // that is registered on the token mapping.
+  // ConvertAIOZRC20 mints a Cosmos coin representation of the AIOZRC20 token
+  // contract that is registered on the token mapping.
   rpc ConvertAIOZRC20(MsgConvertAIOZRC20) returns (MsgConvertAIOZRC20Response) {
     option (google.api.http).get = "/aioz/aiozrc20/v1/tx/convert_aiozrc20";
   };
@@ -30,24 +30,25 @@ message MsgConvertCoin {
   // recipient hex address to receive AIOZRC20 token
   string receiver = 2;
   // cosmos bech32 address from the owner of the given AIOZRC20 tokens
-  string sender = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string sender = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 }
 
 // MsgConvertCoinResponse returns no fields.
 message MsgConvertCoinResponse {}
 
-// MsgConvertAIOZRC20 defines a Msg to convert an AIOZRC20 token to a Cosmos SDK coin.
+// MsgConvertAIOZRC20 defines a Msg to convert an AIOZRC20 token to a Cosmos SDK
+// coin.
 message MsgConvertAIOZRC20 {
   // AIOZRC20 token contract address registered on aiozrc20 bridge
   string contract_address = 1;
   // amount of AIOZRC20 tokens to mint
   string amount = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
   // bech32 address to receive SDK coins.
-  string receiver = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string receiver = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   // sender hex address from the owner of the given AIOZRC20 tokens
   string sender = 4;
 }

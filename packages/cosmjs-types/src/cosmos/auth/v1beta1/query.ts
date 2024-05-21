@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { PageRequest, PageResponse } from "../../base/query/v1beta1/pagination";
 import { Any } from "../../../google/protobuf/any";
-import { Params } from "./auth";
+import { Params, BaseAccount } from "./auth";
 import * as _m0 from "protobufjs/minimal";
 import { isSet, DeepPartial, Exact, bytesFromBase64, base64FromBytes, Long, Rpc } from "../../../helpers";
 export const protobufPackage = "cosmos.auth.v1beta1";
@@ -135,11 +135,22 @@ export interface AddressStringToBytesResponse {
 
 export interface QueryAccountAddressByIDRequest {
   /**
+   * Deprecated, use account_id instead
+   *
    * id is the account number of the address to be queried. This field
    * should have been an uint64 (like all account numbers), and will be
    * updated to uint64 in a future version of the auth query.
    */
+
+  /** @deprecated */
   id: Long;
+  /**
+   * account_id is the account number of the address to be queried.
+   *
+   * Since: cosmos-sdk 0.47
+   */
+
+  accountId: Long;
 }
 /**
  * QueryAccountAddressByIDResponse is the response type for AccountAddressByID rpc method
@@ -149,6 +160,26 @@ export interface QueryAccountAddressByIDRequest {
 
 export interface QueryAccountAddressByIDResponse {
   accountAddress: string;
+}
+/**
+ * QueryAccountInfoRequest is the Query/AccountInfo request type.
+ *
+ * Since: cosmos-sdk 0.47
+ */
+
+export interface QueryAccountInfoRequest {
+  /** address is the account address string. */
+  address: string;
+}
+/**
+ * QueryAccountInfoResponse is the Query/AccountInfo response type.
+ *
+ * Since: cosmos-sdk 0.47
+ */
+
+export interface QueryAccountInfoResponse {
+  /** info is the account info which is represented by BaseAccount. */
+  info?: BaseAccount;
 }
 
 function createBaseQueryAccountsRequest(): QueryAccountsRequest {
@@ -1065,6 +1096,7 @@ export const AddressStringToBytesResponse = {
 function createBaseQueryAccountAddressByIDRequest(): QueryAccountAddressByIDRequest {
   return {
     id: Long.ZERO,
+    accountId: Long.UZERO,
   };
 }
 
@@ -1072,6 +1104,10 @@ export const QueryAccountAddressByIDRequest = {
   encode(message: QueryAccountAddressByIDRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (!message.id.isZero()) {
       writer.uint32(8).int64(message.id);
+    }
+
+    if (!message.accountId.isZero()) {
+      writer.uint32(16).uint64(message.accountId);
     }
 
     return writer;
@@ -1090,6 +1126,10 @@ export const QueryAccountAddressByIDRequest = {
           message.id = reader.int64() as Long;
           break;
 
+        case 2:
+          message.accountId = reader.uint64() as Long;
+          break;
+
         default:
           reader.skipType(tag & 7);
           break;
@@ -1102,12 +1142,14 @@ export const QueryAccountAddressByIDRequest = {
   fromJSON(object: any): QueryAccountAddressByIDRequest {
     return {
       id: isSet(object.id) ? Long.fromValue(object.id) : Long.ZERO,
+      accountId: isSet(object.accountId) ? Long.fromValue(object.accountId) : Long.UZERO,
     };
   },
 
   toJSON(message: QueryAccountAddressByIDRequest): unknown {
     const obj: any = {};
     message.id !== undefined && (obj.id = (message.id || Long.ZERO).toString());
+    message.accountId !== undefined && (obj.accountId = (message.accountId || Long.UZERO).toString());
     return obj;
   },
 
@@ -1116,6 +1158,10 @@ export const QueryAccountAddressByIDRequest = {
   ): QueryAccountAddressByIDRequest {
     const message = createBaseQueryAccountAddressByIDRequest();
     message.id = object.id !== undefined && object.id !== null ? Long.fromValue(object.id) : Long.ZERO;
+    message.accountId =
+      object.accountId !== undefined && object.accountId !== null
+        ? Long.fromValue(object.accountId)
+        : Long.UZERO;
     return message;
   },
 };
@@ -1177,11 +1223,129 @@ export const QueryAccountAddressByIDResponse = {
     return message;
   },
 };
+
+function createBaseQueryAccountInfoRequest(): QueryAccountInfoRequest {
+  return {
+    address: "",
+  };
+}
+
+export const QueryAccountInfoRequest = {
+  encode(message: QueryAccountInfoRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryAccountInfoRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryAccountInfoRequest();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        case 1:
+          message.address = reader.string();
+          break;
+
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(object: any): QueryAccountInfoRequest {
+    return {
+      address: isSet(object.address) ? String(object.address) : "",
+    };
+  },
+
+  toJSON(message: QueryAccountInfoRequest): unknown {
+    const obj: any = {};
+    message.address !== undefined && (obj.address = message.address);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryAccountInfoRequest>, I>>(object: I): QueryAccountInfoRequest {
+    const message = createBaseQueryAccountInfoRequest();
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryAccountInfoResponse(): QueryAccountInfoResponse {
+  return {
+    info: undefined,
+  };
+}
+
+export const QueryAccountInfoResponse = {
+  encode(message: QueryAccountInfoResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.info !== undefined) {
+      BaseAccount.encode(message.info, writer.uint32(10).fork()).ldelim();
+    }
+
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryAccountInfoResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryAccountInfoResponse();
+
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+
+      switch (tag >>> 3) {
+        case 1:
+          message.info = BaseAccount.decode(reader, reader.uint32());
+          break;
+
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+
+    return message;
+  },
+
+  fromJSON(object: any): QueryAccountInfoResponse {
+    return {
+      info: isSet(object.info) ? BaseAccount.fromJSON(object.info) : undefined,
+    };
+  },
+
+  toJSON(message: QueryAccountInfoResponse): unknown {
+    const obj: any = {};
+    message.info !== undefined && (obj.info = message.info ? BaseAccount.toJSON(message.info) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryAccountInfoResponse>, I>>(
+    object: I,
+  ): QueryAccountInfoResponse {
+    const message = createBaseQueryAccountInfoResponse();
+    message.info =
+      object.info !== undefined && object.info !== null ? BaseAccount.fromPartial(object.info) : undefined;
+    return message;
+  },
+};
 /** Query defines the gRPC querier service. */
 
 export interface Query {
   /**
-   * Accounts returns all the existing accounts
+   * Accounts returns all the existing accounts.
+   *
+   * When called from another module, this query might consume a high amount of
+   * gas if the pagination field is incorrectly set.
    *
    * Since: cosmos-sdk 0.43
    */
@@ -1230,6 +1394,13 @@ export interface Query {
    */
 
   AddressStringToBytes(request: AddressStringToBytesRequest): Promise<AddressStringToBytesResponse>;
+  /**
+   * AccountInfo queries account info which is common to all account types.
+   *
+   * Since: cosmos-sdk 0.47
+   */
+
+  AccountInfo(request: QueryAccountInfoRequest): Promise<QueryAccountInfoResponse>;
 }
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
@@ -1245,6 +1416,7 @@ export class QueryClientImpl implements Query {
     this.Bech32Prefix = this.Bech32Prefix.bind(this);
     this.AddressBytesToString = this.AddressBytesToString.bind(this);
     this.AddressStringToBytes = this.AddressStringToBytes.bind(this);
+    this.AccountInfo = this.AccountInfo.bind(this);
   }
 
   Accounts(
@@ -1303,5 +1475,11 @@ export class QueryClientImpl implements Query {
     const data = AddressStringToBytesRequest.encode(request).finish();
     const promise = this.rpc.request("cosmos.auth.v1beta1.Query", "AddressStringToBytes", data);
     return promise.then((data) => AddressStringToBytesResponse.decode(new _m0.Reader(data)));
+  }
+
+  AccountInfo(request: QueryAccountInfoRequest): Promise<QueryAccountInfoResponse> {
+    const data = QueryAccountInfoRequest.encode(request).finish();
+    const promise = this.rpc.request("cosmos.auth.v1beta1.Query", "AccountInfo", data);
+    return promise.then((data) => QueryAccountInfoResponse.decode(new _m0.Reader(data)));
   }
 }

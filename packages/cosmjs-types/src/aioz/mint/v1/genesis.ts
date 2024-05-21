@@ -19,7 +19,7 @@ function createBaseGenesisState(): GenesisState {
 export const GenesisState = {
   encode(message: GenesisState, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.params !== undefined) {
-      Params.encode(message.params, writer.uint32(18).fork()).ldelim();
+      Params.encode(message.params, writer.uint32(10).fork()).ldelim();
     }
 
     return writer;
@@ -34,7 +34,7 @@ export const GenesisState = {
       const tag = reader.uint32();
 
       switch (tag >>> 3) {
-        case 2:
+        case 1:
           message.params = Params.decode(reader, reader.uint32());
           break;
 

@@ -31,8 +31,8 @@ export interface QueryInflationResponse {
 
 export interface QueryAnnualInflationRequest {}
 /**
- * QueryAnnualInflationResponse is the response type for the Query/AnnualInflation
- * RPC method.
+ * QueryAnnualInflationResponse is the response type for the
+ * Query/AnnualInflation RPC method.
  */
 
 export interface QueryAnnualInflationResponse {

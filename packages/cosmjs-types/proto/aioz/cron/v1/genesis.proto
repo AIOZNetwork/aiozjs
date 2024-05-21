@@ -1,0 +1,18 @@
+syntax = "proto3";
+package aioz.cron.v1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "aioz/cron/v1/cron.proto";
+
+option go_package = "github.com/AIOZNetwork/go-aioz/x/cron/types";
+
+// GenesisState defines the cron module's genesis state.
+message GenesisState {
+
+  // params defines all the parameters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  // entries is an array containing the all the cron entries.
+  repeated google.protobuf.Any entries = 2;
+}

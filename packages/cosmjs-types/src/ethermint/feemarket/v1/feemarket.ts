@@ -19,13 +19,19 @@ export interface Params {
    */
 
   elasticityMultiplier: number;
-  /** enable_height defines at which block height the base fee calculation is enabled. */
+  /**
+   * enable_height defines at which block height the base fee calculation is
+   * enabled.
+   */
 
   enableHeight: Long;
   /** base_fee for EIP-1559 blocks. */
 
   baseFee: string;
-  /** min_gas_price defines the minimum gas price value for cosmos and eth transactions */
+  /**
+   * min_gas_price defines the minimum gas price value for cosmos and eth
+   * transactions
+   */
 
   minGasPrice: string;
   /**

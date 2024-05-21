@@ -29,8 +29,8 @@ export interface QueryTokenPairsResponse {
 
 export interface QueryTokenPairRequest {
   /**
-   * token identifier can be either the hex contract address of the AIOZRC20 or the
-   * Cosmos base denomination
+   * token identifier can be either the hex contract address of the AIOZRC20 or
+   * the Cosmos base denomination
    */
   token: string;
 }
@@ -53,15 +53,22 @@ export interface QueryParamsRequest {}
 export interface QueryParamsResponse {
   params?: Params;
 }
-/** QueryConverterAddressRequest is the request type for the Query/ConverterAddress RPC method. */
+/**
+ * QueryConverterAddressRequest is the request type for the
+ * Query/ConverterAddress RPC method.
+ */
 
 export interface QueryConverterAddressRequest {}
 /**
- * QueryConverterAddressResponse is the response type for the Query/ConverterAddress RPC
- * method.
+ * QueryConverterAddressResponse is the response type for the
+ * Query/ConverterAddress RPC method.
  */
 
 export interface QueryConverterAddressResponse {
+  /**
+   * QueryConverterAddressResponse is the response type for the
+   * Query/ConverterAddress RPC method.
+   */
   converterAddress: string;
 }
 

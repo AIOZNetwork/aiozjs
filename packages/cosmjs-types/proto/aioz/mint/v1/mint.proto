@@ -5,26 +5,29 @@ option go_package = "github.com/AIOZNetwork/go-aioz/x/mint/types";
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
 
 message Allocation {
-  option (gogoproto.equal)            = false;
-  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;
 
   // address is the bech32-encoded address of the allocation.
-  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  
+  string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
   // rate is the rate of the allocation.
   string rate = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }
 
-// Params holds parameters for the mint module.
+// Params defines the parameters for the x/mint module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
+  option (amino.name)                 = "aioz/x/mint/Params";
+
 
   // type of coin to mint.
   string mint_denom = 1;
@@ -37,11 +40,12 @@ message Params {
 
   // current block inflation rate.
   string inflation = 4 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 
   // list of additional allocations for minting.
-  repeated Allocation additional_allocations = 5 [(gogoproto.nullable) = false];
+  repeated Allocation additional_allocations = 5
+      [ (gogoproto.nullable) = false ];
 }

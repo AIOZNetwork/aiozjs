@@ -2,10 +2,16 @@
 import * as _m0 from "protobufjs/minimal";
 import { isSet, DeepPartial, Exact } from "../../../helpers";
 export const protobufPackage = "ethermint.types.v1";
-/** ExtensionOptionDynamicFeeTx is an extension option that specifies the maxPrioPrice for cosmos tx */
+/**
+ * ExtensionOptionDynamicFeeTx is an extension option that specifies the
+ * maxPrioPrice for cosmos tx
+ */
 
 export interface ExtensionOptionDynamicFeeTx {
-  /** max_priority_price is the same as `max_priority_fee_per_gas` in eip-1559 spec */
+  /**
+   * max_priority_price is the same as `max_priority_fee_per_gas` in eip-1559
+   * spec
+   */
   maxPriorityPrice: string;
 }
 

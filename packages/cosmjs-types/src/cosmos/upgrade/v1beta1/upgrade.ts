@@ -26,10 +26,7 @@ export interface Plan {
   /** @deprecated */
 
   time?: Timestamp;
-  /**
-   * The height at which the upgrade must be performed.
-   * Only used if Time is not set.
-   */
+  /** The height at which the upgrade must be performed. */
 
   height: Long;
   /**
@@ -58,8 +55,13 @@ export interface Plan {
 /** @deprecated */
 
 export interface SoftwareUpgradeProposal {
+  /** title of the proposal */
   title: string;
+  /** description of the proposal */
+
   description: string;
+  /** plan of the proposal */
+
   plan?: Plan;
 }
 /**
@@ -72,7 +74,10 @@ export interface SoftwareUpgradeProposal {
 /** @deprecated */
 
 export interface CancelSoftwareUpgradeProposal {
+  /** title of the proposal */
   title: string;
+  /** description of the proposal */
+
   description: string;
 }
 /**

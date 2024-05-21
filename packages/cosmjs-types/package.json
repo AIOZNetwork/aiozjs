@@ -19,6 +19,7 @@
     "aioz/",
     "ethermint/",
     "confio/",
+    "animo/",
     "cosmos/",
     "cosmos_proto/",
     "cosmwasm/",
@@ -43,7 +44,7 @@
   },
   "dependencies": {
     "long": "^4.0.0",
-    "protobufjs": "~6.11.2"
+    "protobufjs": "~7.3.0"
   },
   "devDependencies": {
     "@osmonauts/telescope": "^0.88.2",

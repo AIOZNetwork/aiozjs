@@ -3,8 +3,8 @@ import { Long, isSet, bytesFromBase64, base64FromBytes, DeepPartial, Exact } fro
 import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "ethermint.types.v1";
 /**
- * ExtensionOptionsWeb3Tx is an extension option that specifies the typed chain id,
- * the fee payer as well as its signature data.
+ * ExtensionOptionsWeb3Tx is an extension option that specifies the typed chain
+ * id, the fee payer as well as its signature data.
  */
 
 export interface ExtensionOptionsWeb3Tx {

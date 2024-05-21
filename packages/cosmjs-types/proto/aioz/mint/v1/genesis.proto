@@ -3,6 +3,7 @@ package aioz.mint.v1;
 
 import "gogoproto/gogo.proto";
 import "aioz/mint/v1/mint.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/AIOZNetwork/go-aioz/x/mint/types";
 
@@ -10,5 +11,5 @@ option go_package = "github.com/AIOZNetwork/go-aioz/x/mint/types";
 message GenesisState {
 
   // params defines all the parameters of the module.
-  Params params = 2 [(gogoproto.nullable) = false];
+  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }

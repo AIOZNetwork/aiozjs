@@ -1,0 +1,49 @@
+syntax = "proto3";
+package aioz.cron.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "aioz/cron/v1/cron.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+option go_package = "github.com/AIOZNetwork/go-aioz/x/cron/types";
+
+// Query provides defines the gRPC querier service.
+service Query {
+
+  // Params queries the parameters of x/cron module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/aioz/cron/v1/params";
+  }
+
+  // Entries queries for cron entries.
+  rpc Entries(QueryEntriesRequest) returns (QueryEntriesResponse) {
+    option (google.api.http).get = "/aioz/cron/v1/entries";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/cron parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/cron parameters.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryEntriesRequest defines the RPC request for looking up cron entries.
+message QueryEntriesRequest {
+  // module is the specific module you want look up. Leave empty to get all entries of all modules.
+  string module = 1;
+  // ids is the specific ids you want look up. Leave empty to get all entries.
+  repeated string ids = 2;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 99;
+}
+
+// QueryEntriesResponse defines the RPC response of an Entries query.
+message QueryEntriesResponse {
+  repeated google.protobuf.Any entries = 1;
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 99;
+}

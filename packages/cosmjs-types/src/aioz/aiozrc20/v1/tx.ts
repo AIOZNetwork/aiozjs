@@ -21,7 +21,10 @@ export interface MsgConvertCoin {
 /** MsgConvertCoinResponse returns no fields. */
 
 export interface MsgConvertCoinResponse {}
-/** MsgConvertAIOZRC20 defines a Msg to convert an AIOZRC20 token to a Cosmos SDK coin. */
+/**
+ * MsgConvertAIOZRC20 defines a Msg to convert an AIOZRC20 token to a Cosmos SDK
+ * coin.
+ */
 
 export interface MsgConvertAIOZRC20 {
   /** AIOZRC20 token contract address registered on aiozrc20 bridge */
@@ -305,8 +308,8 @@ export interface Msg {
    */
   ConvertCoin(request: MsgConvertCoin): Promise<MsgConvertCoinResponse>;
   /**
-   * ConvertAIOZRC20 mints a Cosmos coin representation of the AIOZRC20 token contract
-   * that is registered on the token mapping.
+   * ConvertAIOZRC20 mints a Cosmos coin representation of the AIOZRC20 token
+   * contract that is registered on the token mapping.
    */
 
   ConvertAIOZRC20(request: MsgConvertAIOZRC20): Promise<MsgConvertAIOZRC20Response>;

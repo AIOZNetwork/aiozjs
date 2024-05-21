@@ -2003,12 +2003,16 @@ export interface Query {
   /** TraceTx implements the `debug_traceTransaction` rpc api */
 
   TraceTx(request: QueryTraceTxRequest): Promise<QueryTraceTxResponse>;
-  /** TraceBlock implements the `debug_traceBlockByNumber` and `debug_traceBlockByHash` rpc api */
+  /**
+   * TraceBlock implements the `debug_traceBlockByNumber` and
+   * `debug_traceBlockByHash` rpc api
+   */
 
   TraceBlock(request: QueryTraceBlockRequest): Promise<QueryTraceBlockResponse>;
   /**
    * BaseFee queries the base fee of the parent block of the current block,
-   * it's similar to feemarket module's method, but also checks london hardfork status.
+   * it's similar to feemarket module's method, but also checks london hardfork
+   * status.
    */
 
   BaseFee(request?: QueryBaseFeeRequest): Promise<QueryBaseFeeResponse>;

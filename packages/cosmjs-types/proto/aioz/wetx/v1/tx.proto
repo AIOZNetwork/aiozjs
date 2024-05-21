@@ -4,30 +4,41 @@ package aioz.wetx.v1;
 import "gogoproto/gogo.proto";
 import "ethermint/evm/v1/tx.proto";
 import "google/api/annotations.proto";
+import "cosmos/msg/v1/msg.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/AIOZNetwork/go-aioz/x/wetx/types";
 
 // Msg defines the evm Msg service.
 service Msg {
-  // WrappedEthereumTx defines a method submitting Wrapped Ethereum transactions.
-  rpc WrappedEthereumTx(MsgWrappedEthereumTx) returns (MsgWrappedEthereumTxResponse) {
+  option (cosmos.msg.v1.service) = true;
+
+  // WrappedEthereumTx defines a method submitting Wrapped Ethereum
+  // transactions.
+  rpc WrappedEthereumTx(MsgWrappedEthereumTx)
+      returns (MsgWrappedEthereumTxResponse) {
     option (google.api.http).post = "/aioz/wetx/v1/wrapped_ethereum_tx";
   };
 }
 
 message MsgWrappedEthereumTx {
+  option (amino.name)                = "aioz/MsgWrappedEthereumTx";
+  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  ethermint.evm.v1.MsgEthereumTx msg_ethereum_tx = 1 [(gogoproto.embed) = true];
+  ethermint.evm.v1.MsgEthereumTx msg_ethereum_tx = 1
+      [ (gogoproto.embed) = true ];
 }
 
 message MsgWrappedEthereumTxResponse {
   option (gogoproto.goproto_getters) = false;
 
-  ethermint.evm.v1.MsgEthereumTxResponse msg_ethereum_tx_response = 1 [(gogoproto.embed) = true];
+  ethermint.evm.v1.MsgEthereumTxResponse msg_ethereum_tx_response = 1
+      [ (gogoproto.embed) = true ];
 }
 
-// ExtensionOptionsWrappedEthereumTx is an extension option for ethereum transactions
+// ExtensionOptionsWrappedEthereumTx is an extension option for ethereum
+// transactions
 message ExtensionOptionsWrappedEthereumTx {
-    option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_getters) = false;
 }

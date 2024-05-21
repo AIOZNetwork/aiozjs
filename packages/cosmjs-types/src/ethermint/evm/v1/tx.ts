@@ -16,8 +16,8 @@ export interface MsgEthereumTx {
 
   hash: string;
   /**
-   * from is the ethereum signer address in hex format. This address value is checked
-   * against the address derived from the signature (V, R, S) using the
+   * from is the ethereum signer address in hex format. This address value is
+   * checked against the address derived from the signature (V, R, S) using the
    * secp256k1 elliptic curve
    */
 
@@ -151,8 +151,8 @@ export interface MsgEthereumTxResponse {
 
   logs: Log[];
   /**
-   * ret is the returned data from evm function (result or data supplied with revert
-   * opcode)
+   * ret is the returned data from evm function (result or data supplied with
+   * revert opcode)
    */
 
   ret: Uint8Array;
@@ -1092,8 +1092,9 @@ export interface Msg {
   /** EthereumTx defines a method submitting Ethereum transactions. */
   EthereumTx(request: MsgEthereumTx): Promise<MsgEthereumTxResponse>;
   /**
-   * UpdateParams defined a governance operation for updating the x/evm module parameters.
-   * The authority is hard-coded to the Cosmos SDK x/gov module account
+   * UpdateParams defined a governance operation for updating the x/evm module
+   * parameters. The authority is hard-coded to the Cosmos SDK x/gov module
+   * account
    */
 
   UpdateParams(request: MsgUpdateParams): Promise<MsgUpdateParamsResponse>;

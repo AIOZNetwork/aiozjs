@@ -66,7 +66,10 @@ export interface TokenPair {
   /** shows token mapping enable status */
 
   enabled: boolean;
-  /** AIOZRC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external address) */
+  /**
+   * AIOZRC20 owner address ENUM (0 invalid, 1 ModuleAccount, 2 external
+   * address)
+   */
 
   contractOwner: Owner;
 }
@@ -106,8 +109,8 @@ export interface ToggleTokenPairConversionProposal {
 
   description: string;
   /**
-   * token identifier can be either the hex contract address of the AIOZRC20 or the
-   * Cosmos base denomination
+   * token identifier can be either the hex contract address of the AIOZRC20 or
+   * the Cosmos base denomination
    */
 
   token: string;
@@ -130,7 +133,10 @@ export interface UpdateTokenPairProposal {
 
   newAiozrc20Address: string;
 }
-/** SetConverterAddressProposal is a gov Content type to set/update the converter address. */
+/**
+ * SetConverterAddressProposal is a gov Content type to set/update the converter
+ * address.
+ */
 
 export interface SetConverterAddressProposal {
   /** title of the proposal */
@@ -138,7 +144,7 @@ export interface SetConverterAddressProposal {
   /** proposal description */
 
   description: string;
-  /** contract address of the converter, let empty to deploy a default one */
+  /** implementation contract address of the converter, let empty to deploy a default one */
 
   upgradeAddress: string;
 }

@@ -9,7 +9,10 @@ export interface MsgWrappedEthereumTx {
 export interface MsgWrappedEthereumTxResponse {
   msgEthereumTxResponse?: MsgEthereumTxResponse;
 }
-/** ExtensionOptionsWrappedEthereumTx is an extension option for ethereum transactions */
+/**
+ * ExtensionOptionsWrappedEthereumTx is an extension option for ethereum
+ * transactions
+ */
 
 export interface ExtensionOptionsWrappedEthereumTx {}
 
@@ -185,7 +188,10 @@ export const ExtensionOptionsWrappedEthereumTx = {
 /** Msg defines the evm Msg service. */
 
 export interface Msg {
-  /** WrappedEthereumTx defines a method submitting Wrapped Ethereum transactions. */
+  /**
+   * WrappedEthereumTx defines a method submitting Wrapped Ethereum
+   * transactions.
+   */
   WrappedEthereumTx(request: MsgWrappedEthereumTx): Promise<MsgWrappedEthereumTxResponse>;
 }
 export class MsgClientImpl implements Msg {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { AminoMsg, Coin } from "@cosmjs/amino";
-import { MsgCancelSendToEvmChain, MsgSendToEvmChain } from "cosmjs-types/gravity/v1/msgs";
+import { MsgCancelSendToEvmChain, MsgSendToEvmChain } from "cosmjs-types/gravity/gravity/v1/msgs";
 
 // eslint-disable-next-line import/no-cycle
 import { AminoConverters } from "../../aminotypes";
@@ -38,7 +38,7 @@ export function isAminoMsgCancelSendToEvmChain(msg: AminoMsg): msg is AminoMsgCa
 
 export function createGravityAminoConverters(): AminoConverters {
   return {
-    "/gravity.v1.MsgSendToEvmChain": {
+    "/gravity.gravity.v1.MsgSendToEvmChain": {
       aminoType: "gravity/MsgSendToEvmChain",
       toAmino: ({
         sender,
@@ -71,7 +71,7 @@ export function createGravityAminoConverters(): AminoConverters {
         chainFee: chain_fee,
       }),
     },
-    "/gravity.v1.MsgCancelSendToEvmChain": {
+    "/gravity.gravity.v1.MsgCancelSendToEvmChain": {
       aminoType: "gravity/MsgCancelSendToEvmChain",
       toAmino: ({
         sender,

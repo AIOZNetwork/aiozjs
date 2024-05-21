@@ -12,7 +12,8 @@ option go_package = "github.com/AIOZNetwork/go-aioz/x/aiozrc20/types";
 // Query defines the gRPC querier service.
 service Query {
   // Retrieves registered converter address
-  rpc ConverterAddress(QueryConverterAddressRequest) returns (QueryConverterAddressResponse) {
+  rpc ConverterAddress(QueryConverterAddressRequest)
+      returns (QueryConverterAddressResponse) {
     option (google.api.http).get = "/aioz/aiozrc20/v1/converter_address";
   }
 
@@ -49,8 +50,8 @@ message QueryTokenPairsResponse {
 
 // QueryTokenPairRequest is the request type for the Query/TokenPair RPC method.
 message QueryTokenPairRequest {
-  // token identifier can be either the hex contract address of the AIOZRC20 or the
-  // Cosmos base denomination
+  // token identifier can be either the hex contract address of the AIOZRC20 or
+  // the Cosmos base denomination
   string token = 1;
 }
 
@@ -69,11 +70,10 @@ message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-// QueryConverterAddressRequest is the request type for the Query/ConverterAddress RPC method.
+// QueryConverterAddressRequest is the request type for the
+// Query/ConverterAddress RPC method.
 message QueryConverterAddressRequest {}
 
-// QueryConverterAddressResponse is the response type for the Query/ConverterAddress RPC
-// method.
-message QueryConverterAddressResponse {
-  string converter_address = 1;
-}
+// QueryConverterAddressResponse is the response type for the
+// Query/ConverterAddress RPC method.
+message QueryConverterAddressResponse { string converter_address = 1; }

@@ -4,7 +4,7 @@ import {
   QueryHrpIbcRecordResponse,
   QueryHrpIbcRecordsResponse,
   QueryNativeHrpResponse,
-} from "cosmjs-types/bech32ibc/v1beta1/query";
+} from "cosmjs-types/bech32ibc/bech32ibc/v1beta1/query";
 
 import { createProtobufRpcClient, QueryClient } from "../../queryclient";
 

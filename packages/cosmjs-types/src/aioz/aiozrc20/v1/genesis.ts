@@ -11,6 +11,9 @@ export interface GenesisState {
   /** registered token pairs */
 
   tokenPairs: TokenPair[];
+  /** converter address */
+
+  converterAddress: string;
 }
 /** Params defines the aiozrc20 module params. */
 
@@ -18,8 +21,8 @@ export interface Params {
   /** parameter to enable the conversion of Cosmos coins <--> AIOZRC20 tokens. */
   enabled: boolean;
   /**
-   * parameter to enable the EVM hook that converts an AIOZRC20 token to a Cosmos
-   * Coin by transferring the Tokens through a MsgEthereumTx to the
+   * parameter to enable the EVM hook that converts an AIOZRC20 token to a
+   * Cosmos Coin by transferring the Tokens through a MsgEthereumTx to the
    * ModuleAddress Ethereum address.
    */
 
@@ -30,6 +33,7 @@ function createBaseGenesisState(): GenesisState {
   return {
     params: undefined,
     tokenPairs: [],
+    converterAddress: "",
   };
 }
 
@@ -41,6 +45,10 @@ export const GenesisState = {
 
     for (const v of message.tokenPairs) {
       TokenPair.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+
+    if (message.converterAddress !== "") {
+      writer.uint32(26).string(message.converterAddress);
     }
 
     return writer;
@@ -63,6 +71,10 @@ export const GenesisState = {
           message.tokenPairs.push(TokenPair.decode(reader, reader.uint32()));
           break;
 
+        case 3:
+          message.converterAddress = reader.string();
+          break;
+
         default:
           reader.skipType(tag & 7);
           break;
@@ -78,6 +90,7 @@ export const GenesisState = {
       tokenPairs: Array.isArray(object?.tokenPairs)
         ? object.tokenPairs.map((e: any) => TokenPair.fromJSON(e))
         : [],
+      converterAddress: isSet(object.converterAddress) ? String(object.converterAddress) : "",
     };
   },
 
@@ -91,6 +104,7 @@ export const GenesisState = {
       obj.tokenPairs = [];
     }
 
+    message.converterAddress !== undefined && (obj.converterAddress = message.converterAddress);
     return obj;
   },
 
@@ -99,6 +113,7 @@ export const GenesisState = {
     message.params =
       object.params !== undefined && object.params !== null ? Params.fromPartial(object.params) : undefined;
     message.tokenPairs = object.tokenPairs?.map((e) => TokenPair.fromPartial(e)) || [];
+    message.converterAddress = object.converterAddress ?? "";
     return message;
   },
 };

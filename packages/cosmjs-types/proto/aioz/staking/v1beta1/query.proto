@@ -4,6 +4,8 @@ package aioz.staking.v1beta1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "aioz/staking/v1beta1/staking.proto";
+import "cosmos/query/v1/query.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/AIOZNetwork/go-aioz/x/staking/types";
 
@@ -12,7 +14,8 @@ service Query {
 
   // Parameters queries the staking parameters.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/aioz/staking/v1beta1/params";
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get               = "/aioz/staking/v1beta1/params";
   }
 }
 
@@ -23,5 +26,5 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
 
   // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }

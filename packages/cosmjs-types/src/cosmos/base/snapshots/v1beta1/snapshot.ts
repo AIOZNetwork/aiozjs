@@ -28,7 +28,11 @@ export interface SnapshotItem {
   iavl?: SnapshotIAVLItem;
   extension?: SnapshotExtensionMeta;
   extensionPayload?: SnapshotExtensionPayload;
+  /** @deprecated */
+
   kv?: SnapshotKVItem;
+  /** @deprecated */
+
   schema?: SnapshotSchema;
 }
 /**
@@ -79,7 +83,10 @@ export interface SnapshotExtensionPayload {
  * SnapshotKVItem is an exported Key/Value Pair
  *
  * Since: cosmos-sdk 0.46
+ * Deprecated: This message was part of store/v2alpha1 which has been deleted from v0.47.
  */
+
+/** @deprecated */
 
 export interface SnapshotKVItem {
   key: Uint8Array;
@@ -89,7 +96,10 @@ export interface SnapshotKVItem {
  * SnapshotSchema is an exported schema of smt store
  *
  * Since: cosmos-sdk 0.46
+ * Deprecated: This message was part of store/v2alpha1 which has been deleted from v0.47.
  */
+
+/** @deprecated */
 
 export interface SnapshotSchema {
   keys: Uint8Array[];

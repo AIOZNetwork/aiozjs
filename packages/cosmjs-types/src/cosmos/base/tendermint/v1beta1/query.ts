@@ -8,10 +8,7 @@ import { DefaultNodeInfo } from "../../../../tendermint/p2p/types";
 import { Long, isSet, DeepPartial, Exact, bytesFromBase64, base64FromBytes, Rpc } from "../../../../helpers";
 import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "cosmos.base.tendermint.v1beta1";
-/**
- * GetValidatorSetByHeightRequest is the request type for the
- * Query/GetValidatorSetByHeight RPC method.
- */
+/** GetValidatorSetByHeightRequest is the request type for the Query/GetValidatorSetByHeight RPC method. */
 
 export interface GetValidatorSetByHeightRequest {
   height: Long;
@@ -19,10 +16,7 @@ export interface GetValidatorSetByHeightRequest {
 
   pagination?: PageRequest;
 }
-/**
- * GetValidatorSetByHeightResponse is the response type for the
- * Query/GetValidatorSetByHeight RPC method.
- */
+/** GetValidatorSetByHeightResponse is the response type for the Query/GetValidatorSetByHeight RPC method. */
 
 export interface GetValidatorSetByHeightResponse {
   blockHeight: Long;
@@ -31,19 +25,13 @@ export interface GetValidatorSetByHeightResponse {
 
   pagination?: PageResponse;
 }
-/**
- * GetLatestValidatorSetRequest is the request type for the
- * Query/GetValidatorSetByHeight RPC method.
- */
+/** GetLatestValidatorSetRequest is the request type for the Query/GetValidatorSetByHeight RPC method. */
 
 export interface GetLatestValidatorSetRequest {
   /** pagination defines an pagination for the request. */
   pagination?: PageRequest;
 }
-/**
- * GetLatestValidatorSetResponse is the response type for the
- * Query/GetValidatorSetByHeight RPC method.
- */
+/** GetLatestValidatorSetResponse is the response type for the Query/GetValidatorSetByHeight RPC method. */
 
 export interface GetLatestValidatorSetResponse {
   blockHeight: Long;
@@ -60,18 +48,12 @@ export interface Validator {
   votingPower: Long;
   proposerPriority: Long;
 }
-/**
- * GetBlockByHeightRequest is the request type for the Query/GetBlockByHeight
- * RPC method.
- */
+/** GetBlockByHeightRequest is the request type for the Query/GetBlockByHeight RPC method. */
 
 export interface GetBlockByHeightRequest {
   height: Long;
 }
-/**
- * GetBlockByHeightResponse is the response type for the Query/GetBlockByHeight
- * RPC method.
- */
+/** GetBlockByHeightResponse is the response type for the Query/GetBlockByHeight RPC method. */
 
 export interface GetBlockByHeightResponse {
   blockId?: BlockID;
@@ -82,16 +64,10 @@ export interface GetBlockByHeightResponse {
 
   sdkBlock?: Block2;
 }
-/**
- * GetLatestBlockRequest is the request type for the Query/GetLatestBlock RPC
- * method.
- */
+/** GetLatestBlockRequest is the request type for the Query/GetLatestBlock RPC method. */
 
 export interface GetLatestBlockRequest {}
-/**
- * GetLatestBlockResponse is the response type for the Query/GetLatestBlock RPC
- * method.
- */
+/** GetLatestBlockResponse is the response type for the Query/GetLatestBlock RPC method. */
 
 export interface GetLatestBlockResponse {
   blockId?: BlockID;
@@ -113,10 +89,7 @@ export interface GetSyncingResponse {
 /** GetNodeInfoRequest is the request type for the Query/GetNodeInfo RPC method. */
 
 export interface GetNodeInfoRequest {}
-/**
- * GetNodeInfoResponse is the response type for the Query/GetNodeInfo RPC
- * method.
- */
+/** GetNodeInfoResponse is the response type for the Query/GetNodeInfo RPC method. */
 
 export interface GetNodeInfoResponse {
   defaultNodeInfo?: DefaultNodeInfo;
@@ -157,8 +130,7 @@ export interface ABCIQueryRequest {
   prove: boolean;
 }
 /**
- * ABCIQueryResponse defines the response structure for the ABCIQuery gRPC
- * query.
+ * ABCIQueryResponse defines the response structure for the ABCIQuery gRPC query.
  *
  * Note: This type is a duplicate of the ResponseQuery proto type defined in
  * Tendermint.
@@ -181,11 +153,10 @@ export interface ABCIQueryResponse {
 }
 /**
  * ProofOp defines an operation used for calculating Merkle root. The data could
- * be arbitrary format, providing nessecary data for example neighbouring node
+ * be arbitrary format, providing necessary data for example neighbouring node
  * hash.
  *
- * Note: This type is a duplicate of the ProofOp proto type defined in
- * Tendermint.
+ * Note: This type is a duplicate of the ProofOp proto type defined in Tendermint.
  */
 
 export interface ProofOp {
@@ -196,8 +167,7 @@ export interface ProofOp {
 /**
  * ProofOps is Merkle proof defined by the list of ProofOps.
  *
- * Note: This type is a duplicate of the ProofOps proto type defined in
- * Tendermint.
+ * Note: This type is a duplicate of the ProofOps proto type defined in Tendermint.
  */
 
 export interface ProofOps {
@@ -1782,9 +1752,9 @@ export interface Service {
 
   GetValidatorSetByHeight(request: GetValidatorSetByHeightRequest): Promise<GetValidatorSetByHeightResponse>;
   /**
-   * ABCIQuery defines a query handler that supports ABCI queries directly to
-   * the application, bypassing Tendermint completely. The ABCI query must
-   * contain a valid and supported path, including app, custom, p2p, and store.
+   * ABCIQuery defines a query handler that supports ABCI queries directly to the
+   * application, bypassing Tendermint completely. The ABCI query must contain
+   * a valid and supported path, including app, custom, p2p, and store.
    *
    * Since: cosmos-sdk 0.46
    */

@@ -1,0 +1,29 @@
+syntax = "proto3";
+package aioz.cron.v1;
+
+option go_package = "github.com/AIOZNetwork/go-aioz/x/cron/types";
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+// Params holds parameters for the cron module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  bool enabled = 1;
+}
+
+// Ids defines an array of cron ids.
+message Ids {
+  repeated string ids = 1;
+}
+
+// BaseEntry defines a base entry type. It contains all the necessary fields
+// for basic entry functionality. Any custom entry type should extend this
+// type for additional functionality.
+message BaseEntry {
+  string module                       = 1;
+  string id                           = 2;
+  string crontab                      = 3;
+  google.protobuf.Timestamp next_time = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+}

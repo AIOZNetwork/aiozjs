@@ -3,7 +3,7 @@ import { Duration } from "../../../google/protobuf/duration";
 import * as _m0 from "protobufjs/minimal";
 import { isSet, DeepPartial, Exact } from "../../../helpers";
 export const protobufPackage = "aioz.staking.v1beta1";
-/** Params defines the parameters for the staking module. */
+/** Params defines the parameters for the x/staking module. */
 
 export interface Params {
   /** unbonding_time is the time duration of unbonding. */

@@ -3,6 +3,7 @@ package aioz.bonus.v1;
 
 import "gogoproto/gogo.proto";
 import "aioz/bonus/v1/params.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/AIOZNetwork/go-aioz/x/bonus/types";
 
@@ -10,5 +11,5 @@ option go_package = "github.com/AIOZNetwork/go-aioz/x/bonus/types";
 message GenesisState {
 
   // params defines all the parameters of the module.
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
 }
