@@ -106,8 +106,9 @@ export { GravityExtension, setupGravityExtension } from "./gravity/queries";
 export { AminoMsgTransfer, createIbcAminoConverters, isAminoMsgTransfer } from "./ibc/aminomessages";
 export { ibcTypes, isMsgTransferEncodeObject, MsgTransferEncodeObject } from "./ibc/messages";
 export { IbcExtension, setupIbcExtension } from "./ibc/queries";
-export { parseChainIdRevision } from "./ibc/utils";
 export { MintExtension, MintParams, setupMintExtension } from "./mint/queries";
+export { AminoMsgUnjail, createSlashingAminoConverters, isAminoMsgUnjail } from "./slashing/aminomessages";
+export { setupSlashingExtension, SlashingExtension } from "./slashing/queries";
 export {
   AminoMsgBeginRedelegate,
   AminoMsgCreateValidator,
@@ -123,11 +124,13 @@ export {
 } from "./sdkstaking/aminomessages";
 export {
   isMsgBeginRedelegateEncodeObject,
+  isMsgCancelUnbondingDelegationEncodeObject,
   isMsgCreateValidatorEncodeObject,
   isMsgDelegateEncodeObject,
   isMsgEditValidatorEncodeObject,
   isMsgUndelegateEncodeObject,
   MsgBeginRedelegateEncodeObject,
+  MsgCancelUnbondingDelegationEncodeObject,
   MsgCreateValidatorEncodeObject,
   MsgDelegateEncodeObject,
   MsgEditValidatorEncodeObject,
@@ -135,8 +138,6 @@ export {
   stakingTypes,
 } from "./sdkstaking/messages";
 export { SdkStakingExtension, setupSdkStakingExtension } from "./sdkstaking/queries";
-export { AminoMsgUnjail, createSlashingAminoConverters, isAminoMsgUnjail } from "./slashing/aminomessages";
-export { setupSlashingExtension, SlashingExtension } from "./slashing/queries";
 export { setupStakingExtension, StakingExtension } from "./staking/queries";
 export { setupTxExtension, TxExtension } from "./tx/queries";
 export {

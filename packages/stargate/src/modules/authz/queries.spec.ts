@@ -1,6 +1,6 @@
 import { makeCosmoshubPath } from "@cosmjs/amino";
 import { coins, DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
-import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { CometClient, Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { assertDefined, sleep } from "@cosmjs/utils";
 import { GenericAuthorization } from "cosmjs-types/cosmos/authz/v1beta1/authz";
 
@@ -11,18 +11,16 @@ import {
   defaultSigningClientOptions,
   faucet,
   makeRandomAddress,
-  pendingWithoutSimapp44Or46,
+  pendingWithoutSimapp,
+  pendingWithoutSimapp46OrHigher,
   simapp,
-  simapp44Enabled,
-  simapp46Enabled,
+  simappEnabled,
 } from "../../testutils.spec";
 import { AuthzExtension, setupAuthzExtension } from "./queries";
 
-async function makeClientWithAuthz(
-  rpcUrl: string,
-): Promise<[QueryClient & AuthzExtension, Tendermint34Client]> {
-  const tmClient = await Tendermint34Client.connect(rpcUrl);
-  return [QueryClient.withExtensions(tmClient, setupAuthzExtension), tmClient];
+async function makeClientWithAuthz(rpcUrl: string): Promise<[QueryClient & AuthzExtension, CometClient]> {
+  const cometClient = await Tendermint34Client.connect(rpcUrl);
+  return [QueryClient.withExtensions(cometClient, setupAuthzExtension), cometClient];
 }
 
 describe("AuthzExtension", () => {
@@ -36,14 +34,14 @@ describe("AuthzExtension", () => {
   const grantedMsg = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward";
 
   beforeAll(async () => {
-    if (simapp44Enabled() || simapp46Enabled()) {
+    if (simappEnabled()) {
       const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic, {
         // Use address 1 and 2 instead of 0 to avoid conflicts with other delegation tests
         // This must match `voterAddress` above.
         hdPaths: [makeCosmoshubPath(1), makeCosmoshubPath(2)],
       });
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         wallet,
         defaultSigningClientOptions,
       );
@@ -80,8 +78,8 @@ describe("AuthzExtension", () => {
 
   describe("grants", () => {
     it("works", async () => {
-      pendingWithoutSimapp44Or46();
-      const [client, tmClient] = await makeClientWithAuthz(simapp.tendermintUrl);
+      pendingWithoutSimapp();
+      const [client, cometClient] = await makeClientWithAuthz(simapp.tendermintUrlHttp);
       const response = await client.authz.grants(granter1Address, grantee1Address, "");
       expect(response.grants.length).toEqual(1);
       const grant = response.grants[0];
@@ -95,10 +93,69 @@ describe("AuthzExtension", () => {
       // Decode the message
       const msgDecoded = GenericAuthorization.decode(grant.authorization.value).msg;
 
-      // Check if its the same one then we granted
+      // Check if it's the same one then we granted
       expect(msgDecoded).toEqual(grantedMsg);
 
-      tmClient.disconnect();
+      cometClient.disconnect();
+    });
+  });
+
+  describe("granter grants", () => {
+    it("works", async () => {
+      pendingWithoutSimapp46OrHigher();
+      const [client, cometClient] = await makeClientWithAuthz(simapp.tendermintUrlHttp);
+      const response = await client.authz.granterGrants(granter1Address);
+      expect(response.grants.length).toBeGreaterThanOrEqual(1);
+      const grant = response.grants.find(
+        (g) => g.granter == granter1Address && g.grantee === grantee1Address,
+      );
+      assertDefined(grant, "Grant not found");
+
+      // Needs to respond with a grant
+      assertDefined(grant.authorization);
+
+      // Needs to have the correct granter and grantee
+      expect(grant.granter).toEqual(granter1Address);
+      expect(grant.grantee).toEqual(grantee1Address);
+
+      // Needs to be GenericAuthorization to decode it below
+      expect(grant.authorization.typeUrl).toEqual("/cosmos.authz.v1beta1.GenericAuthorization");
+
+      // Decode the message
+      const msgDecoded = GenericAuthorization.decode(grant.authorization.value).msg;
+
+      // Check if it's the same one then we granted
+      expect(msgDecoded).toEqual(grantedMsg);
+
+      cometClient.disconnect();
+    });
+  });
+
+  describe("grantee grants", () => {
+    it("works", async () => {
+      pendingWithoutSimapp46OrHigher();
+      const [client, cometClient] = await makeClientWithAuthz(simapp.tendermintUrlHttp);
+      const response = await client.authz.granteeGrants(grantee1Address);
+      expect(response.grants.length).toEqual(1);
+      const grant = response.grants[0];
+
+      // Needs to respond with a grant
+      assertDefined(grant.authorization);
+
+      // Needs to have the correct granter and grantee
+      expect(grant.granter).toEqual(granter1Address);
+      expect(grant.grantee).toEqual(grantee1Address);
+
+      // Needs to be GenericAuthorization to decode it below
+      expect(grant.authorization.typeUrl).toEqual("/cosmos.authz.v1beta1.GenericAuthorization");
+
+      // Decode the message
+      const msgDecoded = GenericAuthorization.decode(grant.authorization.value).msg;
+
+      // Check if it's the same one then we granted
+      expect(msgDecoded).toEqual(grantedMsg);
+
+      cometClient.disconnect();
     });
   });
 });

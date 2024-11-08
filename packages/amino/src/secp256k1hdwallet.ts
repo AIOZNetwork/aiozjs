@@ -11,10 +11,10 @@ import {
   Slip10Curve,
   stringToPath,
 } from "@cosmjs/crypto";
-import { fromBase64, fromUtf8, toBase64, toUtf8, Bech32 } from "@cosmjs/encoding";
+import { fromBase64, fromUtf8, toBase64, toBech32, toUtf8 } from "@cosmjs/encoding";
 import { assert, isNonNullObject } from "@cosmjs/utils";
 
-import { rawSecp256k1PubkeyToRawAddress, ethAddressChecksumRaw } from "./addresses";
+import { ethAddressChecksumRaw, rawSecp256k1PubkeyToRawAddress } from "./addresses";
 import { makeCosmoshubPath } from "./paths";
 import { encodeSecp256k1Signature } from "./signature";
 import { serializeSignDoc, StdSignDoc } from "./signdoc";
@@ -266,7 +266,7 @@ export class Secp256k1HdWallet implements OfflineAminoSigner {
       algo: algo,
       pubkey: pubkey,
       address: address,
-      addressHex: addressHex
+      addressHex: addressHex,
     }));
   }
 
@@ -347,14 +347,14 @@ export class Secp256k1HdWallet implements OfflineAminoSigner {
     return Promise.all(
       this.accounts.map(async ({ hdPath, prefix }) => {
         const { privkey, pubkey } = await this.getKeyPair(hdPath);
-        const address = Bech32.encode(prefix, rawSecp256k1PubkeyToRawAddress(pubkey));
+        const address = toBech32(prefix, rawSecp256k1PubkeyToRawAddress(pubkey));
         const addressHex = ethAddressChecksumRaw(rawSecp256k1PubkeyToRawAddress(pubkey));
         return {
           algo: "secp256k1" as const,
           privkey: privkey,
           pubkey: pubkey,
           address: address,
-          addressHex: addressHex
+          addressHex: addressHex,
         };
       }),
     );

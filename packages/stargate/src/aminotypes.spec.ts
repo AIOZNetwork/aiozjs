@@ -45,7 +45,7 @@ describe("AminoTypes", () => {
 
     it("can override type with Amino type collision", () => {
       const types = new AminoTypes({
-        ...createSdkStakingAminoConverters("cosmos"),
+        ...createSdkStakingAminoConverters(),
         "/cosmos.staking.otherVersion456.MsgDelegate": {
           aminoType: "cosmos-sdk/MsgDelegate",
           toAmino: (m: MsgDelegate): { readonly foo: string } => ({
@@ -190,17 +190,6 @@ describe("AminoTypes", () => {
           amount: coin(1234, "ucosm"),
         },
       });
-    });
-
-    it("throws for types which are not on chain yet", () => {
-      expect(() => {
-        new AminoTypes({ "/cosmos.feegrant.v1beta1.MsgRevokeAllowance": "not_supported_by_chain" }).toAmino({
-          typeUrl: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance",
-          value: 0,
-        });
-      }).toThrowError(
-        /The message type '\/cosmos.feegrant.v1beta1.MsgRevokeAllowance' cannot be signed using the Amino JSON sign mode because this is not supported by chain./i,
-      );
     });
 
     it("throws for unknown type url", () => {

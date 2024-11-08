@@ -1,32 +1,9 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EthAccount = exports.protobufPackage = void 0;
 /* eslint-disable */
 const auth_1 = require("../../../cosmos/auth/v1beta1/auth");
-const _m0 = __importStar(require("protobufjs/minimal"));
+const binary_1 = require("../../../binary");
 const helpers_1 = require("../../../helpers");
 exports.protobufPackage = "ethermint.types.v1";
 function createBaseEthAccount() {
@@ -36,7 +13,8 @@ function createBaseEthAccount() {
     };
 }
 exports.EthAccount = {
-    encode(message, writer = _m0.Writer.create()) {
+    typeUrl: "/ethermint.types.v1.EthAccount",
+    encode(message, writer = binary_1.BinaryWriter.create()) {
         if (message.baseAccount !== undefined) {
             auth_1.BaseAccount.encode(message.baseAccount, writer.uint32(10).fork()).ldelim();
         }
@@ -46,7 +24,7 @@ exports.EthAccount = {
         return writer;
     },
     decode(input, length) {
-        const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+        const reader = input instanceof binary_1.BinaryReader ? input : new binary_1.BinaryReader(input);
         let end = length === undefined ? reader.len : reader.pos + length;
         const message = createBaseEthAccount();
         while (reader.pos < end) {
@@ -66,10 +44,12 @@ exports.EthAccount = {
         return message;
     },
     fromJSON(object) {
-        return {
-            baseAccount: (0, helpers_1.isSet)(object.baseAccount) ? auth_1.BaseAccount.fromJSON(object.baseAccount) : undefined,
-            codeHash: (0, helpers_1.isSet)(object.codeHash) ? String(object.codeHash) : "",
-        };
+        const obj = createBaseEthAccount();
+        if ((0, helpers_1.isSet)(object.baseAccount))
+            obj.baseAccount = auth_1.BaseAccount.fromJSON(object.baseAccount);
+        if ((0, helpers_1.isSet)(object.codeHash))
+            obj.codeHash = String(object.codeHash);
+        return obj;
     },
     toJSON(message) {
         const obj = {};
@@ -80,10 +60,9 @@ exports.EthAccount = {
     },
     fromPartial(object) {
         const message = createBaseEthAccount();
-        message.baseAccount =
-            object.baseAccount !== undefined && object.baseAccount !== null
-                ? auth_1.BaseAccount.fromPartial(object.baseAccount)
-                : undefined;
+        if (object.baseAccount !== undefined && object.baseAccount !== null) {
+            message.baseAccount = auth_1.BaseAccount.fromPartial(object.baseAccount);
+        }
         message.codeHash = object.codeHash ?? "";
         return message;
     },

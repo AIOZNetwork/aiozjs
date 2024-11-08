@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Secp256k1, Secp256k1Signature, keccak256 } from "@cosmjs/crypto";
+import { keccak256, Secp256k1, Secp256k1Signature } from "@cosmjs/crypto";
 import { fromBase64, fromHex } from "@cosmjs/encoding";
 
+import { addressToHex } from "./addresses";
+import { EthSecp256k1HdWallet, extractKdfConfiguration } from "./ethsecp256k1hdwallet";
 import { makeEthPath } from "./paths";
-import { extractKdfConfiguration, EthSecp256k1HdWallet } from "./ethsecp256k1hdwallet";
 import { serializeSignDoc, StdSignDoc } from "./signdoc";
 import { base64Matcher } from "./testutils.spec";
 import { executeKdf, KdfConfiguration } from "./wallet";
-import { addressToHex } from "./addresses";
 
 describe("EthSecp256k1HdWallet", () => {
   // m/44'/118'/0'/0/0
@@ -155,7 +155,10 @@ describe("EthSecp256k1HdWallet", () => {
       {
         const kdfConfiguration = extractKdfConfiguration(serialized);
         const encryptionKey = await executeKdf(password, kdfConfiguration);
-        const deserialized = await EthSecp256k1HdWallet.deserializeWithEncryptionKey(serialized, encryptionKey);
+        const deserialized = await EthSecp256k1HdWallet.deserializeWithEncryptionKey(
+          serialized,
+          encryptionKey,
+        );
         expect(deserialized.mnemonic).toEqual(defaultMnemonic);
         expect(await deserialized.getAccounts()).toEqual([
           {
@@ -177,7 +180,10 @@ describe("EthSecp256k1HdWallet", () => {
       const hdPaths = accountNumbers.map(makeEthPath);
       let serialized: string;
       {
-        const original = await EthSecp256k1HdWallet.fromMnemonic(mnemonic, { prefix: prefix, hdPaths: hdPaths });
+        const original = await EthSecp256k1HdWallet.fromMnemonic(mnemonic, {
+          prefix: prefix,
+          hdPaths: hdPaths,
+        });
         const anyKdfParams: KdfConfiguration = {
           algorithm: "argon2id",
           params: {
@@ -193,7 +199,10 @@ describe("EthSecp256k1HdWallet", () => {
       {
         const kdfConfiguration = extractKdfConfiguration(serialized);
         const encryptionKey = await executeKdf(password, kdfConfiguration);
-        const deserialized = await EthSecp256k1HdWallet.deserializeWithEncryptionKey(serialized, encryptionKey);
+        const deserialized = await EthSecp256k1HdWallet.deserializeWithEncryptionKey(
+          serialized,
+          encryptionKey,
+        );
         const accounts = await deserialized.getAccounts();
 
         expect(deserialized.mnemonic).toEqual(mnemonic);

@@ -15,6 +15,8 @@ export {
 // The public Tendermint34Client.create constructor allows manually choosing an RpcClient.
 // This is currently the only way to switch to the HttpBatchClient (which may become default at some point).
 // Due to this API, we make RPC client implementations public.
+export * as comet38 from "./comet38";
+export { Comet38Client } from "./comet38";
 export {
   HttpBatchClient,
   HttpBatchClientOptions,
@@ -95,10 +97,16 @@ export {
 } from "./tendermint34";
 export * as tendermint34 from "./tendermint34";
 export { Tendermint34Client } from "./tendermint34";
-// Tendermint 0.35 support is not public. The implementation may break or be removed at any point in time.
-// See https://github.com/cosmos/cosmjs/issues/1225 for more context.
-// export * as tendermint35 from "./tendermint35";
-// export { Tendermint35Client } from "./tendermint35";
+export * as tendermint37 from "./tendermint37";
+export { Tendermint37Client } from "./tendermint37";
+export {
+  CometClient,
+  connectComet,
+  isComet38Client,
+  isTendermint34Client,
+  isTendermint37Client,
+  TendermintClient,
+} from "./tendermintclient";
 export {
   BlockIdFlag,
   CommitSignature,

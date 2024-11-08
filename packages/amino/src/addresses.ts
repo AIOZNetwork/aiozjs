@@ -1,7 +1,7 @@
 // See https://github.com/tendermint/tendermint/blob/f2ada0a604b4c0763bda2f64fac53d506d3beca7/docs/spec/blockchain/encoding.md#public-key-cryptography
 
 import { keccak256, ripemd160, Secp256k1, sha256 } from "@cosmjs/crypto";
-import { Bech32, fromBase64, fromHex, toHex, toUtf8 } from "@cosmjs/encoding";
+import { fromBase64, fromBech32, fromHex, toBech32, toHex, toUtf8 } from "@cosmjs/encoding";
 
 import { encodeAminoPubkey } from "./encoding";
 import {
@@ -108,7 +108,7 @@ export function isValidHexAddress(input: string): boolean {
 
 export function isValidBech32Address(input: string, requiredPrefix: string): boolean {
   try {
-    const { prefix, data } = Bech32.decode(input);
+    const { prefix, data } = fromBech32(input);
     if (prefix !== requiredPrefix) {
       return false;
     }
@@ -123,7 +123,7 @@ export function hexToAddress(address: string, prefix: string): string {
     return address;
   }
   if (isValidHexAddress(address)) {
-    return Bech32.encode(prefix, fromHex(address.slice(2).toLowerCase()));
+    return toBech32(prefix, fromHex(address.slice(2).toLowerCase()));
   }
   throw new Error("address is invalid");
 }
@@ -132,12 +132,12 @@ export function addressToHex(address: string): string {
   if (isValidHexAddress(address)) {
     return address;
   }
-  const { data } = Bech32.decode(address);
+  const { data } = fromBech32(address);
   return ethAddressChecksumRaw(data);
 }
 
 export function pubkeyToAddress(pubkey: Pubkey, prefix: string): string {
-  return Bech32.encode(prefix, pubkeyToRawAddress(pubkey));
+  return toBech32(prefix, pubkeyToRawAddress(pubkey));
 }
 
 export function pubkeyToAddressHex(pubkey: Pubkey): string {

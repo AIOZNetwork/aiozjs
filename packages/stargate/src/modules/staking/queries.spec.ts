@@ -16,7 +16,7 @@ describe("StakingExtension", () => {
   describe("params", () => {
     it("works", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithStaking(simapp.tendermintUrl);
+      const [client, tmClient] = await makeClientWithStaking(simapp.tendermintUrlHttp);
 
       const response = await client.staking.params();
       expect(response.params).toBeDefined();

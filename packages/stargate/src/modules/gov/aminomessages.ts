@@ -5,7 +5,6 @@ import { assert, assertDefinedAndNotNull, isNonNullObject } from "@cosmjs/utils"
 import { TextProposal, voteOptionFromJSON } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { MsgDeposit, MsgSubmitProposal, MsgVote, MsgVoteWeighted } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { Any } from "cosmjs-types/google/protobuf/any";
-import Long from "long";
 
 import { AminoConverters } from "../../aminotypes";
 import { decodeCosmosSdkDecFromProto } from "../../queryclient";
@@ -103,6 +102,9 @@ export function isAminoMsgDeposit(msg: AminoMsg): msg is AminoMsgDeposit {
 }
 
 export function createGovAminoConverters(): AminoConverters {
+  // Gov v1 types missing, see
+  // https://github.com/cosmos/cosmjs/issues/1442
+
   return {
     "/cosmos.gov.v1beta1.MsgDeposit": {
       aminoType: "cosmos-sdk/MsgDeposit",
@@ -117,7 +119,7 @@ export function createGovAminoConverters(): AminoConverters {
         return {
           amount: Array.from(amount),
           depositor,
-          proposalId: Long.fromString(proposal_id),
+          proposalId: BigInt(proposal_id),
         };
       },
     },
@@ -133,7 +135,7 @@ export function createGovAminoConverters(): AminoConverters {
       fromAmino: ({ option, proposal_id, voter }: AminoMsgVote["value"]): MsgVote => {
         return {
           option: voteOptionFromJSON(option),
-          proposalId: Long.fromString(proposal_id),
+          proposalId: BigInt(proposal_id),
           voter: voter,
         };
       },
@@ -154,7 +156,7 @@ export function createGovAminoConverters(): AminoConverters {
       },
       fromAmino: ({ options, proposal_id, voter }: AminoMsgVoteWeighted["value"]): MsgVoteWeighted => {
         return {
-          proposalId: Long.fromString(proposal_id),
+          proposalId: BigInt(proposal_id),
           voter: voter,
           options: options.map((o) => ({
             option: voteOptionFromJSON(o.option),

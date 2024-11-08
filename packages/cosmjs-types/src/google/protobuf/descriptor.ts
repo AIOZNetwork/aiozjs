@@ -1,6 +1,7 @@
 /* eslint-disable */
-import * as _m0 from "protobufjs/minimal";
-import { DeepPartial, Exact, isSet, Long, bytesFromBase64, base64FromBytes } from "../../helpers";
+import { BinaryReader, BinaryWriter } from "../../binary";
+import { JsonSafe } from "../../json-safe";
+import { DeepPartial, Exact, isSet, bytesFromBase64, base64FromBytes } from "../../helpers";
 export const protobufPackage = "google.protobuf";
 export enum FieldDescriptorProto_Type {
   /**
@@ -9,14 +10,12 @@ export enum FieldDescriptorProto_Type {
    */
   TYPE_DOUBLE = 1,
   TYPE_FLOAT = 2,
-
   /**
    * TYPE_INT64 - Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT64 if
    * negative values are likely.
    */
   TYPE_INT64 = 3,
   TYPE_UINT64 = 4,
-
   /**
    * TYPE_INT32 - Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT32 if
    * negative values are likely.
@@ -26,7 +25,6 @@ export enum FieldDescriptorProto_Type {
   TYPE_FIXED32 = 7,
   TYPE_BOOL = 8,
   TYPE_STRING = 9,
-
   /**
    * TYPE_GROUP - Tag-delimited aggregate.
    * Group type is deprecated and not supported in proto3. However, Proto3
@@ -34,18 +32,16 @@ export enum FieldDescriptorProto_Type {
    * treat group fields as unknown fields.
    */
   TYPE_GROUP = 10,
+  /** TYPE_MESSAGE - Length-delimited aggregate. */
   TYPE_MESSAGE = 11,
-
   /** TYPE_BYTES - New in version 2. */
   TYPE_BYTES = 12,
   TYPE_UINT32 = 13,
   TYPE_ENUM = 14,
   TYPE_SFIXED32 = 15,
   TYPE_SFIXED64 = 16,
-
   /** TYPE_SINT32 - Uses ZigZag encoding. */
   TYPE_SINT32 = 17,
-
   /** TYPE_SINT64 - Uses ZigZag encoding. */
   TYPE_SINT64 = 18,
   UNRECOGNIZED = -1,
@@ -55,75 +51,57 @@ export function fieldDescriptorProto_TypeFromJSON(object: any): FieldDescriptorP
     case 1:
     case "TYPE_DOUBLE":
       return FieldDescriptorProto_Type.TYPE_DOUBLE;
-
     case 2:
     case "TYPE_FLOAT":
       return FieldDescriptorProto_Type.TYPE_FLOAT;
-
     case 3:
     case "TYPE_INT64":
       return FieldDescriptorProto_Type.TYPE_INT64;
-
     case 4:
     case "TYPE_UINT64":
       return FieldDescriptorProto_Type.TYPE_UINT64;
-
     case 5:
     case "TYPE_INT32":
       return FieldDescriptorProto_Type.TYPE_INT32;
-
     case 6:
     case "TYPE_FIXED64":
       return FieldDescriptorProto_Type.TYPE_FIXED64;
-
     case 7:
     case "TYPE_FIXED32":
       return FieldDescriptorProto_Type.TYPE_FIXED32;
-
     case 8:
     case "TYPE_BOOL":
       return FieldDescriptorProto_Type.TYPE_BOOL;
-
     case 9:
     case "TYPE_STRING":
       return FieldDescriptorProto_Type.TYPE_STRING;
-
     case 10:
     case "TYPE_GROUP":
       return FieldDescriptorProto_Type.TYPE_GROUP;
-
     case 11:
     case "TYPE_MESSAGE":
       return FieldDescriptorProto_Type.TYPE_MESSAGE;
-
     case 12:
     case "TYPE_BYTES":
       return FieldDescriptorProto_Type.TYPE_BYTES;
-
     case 13:
     case "TYPE_UINT32":
       return FieldDescriptorProto_Type.TYPE_UINT32;
-
     case 14:
     case "TYPE_ENUM":
       return FieldDescriptorProto_Type.TYPE_ENUM;
-
     case 15:
     case "TYPE_SFIXED32":
       return FieldDescriptorProto_Type.TYPE_SFIXED32;
-
     case 16:
     case "TYPE_SFIXED64":
       return FieldDescriptorProto_Type.TYPE_SFIXED64;
-
     case 17:
     case "TYPE_SINT32":
       return FieldDescriptorProto_Type.TYPE_SINT32;
-
     case 18:
     case "TYPE_SINT64":
       return FieldDescriptorProto_Type.TYPE_SINT64;
-
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -134,58 +112,40 @@ export function fieldDescriptorProto_TypeToJSON(object: FieldDescriptorProto_Typ
   switch (object) {
     case FieldDescriptorProto_Type.TYPE_DOUBLE:
       return "TYPE_DOUBLE";
-
     case FieldDescriptorProto_Type.TYPE_FLOAT:
       return "TYPE_FLOAT";
-
     case FieldDescriptorProto_Type.TYPE_INT64:
       return "TYPE_INT64";
-
     case FieldDescriptorProto_Type.TYPE_UINT64:
       return "TYPE_UINT64";
-
     case FieldDescriptorProto_Type.TYPE_INT32:
       return "TYPE_INT32";
-
     case FieldDescriptorProto_Type.TYPE_FIXED64:
       return "TYPE_FIXED64";
-
     case FieldDescriptorProto_Type.TYPE_FIXED32:
       return "TYPE_FIXED32";
-
     case FieldDescriptorProto_Type.TYPE_BOOL:
       return "TYPE_BOOL";
-
     case FieldDescriptorProto_Type.TYPE_STRING:
       return "TYPE_STRING";
-
     case FieldDescriptorProto_Type.TYPE_GROUP:
       return "TYPE_GROUP";
-
     case FieldDescriptorProto_Type.TYPE_MESSAGE:
       return "TYPE_MESSAGE";
-
     case FieldDescriptorProto_Type.TYPE_BYTES:
       return "TYPE_BYTES";
-
     case FieldDescriptorProto_Type.TYPE_UINT32:
       return "TYPE_UINT32";
-
     case FieldDescriptorProto_Type.TYPE_ENUM:
       return "TYPE_ENUM";
-
     case FieldDescriptorProto_Type.TYPE_SFIXED32:
       return "TYPE_SFIXED32";
-
     case FieldDescriptorProto_Type.TYPE_SFIXED64:
       return "TYPE_SFIXED64";
-
     case FieldDescriptorProto_Type.TYPE_SINT32:
       return "TYPE_SINT32";
-
     case FieldDescriptorProto_Type.TYPE_SINT64:
       return "TYPE_SINT64";
-
     case FieldDescriptorProto_Type.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -203,15 +163,12 @@ export function fieldDescriptorProto_LabelFromJSON(object: any): FieldDescriptor
     case 1:
     case "LABEL_OPTIONAL":
       return FieldDescriptorProto_Label.LABEL_OPTIONAL;
-
     case 2:
     case "LABEL_REQUIRED":
       return FieldDescriptorProto_Label.LABEL_REQUIRED;
-
     case 3:
     case "LABEL_REPEATED":
       return FieldDescriptorProto_Label.LABEL_REPEATED;
-
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -222,30 +179,21 @@ export function fieldDescriptorProto_LabelToJSON(object: FieldDescriptorProto_La
   switch (object) {
     case FieldDescriptorProto_Label.LABEL_OPTIONAL:
       return "LABEL_OPTIONAL";
-
     case FieldDescriptorProto_Label.LABEL_REQUIRED:
       return "LABEL_REQUIRED";
-
     case FieldDescriptorProto_Label.LABEL_REPEATED:
       return "LABEL_REPEATED";
-
     case FieldDescriptorProto_Label.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
 }
 /** Generated classes can be optimized for speed or code size. */
-
 export enum FileOptions_OptimizeMode {
-  /**
-   * SPEED - Generate complete code for parsing, serialization,
-   * etc.
-   */
+  /** SPEED - Generate complete code for parsing, serialization, */
   SPEED = 1,
-
-  /** CODE_SIZE - Use ReflectionOps to implement these methods. */
+  /** CODE_SIZE - etc. */
   CODE_SIZE = 2,
-
   /** LITE_RUNTIME - Generate code using MessageLite and the lite runtime. */
   LITE_RUNTIME = 3,
   UNRECOGNIZED = -1,
@@ -255,15 +203,12 @@ export function fileOptions_OptimizeModeFromJSON(object: any): FileOptions_Optim
     case 1:
     case "SPEED":
       return FileOptions_OptimizeMode.SPEED;
-
     case 2:
     case "CODE_SIZE":
       return FileOptions_OptimizeMode.CODE_SIZE;
-
     case 3:
     case "LITE_RUNTIME":
       return FileOptions_OptimizeMode.LITE_RUNTIME;
-
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -274,13 +219,10 @@ export function fileOptions_OptimizeModeToJSON(object: FileOptions_OptimizeMode)
   switch (object) {
     case FileOptions_OptimizeMode.SPEED:
       return "SPEED";
-
     case FileOptions_OptimizeMode.CODE_SIZE:
       return "CODE_SIZE";
-
     case FileOptions_OptimizeMode.LITE_RUNTIME:
       return "LITE_RUNTIME";
-
     case FileOptions_OptimizeMode.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -298,15 +240,12 @@ export function fieldOptions_CTypeFromJSON(object: any): FieldOptions_CType {
     case 0:
     case "STRING":
       return FieldOptions_CType.STRING;
-
     case 1:
     case "CORD":
       return FieldOptions_CType.CORD;
-
     case 2:
     case "STRING_PIECE":
       return FieldOptions_CType.STRING_PIECE;
-
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -317,13 +256,10 @@ export function fieldOptions_CTypeToJSON(object: FieldOptions_CType): string {
   switch (object) {
     case FieldOptions_CType.STRING:
       return "STRING";
-
     case FieldOptions_CType.CORD:
       return "CORD";
-
     case FieldOptions_CType.STRING_PIECE:
       return "STRING_PIECE";
-
     case FieldOptions_CType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -332,10 +268,8 @@ export function fieldOptions_CTypeToJSON(object: FieldOptions_CType): string {
 export enum FieldOptions_JSType {
   /** JS_NORMAL - Use the default type. */
   JS_NORMAL = 0,
-
   /** JS_STRING - Use JavaScript strings. */
   JS_STRING = 1,
-
   /** JS_NUMBER - Use JavaScript numbers. */
   JS_NUMBER = 2,
   UNRECOGNIZED = -1,
@@ -345,15 +279,12 @@ export function fieldOptions_JSTypeFromJSON(object: any): FieldOptions_JSType {
     case 0:
     case "JS_NORMAL":
       return FieldOptions_JSType.JS_NORMAL;
-
     case 1:
     case "JS_STRING":
       return FieldOptions_JSType.JS_STRING;
-
     case 2:
     case "JS_NUMBER":
       return FieldOptions_JSType.JS_NUMBER;
-
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -364,13 +295,10 @@ export function fieldOptions_JSTypeToJSON(object: FieldOptions_JSType): string {
   switch (object) {
     case FieldOptions_JSType.JS_NORMAL:
       return "JS_NORMAL";
-
     case FieldOptions_JSType.JS_STRING:
       return "JS_STRING";
-
     case FieldOptions_JSType.JS_NUMBER:
       return "JS_NUMBER";
-
     case FieldOptions_JSType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -381,13 +309,10 @@ export function fieldOptions_JSTypeToJSON(object: FieldOptions_JSType): string {
  * or neither? HTTP based RPC implementation may choose GET verb for safe
  * methods, and PUT verb for idempotent methods instead of the default POST.
  */
-
 export enum MethodOptions_IdempotencyLevel {
   IDEMPOTENCY_UNKNOWN = 0,
-
   /** NO_SIDE_EFFECTS - implies idempotent */
   NO_SIDE_EFFECTS = 1,
-
   /** IDEMPOTENT - idempotent, but may have side effects */
   IDEMPOTENT = 2,
   UNRECOGNIZED = -1,
@@ -397,15 +322,12 @@ export function methodOptions_IdempotencyLevelFromJSON(object: any): MethodOptio
     case 0:
     case "IDEMPOTENCY_UNKNOWN":
       return MethodOptions_IdempotencyLevel.IDEMPOTENCY_UNKNOWN;
-
     case 1:
     case "NO_SIDE_EFFECTS":
       return MethodOptions_IdempotencyLevel.NO_SIDE_EFFECTS;
-
     case 2:
     case "IDEMPOTENT":
       return MethodOptions_IdempotencyLevel.IDEMPOTENT;
-
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -416,13 +338,10 @@ export function methodOptions_IdempotencyLevelToJSON(object: MethodOptions_Idemp
   switch (object) {
     case MethodOptions_IdempotencyLevel.IDEMPOTENCY_UNKNOWN:
       return "IDEMPOTENCY_UNKNOWN";
-
     case MethodOptions_IdempotencyLevel.NO_SIDE_EFFECTS:
       return "NO_SIDE_EFFECTS";
-
     case MethodOptions_IdempotencyLevel.IDEMPOTENT:
       return "IDEMPOTENT";
-
     case MethodOptions_IdempotencyLevel.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -432,30 +351,25 @@ export function methodOptions_IdempotencyLevelToJSON(object: MethodOptions_Idemp
  * The protocol compiler can output a FileDescriptorSet containing the .proto
  * files it parses.
  */
-
 export interface FileDescriptorSet {
   file: FileDescriptorProto[];
 }
 /** Describes a complete .proto file. */
-
 export interface FileDescriptorProto {
   /** file name, relative to root of source tree */
   name: string;
+  /** e.g. "foo", "foo.bar", etc. */
   package: string;
   /** Names of files imported by this file. */
-
   dependency: string[];
   /** Indexes of the public imported files in the dependency list above. */
-
   publicDependency: number[];
   /**
    * Indexes of the weak imported files in the dependency list.
    * For Google-internal migration only. Do not use.
    */
-
   weakDependency: number[];
   /** All top-level definitions in this file. */
-
   messageType: DescriptorProto[];
   enumType: EnumDescriptorProto[];
   service: ServiceDescriptorProto[];
@@ -467,17 +381,14 @@ export interface FileDescriptorProto {
    * functionality of the descriptors -- the information is needed only by
    * development tools.
    */
-
   sourceCodeInfo?: SourceCodeInfo;
   /**
    * The syntax of the proto file.
    * The supported values are "proto2" and "proto3".
    */
-
   syntax: string;
 }
 /** Describes a message type. */
-
 export interface DescriptorProto {
   name: string;
   field: FieldDescriptorProto[];
@@ -492,14 +403,12 @@ export interface DescriptorProto {
    * Reserved field names, which may not be used by fields in the same message.
    * A given name may only be reserved once.
    */
-
   reservedName: string[];
 }
 export interface DescriptorProto_ExtensionRange {
   /** Inclusive. */
   start: number;
   /** Exclusive. */
-
   end: number;
   options?: ExtensionRangeOptions;
 }
@@ -508,12 +417,10 @@ export interface DescriptorProto_ExtensionRange {
  * fields or extension ranges in the same message. Reserved ranges may
  * not overlap.
  */
-
 export interface DescriptorProto_ReservedRange {
   /** Inclusive. */
   start: number;
   /** Exclusive. */
-
   end: number;
 }
 export interface ExtensionRangeOptions {
@@ -521,7 +428,6 @@ export interface ExtensionRangeOptions {
   uninterpretedOption: UninterpretedOption[];
 }
 /** Describes a field within a message. */
-
 export interface FieldDescriptorProto {
   name: string;
   number: number;
@@ -530,7 +436,6 @@ export interface FieldDescriptorProto {
    * If type_name is set, this need not be set.  If both this and type_name
    * are set, this must be one of TYPE_ENUM, TYPE_MESSAGE or TYPE_GROUP.
    */
-
   type: FieldDescriptorProto_Type;
   /**
    * For message and enum types, this is the name of the type.  If the name
@@ -539,13 +444,11 @@ export interface FieldDescriptorProto {
    * message are searched, then within the parent, on up to the root
    * namespace).
    */
-
   typeName: string;
   /**
    * For extensions, this is the name of the type being extended.  It is
    * resolved in the same manner as type_name.
    */
-
   extendee: string;
   /**
    * For numeric types, contains the original text representation of the value.
@@ -554,13 +457,11 @@ export interface FieldDescriptorProto {
    * For bytes, contains the C escaped value.  All bytes >= 128 are escaped.
    * TODO(kenton):  Base-64 encode?
    */
-
   defaultValue: string;
   /**
    * If set, gives the index of a oneof in the containing type's oneof_decl
    * list.  This field is a member of that oneof.
    */
-
   oneofIndex: number;
   /**
    * JSON name of this field. The value is set by protocol compiler. If the
@@ -568,18 +469,15 @@ export interface FieldDescriptorProto {
    * will be used. Otherwise, it's deduced from the field's name by converting
    * it to camelCase.
    */
-
   jsonName: string;
   options?: FieldOptions;
 }
 /** Describes a oneof. */
-
 export interface OneofDescriptorProto {
   name: string;
   options?: OneofOptions;
 }
 /** Describes an enum type. */
-
 export interface EnumDescriptorProto {
   name: string;
   value: EnumValueDescriptorProto[];
@@ -589,13 +487,11 @@ export interface EnumDescriptorProto {
    * by enum values in the same enum declaration. Reserved ranges may not
    * overlap.
    */
-
   reservedRange: EnumDescriptorProto_EnumReservedRange[];
   /**
    * Reserved enum value names, which may not be reused. A given name may only
    * be reserved once.
    */
-
   reservedName: string[];
 }
 /**
@@ -606,45 +502,37 @@ export interface EnumDescriptorProto {
  * is inclusive such that it can appropriately represent the entire int32
  * domain.
  */
-
 export interface EnumDescriptorProto_EnumReservedRange {
   /** Inclusive. */
   start: number;
   /** Inclusive. */
-
   end: number;
 }
 /** Describes a value within an enum. */
-
 export interface EnumValueDescriptorProto {
   name: string;
   number: number;
   options?: EnumValueOptions;
 }
 /** Describes a service. */
-
 export interface ServiceDescriptorProto {
   name: string;
   method: MethodDescriptorProto[];
   options?: ServiceOptions;
 }
 /** Describes a method of a service. */
-
 export interface MethodDescriptorProto {
   name: string;
   /**
    * Input and output type names.  These are resolved in the same way as
    * FieldDescriptorProto.type_name, but must refer to a message type.
    */
-
   inputType: string;
   outputType: string;
   options?: MethodOptions;
   /** Identifies if client streams multiple client messages */
-
   clientStreaming: boolean;
   /** Identifies if server streams multiple server messages */
-
   serverStreaming: boolean;
 }
 export interface FileOptions {
@@ -662,7 +550,6 @@ export interface FileOptions {
    * a .proto always translates to a single class, but you may want to
    * explicitly choose the class name).
    */
-
   javaOuterClassname: string;
   /**
    * If set true, then the Java code generator will generate a separate .java
@@ -672,12 +559,9 @@ export interface FileOptions {
    * generated to contain the file's getDescriptor() method as well as any
    * top-level extensions defined in the file.
    */
-
   javaMultipleFiles: boolean;
   /** This option does nothing. */
-
   /** @deprecated */
-
   javaGenerateEqualsAndHash: boolean;
   /**
    * If set true, then the Java2 code generator will generate code that
@@ -687,7 +571,6 @@ export interface FileOptions {
    * However, an extension field still accepts non-UTF-8 byte sequences.
    * This option has no effect on when used with the lite runtime.
    */
-
   javaStringCheckUtf8: boolean;
   optimizeFor: FileOptions_OptimizeMode;
   /**
@@ -697,7 +580,6 @@ export interface FileOptions {
    *   - Otherwise, the package statement in the .proto file, if present.
    *   - Otherwise, the basename of the .proto file, without extension.
    */
-
   goPackage: string;
   /**
    * Should generic services be generated in each language?  "Generic" services
@@ -711,7 +593,6 @@ export interface FileOptions {
    * these default to false.  Old code which depends on generic services should
    * explicitly set them to true.
    */
-
   ccGenericServices: boolean;
   javaGenericServices: boolean;
   pyGenericServices: boolean;
@@ -722,22 +603,18 @@ export interface FileOptions {
    * for everything in the file, or it will be completely ignored; in the very
    * least, this is a formalization for deprecating files.
    */
-
   deprecated: boolean;
   /**
    * Enables the use of arenas for the proto messages in this file. This applies
    * only to generated classes for C++.
    */
-
   ccEnableArenas: boolean;
   /**
    * Sets the objective c class prefix which is prepended to all objective c
    * generated classes from this .proto. There is no default.
    */
-
   objcClassPrefix: string;
   /** Namespace for generated classes; defaults to the package. */
-
   csharpNamespace: string;
   /**
    * By default Swift generators will take the proto package and CamelCase it
@@ -745,40 +622,34 @@ export interface FileOptions {
    * defined. When this options is provided, they will use this value instead
    * to prefix the types/symbols defined.
    */
-
   swiftPrefix: string;
   /**
    * Sets the php class prefix which is prepended to all php generated classes
    * from this .proto. Default is empty.
    */
-
   phpClassPrefix: string;
   /**
    * Use this option to change the namespace of php generated classes. Default
    * is empty. When this option is empty, the package name will be used for
    * determining the namespace.
    */
-
   phpNamespace: string;
   /**
    * Use this option to change the namespace of php generated metadata classes.
    * Default is empty. When this option is empty, the proto file name will be
    * used for determining the namespace.
    */
-
   phpMetadataNamespace: string;
   /**
    * Use this option to change the package of ruby generated classes. Default
    * is empty. When this option is not set, the package name will be used for
    * determining the ruby package.
    */
-
   rubyPackage: string;
   /**
    * The parser stores options it doesn't recognize here.
    * See the documentation for the "Options" section above.
    */
-
   uninterpretedOption: UninterpretedOption[];
 }
 export interface MessageOptions {
@@ -808,7 +679,6 @@ export interface MessageOptions {
    * conflict with a field of the same name.  This is meant to make migration
    * from proto1 easier; new code should avoid fields named "descriptor".
    */
-
   noStandardDescriptorAccessor: boolean;
   /**
    * Is this message deprecated?
@@ -816,7 +686,6 @@ export interface MessageOptions {
    * for the message, or it will be completely ignored; in the very least,
    * this is a formalization for deprecating messages.
    */
-
   deprecated: boolean;
   /**
    * Whether the message is an automatically generated map entry type for the
@@ -841,10 +710,8 @@ export interface MessageOptions {
    * instead. The option should only be implicitly set by the proto compiler
    * parser.
    */
-
   mapEntry: boolean;
   /** The parser stores options it doesn't recognize here. See above. */
-
   uninterpretedOption: UninterpretedOption[];
 }
 export interface FieldOptions {
@@ -862,7 +729,6 @@ export interface FieldOptions {
    * a single length-delimited blob. In proto3, only explicit setting it to
    * false will avoid using packed encoding.
    */
-
   packed: boolean;
   /**
    * The jstype option determines the JavaScript type used for values of the
@@ -877,7 +743,6 @@ export interface FieldOptions {
    * This option is an enum to permit additional types to be added, e.g.
    * goog.math.Integer.
    */
-
   jstype: FieldOptions_JSType;
   /**
    * Should this field be parsed lazily?  Lazy applies only to message-type
@@ -909,7 +774,6 @@ export interface FieldOptions {
    * check its required fields, regardless of whether or not the message has
    * been parsed.
    */
-
   lazy: boolean;
   /**
    * Is this field deprecated?
@@ -917,13 +781,10 @@ export interface FieldOptions {
    * for accessors, or it will be completely ignored; in the very least, this
    * is a formalization for deprecating fields.
    */
-
   deprecated: boolean;
   /** For Google-internal migration only. Do not use. */
-
   weak: boolean;
   /** The parser stores options it doesn't recognize here. See above. */
-
   uninterpretedOption: UninterpretedOption[];
 }
 export interface OneofOptions {
@@ -942,10 +803,8 @@ export interface EnumOptions {
    * for the enum, or it will be completely ignored; in the very least, this
    * is a formalization for deprecating enums.
    */
-
   deprecated: boolean;
   /** The parser stores options it doesn't recognize here. See above. */
-
   uninterpretedOption: UninterpretedOption[];
 }
 export interface EnumValueOptions {
@@ -957,7 +816,6 @@ export interface EnumValueOptions {
    */
   deprecated: boolean;
   /** The parser stores options it doesn't recognize here. See above. */
-
   uninterpretedOption: UninterpretedOption[];
 }
 export interface ServiceOptions {
@@ -969,7 +827,6 @@ export interface ServiceOptions {
    */
   deprecated: boolean;
   /** The parser stores options it doesn't recognize here. See above. */
-
   uninterpretedOption: UninterpretedOption[];
 }
 export interface MethodOptions {
@@ -982,7 +839,6 @@ export interface MethodOptions {
   deprecated: boolean;
   idempotencyLevel: MethodOptions_IdempotencyLevel;
   /** The parser stores options it doesn't recognize here. See above. */
-
   uninterpretedOption: UninterpretedOption[];
 }
 /**
@@ -993,17 +849,15 @@ export interface MethodOptions {
  * or produced by Descriptor::CopyTo()) will never have UninterpretedOptions
  * in them.
  */
-
 export interface UninterpretedOption {
   name: UninterpretedOption_NamePart[];
   /**
    * The value of the uninterpreted option, in whatever type the tokenizer
    * identified it as during parsing. Exactly one of these should be set.
    */
-
   identifierValue: string;
-  positiveIntValue: Long;
-  negativeIntValue: Long;
+  positiveIntValue: bigint;
+  negativeIntValue: bigint;
   doubleValue: number;
   stringValue: Uint8Array;
   aggregateValue: string;
@@ -1015,7 +869,6 @@ export interface UninterpretedOption {
  * E.g.,{ ["foo", false], ["bar.baz", true], ["qux", false] } represents
  * "foo.(bar.baz).qux".
  */
-
 export interface UninterpretedOption_NamePart {
   namePart: string;
   isExtension: boolean;
@@ -1024,7 +877,6 @@ export interface UninterpretedOption_NamePart {
  * Encapsulates information about the original source file from which a
  * FileDescriptorProto was generated.
  */
-
 export interface SourceCodeInfo {
   /**
    * A Location identifies a piece of source code in a .proto file which
@@ -1107,7 +959,6 @@ export interface SourceCodeInfo_Location {
    * and column numbers are zero-based -- typically you will want to add
    * 1 to each before displaying to a user.
    */
-
   span: number[];
   /**
    * If this SourceCodeInfo represents a complete declaration, these are any
@@ -1158,7 +1009,6 @@ export interface SourceCodeInfo_Location {
    *
    *   // ignored detached comments.
    */
-
   leadingComments: string;
   trailingComments: string;
   leadingDetachedComments: string[];
@@ -1168,7 +1018,6 @@ export interface SourceCodeInfo_Location {
  * file. A GeneratedCodeInfo message is associated with only one generated
  * source file, but may contain references to different source .proto files.
  */
-
 export interface GeneratedCodeInfo {
   /**
    * An Annotation connects some span of text in generated code to an element
@@ -1183,85 +1032,69 @@ export interface GeneratedCodeInfo_Annotation {
    */
   path: number[];
   /** Identifies the filesystem path to the original source .proto. */
-
   sourceFile: string;
   /**
    * Identifies the starting offset in bytes in the generated code
    * that relates to the identified object.
    */
-
   begin: number;
   /**
    * Identifies the ending offset in bytes in the generated code that
    * relates to the identified offset. The end offset should be one past
    * the last relevant byte (so the length of the text = end - begin).
    */
-
   end: number;
 }
-
 function createBaseFileDescriptorSet(): FileDescriptorSet {
   return {
     file: [],
   };
 }
-
 export const FileDescriptorSet = {
-  encode(message: FileDescriptorSet, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.FileDescriptorSet",
+  encode(message: FileDescriptorSet, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.file) {
       FileDescriptorProto.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): FileDescriptorSet {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): FileDescriptorSet {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseFileDescriptorSet();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.file.push(FileDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): FileDescriptorSet {
-    return {
-      file: Array.isArray(object?.file) ? object.file.map((e: any) => FileDescriptorProto.fromJSON(e)) : [],
-    };
+    const obj = createBaseFileDescriptorSet();
+    if (Array.isArray(object?.file)) obj.file = object.file.map((e: any) => FileDescriptorProto.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: FileDescriptorSet): unknown {
+  toJSON(message: FileDescriptorSet): JsonSafe<FileDescriptorSet> {
     const obj: any = {};
-
     if (message.file) {
       obj.file = message.file.map((e) => (e ? FileDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.file = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<FileDescriptorSet>, I>>(object: I): FileDescriptorSet {
     const message = createBaseFileDescriptorSet();
     message.file = object.file?.map((e) => FileDescriptorProto.fromPartial(e)) || [];
     return message;
   },
 };
-
 function createBaseFileDescriptorProto(): FileDescriptorProto {
   return {
     name: "",
@@ -1278,229 +1111,176 @@ function createBaseFileDescriptorProto(): FileDescriptorProto {
     syntax: "",
   };
 }
-
 export const FileDescriptorProto = {
-  encode(message: FileDescriptorProto, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.FileDescriptorProto",
+  encode(message: FileDescriptorProto, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     if (message.package !== "") {
       writer.uint32(18).string(message.package);
     }
-
     for (const v of message.dependency) {
       writer.uint32(26).string(v!);
     }
-
     writer.uint32(82).fork();
-
     for (const v of message.publicDependency) {
       writer.int32(v);
     }
-
     writer.ldelim();
     writer.uint32(90).fork();
-
     for (const v of message.weakDependency) {
       writer.int32(v);
     }
-
     writer.ldelim();
-
     for (const v of message.messageType) {
       DescriptorProto.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-
     for (const v of message.enumType) {
       EnumDescriptorProto.encode(v!, writer.uint32(42).fork()).ldelim();
     }
-
     for (const v of message.service) {
       ServiceDescriptorProto.encode(v!, writer.uint32(50).fork()).ldelim();
     }
-
     for (const v of message.extension) {
       FieldDescriptorProto.encode(v!, writer.uint32(58).fork()).ldelim();
     }
-
     if (message.options !== undefined) {
       FileOptions.encode(message.options, writer.uint32(66).fork()).ldelim();
     }
-
     if (message.sourceCodeInfo !== undefined) {
       SourceCodeInfo.encode(message.sourceCodeInfo, writer.uint32(74).fork()).ldelim();
     }
-
     if (message.syntax !== "") {
       writer.uint32(98).string(message.syntax);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): FileDescriptorProto {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): FileDescriptorProto {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseFileDescriptorProto();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.package = reader.string();
           break;
-
         case 3:
           message.dependency.push(reader.string());
           break;
-
         case 10:
           if ((tag & 7) === 2) {
             const end2 = reader.uint32() + reader.pos;
-
             while (reader.pos < end2) {
               message.publicDependency.push(reader.int32());
             }
           } else {
             message.publicDependency.push(reader.int32());
           }
-
           break;
-
         case 11:
           if ((tag & 7) === 2) {
             const end2 = reader.uint32() + reader.pos;
-
             while (reader.pos < end2) {
               message.weakDependency.push(reader.int32());
             }
           } else {
             message.weakDependency.push(reader.int32());
           }
-
           break;
-
         case 4:
           message.messageType.push(DescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 5:
           message.enumType.push(EnumDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 6:
           message.service.push(ServiceDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 7:
           message.extension.push(FieldDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 8:
           message.options = FileOptions.decode(reader, reader.uint32());
           break;
-
         case 9:
           message.sourceCodeInfo = SourceCodeInfo.decode(reader, reader.uint32());
           break;
-
         case 12:
           message.syntax = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): FileDescriptorProto {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      package: isSet(object.package) ? String(object.package) : "",
-      dependency: Array.isArray(object?.dependency) ? object.dependency.map((e: any) => String(e)) : [],
-      publicDependency: Array.isArray(object?.publicDependency)
-        ? object.publicDependency.map((e: any) => Number(e))
-        : [],
-      weakDependency: Array.isArray(object?.weakDependency)
-        ? object.weakDependency.map((e: any) => Number(e))
-        : [],
-      messageType: Array.isArray(object?.messageType)
-        ? object.messageType.map((e: any) => DescriptorProto.fromJSON(e))
-        : [],
-      enumType: Array.isArray(object?.enumType)
-        ? object.enumType.map((e: any) => EnumDescriptorProto.fromJSON(e))
-        : [],
-      service: Array.isArray(object?.service)
-        ? object.service.map((e: any) => ServiceDescriptorProto.fromJSON(e))
-        : [],
-      extension: Array.isArray(object?.extension)
-        ? object.extension.map((e: any) => FieldDescriptorProto.fromJSON(e))
-        : [],
-      options: isSet(object.options) ? FileOptions.fromJSON(object.options) : undefined,
-      sourceCodeInfo: isSet(object.sourceCodeInfo)
-        ? SourceCodeInfo.fromJSON(object.sourceCodeInfo)
-        : undefined,
-      syntax: isSet(object.syntax) ? String(object.syntax) : "",
-    };
+    const obj = createBaseFileDescriptorProto();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (isSet(object.package)) obj.package = String(object.package);
+    if (Array.isArray(object?.dependency)) obj.dependency = object.dependency.map((e: any) => String(e));
+    if (Array.isArray(object?.publicDependency))
+      obj.publicDependency = object.publicDependency.map((e: any) => Number(e));
+    if (Array.isArray(object?.weakDependency))
+      obj.weakDependency = object.weakDependency.map((e: any) => Number(e));
+    if (Array.isArray(object?.messageType))
+      obj.messageType = object.messageType.map((e: any) => DescriptorProto.fromJSON(e));
+    if (Array.isArray(object?.enumType))
+      obj.enumType = object.enumType.map((e: any) => EnumDescriptorProto.fromJSON(e));
+    if (Array.isArray(object?.service))
+      obj.service = object.service.map((e: any) => ServiceDescriptorProto.fromJSON(e));
+    if (Array.isArray(object?.extension))
+      obj.extension = object.extension.map((e: any) => FieldDescriptorProto.fromJSON(e));
+    if (isSet(object.options)) obj.options = FileOptions.fromJSON(object.options);
+    if (isSet(object.sourceCodeInfo)) obj.sourceCodeInfo = SourceCodeInfo.fromJSON(object.sourceCodeInfo);
+    if (isSet(object.syntax)) obj.syntax = String(object.syntax);
+    return obj;
   },
-
-  toJSON(message: FileDescriptorProto): unknown {
+  toJSON(message: FileDescriptorProto): JsonSafe<FileDescriptorProto> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.package !== undefined && (obj.package = message.package);
-
     if (message.dependency) {
       obj.dependency = message.dependency.map((e) => e);
     } else {
       obj.dependency = [];
     }
-
     if (message.publicDependency) {
       obj.publicDependency = message.publicDependency.map((e) => Math.round(e));
     } else {
       obj.publicDependency = [];
     }
-
     if (message.weakDependency) {
       obj.weakDependency = message.weakDependency.map((e) => Math.round(e));
     } else {
       obj.weakDependency = [];
     }
-
     if (message.messageType) {
       obj.messageType = message.messageType.map((e) => (e ? DescriptorProto.toJSON(e) : undefined));
     } else {
       obj.messageType = [];
     }
-
     if (message.enumType) {
       obj.enumType = message.enumType.map((e) => (e ? EnumDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.enumType = [];
     }
-
     if (message.service) {
       obj.service = message.service.map((e) => (e ? ServiceDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.service = [];
     }
-
     if (message.extension) {
       obj.extension = message.extension.map((e) => (e ? FieldDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.extension = [];
     }
-
     message.options !== undefined &&
       (obj.options = message.options ? FileOptions.toJSON(message.options) : undefined);
     message.sourceCodeInfo !== undefined &&
@@ -1510,7 +1290,6 @@ export const FileDescriptorProto = {
     message.syntax !== undefined && (obj.syntax = message.syntax);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<FileDescriptorProto>, I>>(object: I): FileDescriptorProto {
     const message = createBaseFileDescriptorProto();
     message.name = object.name ?? "";
@@ -1522,19 +1301,16 @@ export const FileDescriptorProto = {
     message.enumType = object.enumType?.map((e) => EnumDescriptorProto.fromPartial(e)) || [];
     message.service = object.service?.map((e) => ServiceDescriptorProto.fromPartial(e)) || [];
     message.extension = object.extension?.map((e) => FieldDescriptorProto.fromPartial(e)) || [];
-    message.options =
-      object.options !== undefined && object.options !== null
-        ? FileOptions.fromPartial(object.options)
-        : undefined;
-    message.sourceCodeInfo =
-      object.sourceCodeInfo !== undefined && object.sourceCodeInfo !== null
-        ? SourceCodeInfo.fromPartial(object.sourceCodeInfo)
-        : undefined;
+    if (object.options !== undefined && object.options !== null) {
+      message.options = FileOptions.fromPartial(object.options);
+    }
+    if (object.sourceCodeInfo !== undefined && object.sourceCodeInfo !== null) {
+      message.sourceCodeInfo = SourceCodeInfo.fromPartial(object.sourceCodeInfo);
+    }
     message.syntax = object.syntax ?? "";
     return message;
   },
 };
-
 function createBaseDescriptorProto(): DescriptorProto {
   return {
     name: "",
@@ -1549,167 +1325,130 @@ function createBaseDescriptorProto(): DescriptorProto {
     reservedName: [],
   };
 }
-
 export const DescriptorProto = {
-  encode(message: DescriptorProto, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.DescriptorProto",
+  encode(message: DescriptorProto, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     for (const v of message.field) {
       FieldDescriptorProto.encode(v!, writer.uint32(18).fork()).ldelim();
     }
-
     for (const v of message.extension) {
       FieldDescriptorProto.encode(v!, writer.uint32(50).fork()).ldelim();
     }
-
     for (const v of message.nestedType) {
       DescriptorProto.encode(v!, writer.uint32(26).fork()).ldelim();
     }
-
     for (const v of message.enumType) {
       EnumDescriptorProto.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-
     for (const v of message.extensionRange) {
       DescriptorProto_ExtensionRange.encode(v!, writer.uint32(42).fork()).ldelim();
     }
-
     for (const v of message.oneofDecl) {
       OneofDescriptorProto.encode(v!, writer.uint32(66).fork()).ldelim();
     }
-
     if (message.options !== undefined) {
       MessageOptions.encode(message.options, writer.uint32(58).fork()).ldelim();
     }
-
     for (const v of message.reservedRange) {
       DescriptorProto_ReservedRange.encode(v!, writer.uint32(74).fork()).ldelim();
     }
-
     for (const v of message.reservedName) {
       writer.uint32(82).string(v!);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): DescriptorProto {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): DescriptorProto {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseDescriptorProto();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.field.push(FieldDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 6:
           message.extension.push(FieldDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 3:
           message.nestedType.push(DescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 4:
           message.enumType.push(EnumDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 5:
           message.extensionRange.push(DescriptorProto_ExtensionRange.decode(reader, reader.uint32()));
           break;
-
         case 8:
           message.oneofDecl.push(OneofDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 7:
           message.options = MessageOptions.decode(reader, reader.uint32());
           break;
-
         case 9:
           message.reservedRange.push(DescriptorProto_ReservedRange.decode(reader, reader.uint32()));
           break;
-
         case 10:
           message.reservedName.push(reader.string());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): DescriptorProto {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      field: Array.isArray(object?.field)
-        ? object.field.map((e: any) => FieldDescriptorProto.fromJSON(e))
-        : [],
-      extension: Array.isArray(object?.extension)
-        ? object.extension.map((e: any) => FieldDescriptorProto.fromJSON(e))
-        : [],
-      nestedType: Array.isArray(object?.nestedType)
-        ? object.nestedType.map((e: any) => DescriptorProto.fromJSON(e))
-        : [],
-      enumType: Array.isArray(object?.enumType)
-        ? object.enumType.map((e: any) => EnumDescriptorProto.fromJSON(e))
-        : [],
-      extensionRange: Array.isArray(object?.extensionRange)
-        ? object.extensionRange.map((e: any) => DescriptorProto_ExtensionRange.fromJSON(e))
-        : [],
-      oneofDecl: Array.isArray(object?.oneofDecl)
-        ? object.oneofDecl.map((e: any) => OneofDescriptorProto.fromJSON(e))
-        : [],
-      options: isSet(object.options) ? MessageOptions.fromJSON(object.options) : undefined,
-      reservedRange: Array.isArray(object?.reservedRange)
-        ? object.reservedRange.map((e: any) => DescriptorProto_ReservedRange.fromJSON(e))
-        : [],
-      reservedName: Array.isArray(object?.reservedName) ? object.reservedName.map((e: any) => String(e)) : [],
-    };
+    const obj = createBaseDescriptorProto();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (Array.isArray(object?.field))
+      obj.field = object.field.map((e: any) => FieldDescriptorProto.fromJSON(e));
+    if (Array.isArray(object?.extension))
+      obj.extension = object.extension.map((e: any) => FieldDescriptorProto.fromJSON(e));
+    if (Array.isArray(object?.nestedType))
+      obj.nestedType = object.nestedType.map((e: any) => DescriptorProto.fromJSON(e));
+    if (Array.isArray(object?.enumType))
+      obj.enumType = object.enumType.map((e: any) => EnumDescriptorProto.fromJSON(e));
+    if (Array.isArray(object?.extensionRange))
+      obj.extensionRange = object.extensionRange.map((e: any) => DescriptorProto_ExtensionRange.fromJSON(e));
+    if (Array.isArray(object?.oneofDecl))
+      obj.oneofDecl = object.oneofDecl.map((e: any) => OneofDescriptorProto.fromJSON(e));
+    if (isSet(object.options)) obj.options = MessageOptions.fromJSON(object.options);
+    if (Array.isArray(object?.reservedRange))
+      obj.reservedRange = object.reservedRange.map((e: any) => DescriptorProto_ReservedRange.fromJSON(e));
+    if (Array.isArray(object?.reservedName))
+      obj.reservedName = object.reservedName.map((e: any) => String(e));
+    return obj;
   },
-
-  toJSON(message: DescriptorProto): unknown {
+  toJSON(message: DescriptorProto): JsonSafe<DescriptorProto> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-
     if (message.field) {
       obj.field = message.field.map((e) => (e ? FieldDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.field = [];
     }
-
     if (message.extension) {
       obj.extension = message.extension.map((e) => (e ? FieldDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.extension = [];
     }
-
     if (message.nestedType) {
       obj.nestedType = message.nestedType.map((e) => (e ? DescriptorProto.toJSON(e) : undefined));
     } else {
       obj.nestedType = [];
     }
-
     if (message.enumType) {
       obj.enumType = message.enumType.map((e) => (e ? EnumDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.enumType = [];
     }
-
     if (message.extensionRange) {
       obj.extensionRange = message.extensionRange.map((e) =>
         e ? DescriptorProto_ExtensionRange.toJSON(e) : undefined,
@@ -1717,16 +1456,13 @@ export const DescriptorProto = {
     } else {
       obj.extensionRange = [];
     }
-
     if (message.oneofDecl) {
       obj.oneofDecl = message.oneofDecl.map((e) => (e ? OneofDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.oneofDecl = [];
     }
-
     message.options !== undefined &&
       (obj.options = message.options ? MessageOptions.toJSON(message.options) : undefined);
-
     if (message.reservedRange) {
       obj.reservedRange = message.reservedRange.map((e) =>
         e ? DescriptorProto_ReservedRange.toJSON(e) : undefined,
@@ -1734,16 +1470,13 @@ export const DescriptorProto = {
     } else {
       obj.reservedRange = [];
     }
-
     if (message.reservedName) {
       obj.reservedName = message.reservedName.map((e) => e);
     } else {
       obj.reservedName = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<DescriptorProto>, I>>(object: I): DescriptorProto {
     const message = createBaseDescriptorProto();
     message.name = object.name ?? "";
@@ -1754,17 +1487,15 @@ export const DescriptorProto = {
     message.extensionRange =
       object.extensionRange?.map((e) => DescriptorProto_ExtensionRange.fromPartial(e)) || [];
     message.oneofDecl = object.oneofDecl?.map((e) => OneofDescriptorProto.fromPartial(e)) || [];
-    message.options =
-      object.options !== undefined && object.options !== null
-        ? MessageOptions.fromPartial(object.options)
-        : undefined;
+    if (object.options !== undefined && object.options !== null) {
+      message.options = MessageOptions.fromPartial(object.options);
+    }
     message.reservedRange =
       object.reservedRange?.map((e) => DescriptorProto_ReservedRange.fromPartial(e)) || [];
     message.reservedName = object.reservedName?.map((e) => e) || [];
     return message;
   },
 };
-
 function createBaseDescriptorProto_ExtensionRange(): DescriptorProto_ExtensionRange {
   return {
     start: 0,
@@ -1772,63 +1503,54 @@ function createBaseDescriptorProto_ExtensionRange(): DescriptorProto_ExtensionRa
     options: undefined,
   };
 }
-
 export const DescriptorProto_ExtensionRange = {
-  encode(message: DescriptorProto_ExtensionRange, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.ExtensionRange",
+  encode(
+    message: DescriptorProto_ExtensionRange,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.start !== 0) {
       writer.uint32(8).int32(message.start);
     }
-
     if (message.end !== 0) {
       writer.uint32(16).int32(message.end);
     }
-
     if (message.options !== undefined) {
       ExtensionRangeOptions.encode(message.options, writer.uint32(26).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): DescriptorProto_ExtensionRange {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): DescriptorProto_ExtensionRange {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseDescriptorProto_ExtensionRange();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.start = reader.int32();
           break;
-
         case 2:
           message.end = reader.int32();
           break;
-
         case 3:
           message.options = ExtensionRangeOptions.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): DescriptorProto_ExtensionRange {
-    return {
-      start: isSet(object.start) ? Number(object.start) : 0,
-      end: isSet(object.end) ? Number(object.end) : 0,
-      options: isSet(object.options) ? ExtensionRangeOptions.fromJSON(object.options) : undefined,
-    };
+    const obj = createBaseDescriptorProto_ExtensionRange();
+    if (isSet(object.start)) obj.start = Number(object.start);
+    if (isSet(object.end)) obj.end = Number(object.end);
+    if (isSet(object.options)) obj.options = ExtensionRangeOptions.fromJSON(object.options);
+    return obj;
   },
-
-  toJSON(message: DescriptorProto_ExtensionRange): unknown {
+  toJSON(message: DescriptorProto_ExtensionRange): JsonSafe<DescriptorProto_ExtensionRange> {
     const obj: any = {};
     message.start !== undefined && (obj.start = Math.round(message.start));
     message.end !== undefined && (obj.end = Math.round(message.end));
@@ -1836,81 +1558,67 @@ export const DescriptorProto_ExtensionRange = {
       (obj.options = message.options ? ExtensionRangeOptions.toJSON(message.options) : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<DescriptorProto_ExtensionRange>, I>>(
     object: I,
   ): DescriptorProto_ExtensionRange {
     const message = createBaseDescriptorProto_ExtensionRange();
     message.start = object.start ?? 0;
     message.end = object.end ?? 0;
-    message.options =
-      object.options !== undefined && object.options !== null
-        ? ExtensionRangeOptions.fromPartial(object.options)
-        : undefined;
+    if (object.options !== undefined && object.options !== null) {
+      message.options = ExtensionRangeOptions.fromPartial(object.options);
+    }
     return message;
   },
 };
-
 function createBaseDescriptorProto_ReservedRange(): DescriptorProto_ReservedRange {
   return {
     start: 0,
     end: 0,
   };
 }
-
 export const DescriptorProto_ReservedRange = {
-  encode(message: DescriptorProto_ReservedRange, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.ReservedRange",
+  encode(message: DescriptorProto_ReservedRange, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.start !== 0) {
       writer.uint32(8).int32(message.start);
     }
-
     if (message.end !== 0) {
       writer.uint32(16).int32(message.end);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): DescriptorProto_ReservedRange {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): DescriptorProto_ReservedRange {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseDescriptorProto_ReservedRange();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.start = reader.int32();
           break;
-
         case 2:
           message.end = reader.int32();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): DescriptorProto_ReservedRange {
-    return {
-      start: isSet(object.start) ? Number(object.start) : 0,
-      end: isSet(object.end) ? Number(object.end) : 0,
-    };
+    const obj = createBaseDescriptorProto_ReservedRange();
+    if (isSet(object.start)) obj.start = Number(object.start);
+    if (isSet(object.end)) obj.end = Number(object.end);
+    return obj;
   },
-
-  toJSON(message: DescriptorProto_ReservedRange): unknown {
+  toJSON(message: DescriptorProto_ReservedRange): JsonSafe<DescriptorProto_ReservedRange> {
     const obj: any = {};
     message.start !== undefined && (obj.start = Math.round(message.start));
     message.end !== undefined && (obj.end = Math.round(message.end));
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<DescriptorProto_ReservedRange>, I>>(
     object: I,
   ): DescriptorProto_ReservedRange {
@@ -1920,55 +1628,44 @@ export const DescriptorProto_ReservedRange = {
     return message;
   },
 };
-
 function createBaseExtensionRangeOptions(): ExtensionRangeOptions {
   return {
     uninterpretedOption: [],
   };
 }
-
 export const ExtensionRangeOptions = {
-  encode(message: ExtensionRangeOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.ExtensionRangeOptions",
+  encode(message: ExtensionRangeOptions, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.uninterpretedOption) {
       UninterpretedOption.encode(v!, writer.uint32(7994).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ExtensionRangeOptions {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): ExtensionRangeOptions {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseExtensionRangeOptions();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 999:
           message.uninterpretedOption.push(UninterpretedOption.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): ExtensionRangeOptions {
-    return {
-      uninterpretedOption: Array.isArray(object?.uninterpretedOption)
-        ? object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseExtensionRangeOptions();
+    if (Array.isArray(object?.uninterpretedOption))
+      obj.uninterpretedOption = object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: ExtensionRangeOptions): unknown {
+  toJSON(message: ExtensionRangeOptions): JsonSafe<ExtensionRangeOptions> {
     const obj: any = {};
-
     if (message.uninterpretedOption) {
       obj.uninterpretedOption = message.uninterpretedOption.map((e) =>
         e ? UninterpretedOption.toJSON(e) : undefined,
@@ -1976,10 +1673,8 @@ export const ExtensionRangeOptions = {
     } else {
       obj.uninterpretedOption = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<ExtensionRangeOptions>, I>>(object: I): ExtensionRangeOptions {
     const message = createBaseExtensionRangeOptions();
     message.uninterpretedOption =
@@ -1987,7 +1682,6 @@ export const ExtensionRangeOptions = {
     return message;
   },
 };
-
 function createBaseFieldDescriptorProto(): FieldDescriptorProto {
   return {
     name: "",
@@ -2002,126 +1696,100 @@ function createBaseFieldDescriptorProto(): FieldDescriptorProto {
     options: undefined,
   };
 }
-
 export const FieldDescriptorProto = {
-  encode(message: FieldDescriptorProto, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.FieldDescriptorProto",
+  encode(message: FieldDescriptorProto, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     if (message.number !== 0) {
       writer.uint32(24).int32(message.number);
     }
-
     if (message.label !== 1) {
       writer.uint32(32).int32(message.label);
     }
-
     if (message.type !== 1) {
       writer.uint32(40).int32(message.type);
     }
-
     if (message.typeName !== "") {
       writer.uint32(50).string(message.typeName);
     }
-
     if (message.extendee !== "") {
       writer.uint32(18).string(message.extendee);
     }
-
     if (message.defaultValue !== "") {
       writer.uint32(58).string(message.defaultValue);
     }
-
     if (message.oneofIndex !== 0) {
       writer.uint32(72).int32(message.oneofIndex);
     }
-
     if (message.jsonName !== "") {
       writer.uint32(82).string(message.jsonName);
     }
-
     if (message.options !== undefined) {
       FieldOptions.encode(message.options, writer.uint32(66).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): FieldDescriptorProto {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): FieldDescriptorProto {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseFieldDescriptorProto();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 3:
           message.number = reader.int32();
           break;
-
         case 4:
           message.label = reader.int32() as any;
           break;
-
         case 5:
           message.type = reader.int32() as any;
           break;
-
         case 6:
           message.typeName = reader.string();
           break;
-
         case 2:
           message.extendee = reader.string();
           break;
-
         case 7:
           message.defaultValue = reader.string();
           break;
-
         case 9:
           message.oneofIndex = reader.int32();
           break;
-
         case 10:
           message.jsonName = reader.string();
           break;
-
         case 8:
           message.options = FieldOptions.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): FieldDescriptorProto {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      number: isSet(object.number) ? Number(object.number) : 0,
-      label: isSet(object.label) ? fieldDescriptorProto_LabelFromJSON(object.label) : 0,
-      type: isSet(object.type) ? fieldDescriptorProto_TypeFromJSON(object.type) : 0,
-      typeName: isSet(object.typeName) ? String(object.typeName) : "",
-      extendee: isSet(object.extendee) ? String(object.extendee) : "",
-      defaultValue: isSet(object.defaultValue) ? String(object.defaultValue) : "",
-      oneofIndex: isSet(object.oneofIndex) ? Number(object.oneofIndex) : 0,
-      jsonName: isSet(object.jsonName) ? String(object.jsonName) : "",
-      options: isSet(object.options) ? FieldOptions.fromJSON(object.options) : undefined,
-    };
+    const obj = createBaseFieldDescriptorProto();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (isSet(object.number)) obj.number = Number(object.number);
+    if (isSet(object.label)) obj.label = fieldDescriptorProto_LabelFromJSON(object.label);
+    if (isSet(object.type)) obj.type = fieldDescriptorProto_TypeFromJSON(object.type);
+    if (isSet(object.typeName)) obj.typeName = String(object.typeName);
+    if (isSet(object.extendee)) obj.extendee = String(object.extendee);
+    if (isSet(object.defaultValue)) obj.defaultValue = String(object.defaultValue);
+    if (isSet(object.oneofIndex)) obj.oneofIndex = Number(object.oneofIndex);
+    if (isSet(object.jsonName)) obj.jsonName = String(object.jsonName);
+    if (isSet(object.options)) obj.options = FieldOptions.fromJSON(object.options);
+    return obj;
   },
-
-  toJSON(message: FieldDescriptorProto): unknown {
+  toJSON(message: FieldDescriptorProto): JsonSafe<FieldDescriptorProto> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.number !== undefined && (obj.number = Math.round(message.number));
@@ -2136,7 +1804,6 @@ export const FieldDescriptorProto = {
       (obj.options = message.options ? FieldOptions.toJSON(message.options) : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<FieldDescriptorProto>, I>>(object: I): FieldDescriptorProto {
     const message = createBaseFieldDescriptorProto();
     message.name = object.name ?? "";
@@ -2148,86 +1815,71 @@ export const FieldDescriptorProto = {
     message.defaultValue = object.defaultValue ?? "";
     message.oneofIndex = object.oneofIndex ?? 0;
     message.jsonName = object.jsonName ?? "";
-    message.options =
-      object.options !== undefined && object.options !== null
-        ? FieldOptions.fromPartial(object.options)
-        : undefined;
+    if (object.options !== undefined && object.options !== null) {
+      message.options = FieldOptions.fromPartial(object.options);
+    }
     return message;
   },
 };
-
 function createBaseOneofDescriptorProto(): OneofDescriptorProto {
   return {
     name: "",
     options: undefined,
   };
 }
-
 export const OneofDescriptorProto = {
-  encode(message: OneofDescriptorProto, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.OneofDescriptorProto",
+  encode(message: OneofDescriptorProto, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     if (message.options !== undefined) {
       OneofOptions.encode(message.options, writer.uint32(18).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): OneofDescriptorProto {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): OneofDescriptorProto {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseOneofDescriptorProto();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.options = OneofOptions.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): OneofDescriptorProto {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      options: isSet(object.options) ? OneofOptions.fromJSON(object.options) : undefined,
-    };
+    const obj = createBaseOneofDescriptorProto();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (isSet(object.options)) obj.options = OneofOptions.fromJSON(object.options);
+    return obj;
   },
-
-  toJSON(message: OneofDescriptorProto): unknown {
+  toJSON(message: OneofDescriptorProto): JsonSafe<OneofDescriptorProto> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.options !== undefined &&
       (obj.options = message.options ? OneofOptions.toJSON(message.options) : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<OneofDescriptorProto>, I>>(object: I): OneofDescriptorProto {
     const message = createBaseOneofDescriptorProto();
     message.name = object.name ?? "";
-    message.options =
-      object.options !== undefined && object.options !== null
-        ? OneofOptions.fromPartial(object.options)
-        : undefined;
+    if (object.options !== undefined && object.options !== null) {
+      message.options = OneofOptions.fromPartial(object.options);
+    }
     return message;
   },
 };
-
 function createBaseEnumDescriptorProto(): EnumDescriptorProto {
   return {
     name: "",
@@ -2237,97 +1889,79 @@ function createBaseEnumDescriptorProto(): EnumDescriptorProto {
     reservedName: [],
   };
 }
-
 export const EnumDescriptorProto = {
-  encode(message: EnumDescriptorProto, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.EnumDescriptorProto",
+  encode(message: EnumDescriptorProto, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     for (const v of message.value) {
       EnumValueDescriptorProto.encode(v!, writer.uint32(18).fork()).ldelim();
     }
-
     if (message.options !== undefined) {
       EnumOptions.encode(message.options, writer.uint32(26).fork()).ldelim();
     }
-
     for (const v of message.reservedRange) {
       EnumDescriptorProto_EnumReservedRange.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-
     for (const v of message.reservedName) {
       writer.uint32(42).string(v!);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EnumDescriptorProto {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EnumDescriptorProto {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEnumDescriptorProto();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.value.push(EnumValueDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 3:
           message.options = EnumOptions.decode(reader, reader.uint32());
           break;
-
         case 4:
           message.reservedRange.push(EnumDescriptorProto_EnumReservedRange.decode(reader, reader.uint32()));
           break;
-
         case 5:
           message.reservedName.push(reader.string());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EnumDescriptorProto {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      value: Array.isArray(object?.value)
-        ? object.value.map((e: any) => EnumValueDescriptorProto.fromJSON(e))
-        : [],
-      options: isSet(object.options) ? EnumOptions.fromJSON(object.options) : undefined,
-      reservedRange: Array.isArray(object?.reservedRange)
-        ? object.reservedRange.map((e: any) => EnumDescriptorProto_EnumReservedRange.fromJSON(e))
-        : [],
-      reservedName: Array.isArray(object?.reservedName) ? object.reservedName.map((e: any) => String(e)) : [],
-    };
+    const obj = createBaseEnumDescriptorProto();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (Array.isArray(object?.value))
+      obj.value = object.value.map((e: any) => EnumValueDescriptorProto.fromJSON(e));
+    if (isSet(object.options)) obj.options = EnumOptions.fromJSON(object.options);
+    if (Array.isArray(object?.reservedRange))
+      obj.reservedRange = object.reservedRange.map((e: any) =>
+        EnumDescriptorProto_EnumReservedRange.fromJSON(e),
+      );
+    if (Array.isArray(object?.reservedName))
+      obj.reservedName = object.reservedName.map((e: any) => String(e));
+    return obj;
   },
-
-  toJSON(message: EnumDescriptorProto): unknown {
+  toJSON(message: EnumDescriptorProto): JsonSafe<EnumDescriptorProto> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-
     if (message.value) {
       obj.value = message.value.map((e) => (e ? EnumValueDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.value = [];
     }
-
     message.options !== undefined &&
       (obj.options = message.options ? EnumOptions.toJSON(message.options) : undefined);
-
     if (message.reservedRange) {
       obj.reservedRange = message.reservedRange.map((e) =>
         e ? EnumDescriptorProto_EnumReservedRange.toJSON(e) : undefined,
@@ -2335,94 +1969,78 @@ export const EnumDescriptorProto = {
     } else {
       obj.reservedRange = [];
     }
-
     if (message.reservedName) {
       obj.reservedName = message.reservedName.map((e) => e);
     } else {
       obj.reservedName = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EnumDescriptorProto>, I>>(object: I): EnumDescriptorProto {
     const message = createBaseEnumDescriptorProto();
     message.name = object.name ?? "";
     message.value = object.value?.map((e) => EnumValueDescriptorProto.fromPartial(e)) || [];
-    message.options =
-      object.options !== undefined && object.options !== null
-        ? EnumOptions.fromPartial(object.options)
-        : undefined;
+    if (object.options !== undefined && object.options !== null) {
+      message.options = EnumOptions.fromPartial(object.options);
+    }
     message.reservedRange =
       object.reservedRange?.map((e) => EnumDescriptorProto_EnumReservedRange.fromPartial(e)) || [];
     message.reservedName = object.reservedName?.map((e) => e) || [];
     return message;
   },
 };
-
 function createBaseEnumDescriptorProto_EnumReservedRange(): EnumDescriptorProto_EnumReservedRange {
   return {
     start: 0,
     end: 0,
   };
 }
-
 export const EnumDescriptorProto_EnumReservedRange = {
+  typeUrl: "/google.protobuf.EnumReservedRange",
   encode(
     message: EnumDescriptorProto_EnumReservedRange,
-    writer: _m0.Writer = _m0.Writer.create(),
-  ): _m0.Writer {
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.start !== 0) {
       writer.uint32(8).int32(message.start);
     }
-
     if (message.end !== 0) {
       writer.uint32(16).int32(message.end);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EnumDescriptorProto_EnumReservedRange {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EnumDescriptorProto_EnumReservedRange {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEnumDescriptorProto_EnumReservedRange();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.start = reader.int32();
           break;
-
         case 2:
           message.end = reader.int32();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EnumDescriptorProto_EnumReservedRange {
-    return {
-      start: isSet(object.start) ? Number(object.start) : 0,
-      end: isSet(object.end) ? Number(object.end) : 0,
-    };
+    const obj = createBaseEnumDescriptorProto_EnumReservedRange();
+    if (isSet(object.start)) obj.start = Number(object.start);
+    if (isSet(object.end)) obj.end = Number(object.end);
+    return obj;
   },
-
-  toJSON(message: EnumDescriptorProto_EnumReservedRange): unknown {
+  toJSON(message: EnumDescriptorProto_EnumReservedRange): JsonSafe<EnumDescriptorProto_EnumReservedRange> {
     const obj: any = {};
     message.start !== undefined && (obj.start = Math.round(message.start));
     message.end !== undefined && (obj.end = Math.round(message.end));
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EnumDescriptorProto_EnumReservedRange>, I>>(
     object: I,
   ): EnumDescriptorProto_EnumReservedRange {
@@ -2432,7 +2050,6 @@ export const EnumDescriptorProto_EnumReservedRange = {
     return message;
   },
 };
-
 function createBaseEnumValueDescriptorProto(): EnumValueDescriptorProto {
   return {
     name: "",
@@ -2440,63 +2057,51 @@ function createBaseEnumValueDescriptorProto(): EnumValueDescriptorProto {
     options: undefined,
   };
 }
-
 export const EnumValueDescriptorProto = {
-  encode(message: EnumValueDescriptorProto, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.EnumValueDescriptorProto",
+  encode(message: EnumValueDescriptorProto, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     if (message.number !== 0) {
       writer.uint32(16).int32(message.number);
     }
-
     if (message.options !== undefined) {
       EnumValueOptions.encode(message.options, writer.uint32(26).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EnumValueDescriptorProto {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EnumValueDescriptorProto {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEnumValueDescriptorProto();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.number = reader.int32();
           break;
-
         case 3:
           message.options = EnumValueOptions.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EnumValueDescriptorProto {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      number: isSet(object.number) ? Number(object.number) : 0,
-      options: isSet(object.options) ? EnumValueOptions.fromJSON(object.options) : undefined,
-    };
+    const obj = createBaseEnumValueDescriptorProto();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (isSet(object.number)) obj.number = Number(object.number);
+    if (isSet(object.options)) obj.options = EnumValueOptions.fromJSON(object.options);
+    return obj;
   },
-
-  toJSON(message: EnumValueDescriptorProto): unknown {
+  toJSON(message: EnumValueDescriptorProto): JsonSafe<EnumValueDescriptorProto> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.number !== undefined && (obj.number = Math.round(message.number));
@@ -2504,21 +2109,18 @@ export const EnumValueDescriptorProto = {
       (obj.options = message.options ? EnumValueOptions.toJSON(message.options) : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EnumValueDescriptorProto>, I>>(
     object: I,
   ): EnumValueDescriptorProto {
     const message = createBaseEnumValueDescriptorProto();
     message.name = object.name ?? "";
     message.number = object.number ?? 0;
-    message.options =
-      object.options !== undefined && object.options !== null
-        ? EnumValueOptions.fromPartial(object.options)
-        : undefined;
+    if (object.options !== undefined && object.options !== null) {
+      message.options = EnumValueOptions.fromPartial(object.options);
+    }
     return message;
   },
 };
-
 function createBaseServiceDescriptorProto(): ServiceDescriptorProto {
   return {
     name: "",
@@ -2526,91 +2128,73 @@ function createBaseServiceDescriptorProto(): ServiceDescriptorProto {
     options: undefined,
   };
 }
-
 export const ServiceDescriptorProto = {
-  encode(message: ServiceDescriptorProto, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.ServiceDescriptorProto",
+  encode(message: ServiceDescriptorProto, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     for (const v of message.method) {
       MethodDescriptorProto.encode(v!, writer.uint32(18).fork()).ldelim();
     }
-
     if (message.options !== undefined) {
       ServiceOptions.encode(message.options, writer.uint32(26).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ServiceDescriptorProto {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): ServiceDescriptorProto {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseServiceDescriptorProto();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.method.push(MethodDescriptorProto.decode(reader, reader.uint32()));
           break;
-
         case 3:
           message.options = ServiceOptions.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): ServiceDescriptorProto {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      method: Array.isArray(object?.method)
-        ? object.method.map((e: any) => MethodDescriptorProto.fromJSON(e))
-        : [],
-      options: isSet(object.options) ? ServiceOptions.fromJSON(object.options) : undefined,
-    };
+    const obj = createBaseServiceDescriptorProto();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (Array.isArray(object?.method))
+      obj.method = object.method.map((e: any) => MethodDescriptorProto.fromJSON(e));
+    if (isSet(object.options)) obj.options = ServiceOptions.fromJSON(object.options);
+    return obj;
   },
-
-  toJSON(message: ServiceDescriptorProto): unknown {
+  toJSON(message: ServiceDescriptorProto): JsonSafe<ServiceDescriptorProto> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-
     if (message.method) {
       obj.method = message.method.map((e) => (e ? MethodDescriptorProto.toJSON(e) : undefined));
     } else {
       obj.method = [];
     }
-
     message.options !== undefined &&
       (obj.options = message.options ? ServiceOptions.toJSON(message.options) : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<ServiceDescriptorProto>, I>>(object: I): ServiceDescriptorProto {
     const message = createBaseServiceDescriptorProto();
     message.name = object.name ?? "";
     message.method = object.method?.map((e) => MethodDescriptorProto.fromPartial(e)) || [];
-    message.options =
-      object.options !== undefined && object.options !== null
-        ? ServiceOptions.fromPartial(object.options)
-        : undefined;
+    if (object.options !== undefined && object.options !== null) {
+      message.options = ServiceOptions.fromPartial(object.options);
+    }
     return message;
   },
 };
-
 function createBaseMethodDescriptorProto(): MethodDescriptorProto {
   return {
     name: "",
@@ -2621,90 +2205,72 @@ function createBaseMethodDescriptorProto(): MethodDescriptorProto {
     serverStreaming: false,
   };
 }
-
 export const MethodDescriptorProto = {
-  encode(message: MethodDescriptorProto, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.MethodDescriptorProto",
+  encode(message: MethodDescriptorProto, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     if (message.inputType !== "") {
       writer.uint32(18).string(message.inputType);
     }
-
     if (message.outputType !== "") {
       writer.uint32(26).string(message.outputType);
     }
-
     if (message.options !== undefined) {
       MethodOptions.encode(message.options, writer.uint32(34).fork()).ldelim();
     }
-
     if (message.clientStreaming === true) {
       writer.uint32(40).bool(message.clientStreaming);
     }
-
     if (message.serverStreaming === true) {
       writer.uint32(48).bool(message.serverStreaming);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MethodDescriptorProto {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MethodDescriptorProto {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMethodDescriptorProto();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.inputType = reader.string();
           break;
-
         case 3:
           message.outputType = reader.string();
           break;
-
         case 4:
           message.options = MethodOptions.decode(reader, reader.uint32());
           break;
-
         case 5:
           message.clientStreaming = reader.bool();
           break;
-
         case 6:
           message.serverStreaming = reader.bool();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MethodDescriptorProto {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      inputType: isSet(object.inputType) ? String(object.inputType) : "",
-      outputType: isSet(object.outputType) ? String(object.outputType) : "",
-      options: isSet(object.options) ? MethodOptions.fromJSON(object.options) : undefined,
-      clientStreaming: isSet(object.clientStreaming) ? Boolean(object.clientStreaming) : false,
-      serverStreaming: isSet(object.serverStreaming) ? Boolean(object.serverStreaming) : false,
-    };
+    const obj = createBaseMethodDescriptorProto();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (isSet(object.inputType)) obj.inputType = String(object.inputType);
+    if (isSet(object.outputType)) obj.outputType = String(object.outputType);
+    if (isSet(object.options)) obj.options = MethodOptions.fromJSON(object.options);
+    if (isSet(object.clientStreaming)) obj.clientStreaming = Boolean(object.clientStreaming);
+    if (isSet(object.serverStreaming)) obj.serverStreaming = Boolean(object.serverStreaming);
+    return obj;
   },
-
-  toJSON(message: MethodDescriptorProto): unknown {
+  toJSON(message: MethodDescriptorProto): JsonSafe<MethodDescriptorProto> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.inputType !== undefined && (obj.inputType = message.inputType);
@@ -2715,22 +2281,19 @@ export const MethodDescriptorProto = {
     message.serverStreaming !== undefined && (obj.serverStreaming = message.serverStreaming);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MethodDescriptorProto>, I>>(object: I): MethodDescriptorProto {
     const message = createBaseMethodDescriptorProto();
     message.name = object.name ?? "";
     message.inputType = object.inputType ?? "";
     message.outputType = object.outputType ?? "";
-    message.options =
-      object.options !== undefined && object.options !== null
-        ? MethodOptions.fromPartial(object.options)
-        : undefined;
+    if (object.options !== undefined && object.options !== null) {
+      message.options = MethodOptions.fromPartial(object.options);
+    }
     message.clientStreaming = object.clientStreaming ?? false;
     message.serverStreaming = object.serverStreaming ?? false;
     return message;
   },
 };
-
 function createBaseFileOptions(): FileOptions {
   return {
     javaPackage: "",
@@ -2756,229 +2319,179 @@ function createBaseFileOptions(): FileOptions {
     uninterpretedOption: [],
   };
 }
-
 export const FileOptions = {
-  encode(message: FileOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.FileOptions",
+  encode(message: FileOptions, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.javaPackage !== "") {
       writer.uint32(10).string(message.javaPackage);
     }
-
     if (message.javaOuterClassname !== "") {
       writer.uint32(66).string(message.javaOuterClassname);
     }
-
     if (message.javaMultipleFiles === true) {
       writer.uint32(80).bool(message.javaMultipleFiles);
     }
-
     if (message.javaGenerateEqualsAndHash === true) {
       writer.uint32(160).bool(message.javaGenerateEqualsAndHash);
     }
-
     if (message.javaStringCheckUtf8 === true) {
       writer.uint32(216).bool(message.javaStringCheckUtf8);
     }
-
     if (message.optimizeFor !== 1) {
       writer.uint32(72).int32(message.optimizeFor);
     }
-
     if (message.goPackage !== "") {
       writer.uint32(90).string(message.goPackage);
     }
-
     if (message.ccGenericServices === true) {
       writer.uint32(128).bool(message.ccGenericServices);
     }
-
     if (message.javaGenericServices === true) {
       writer.uint32(136).bool(message.javaGenericServices);
     }
-
     if (message.pyGenericServices === true) {
       writer.uint32(144).bool(message.pyGenericServices);
     }
-
     if (message.phpGenericServices === true) {
       writer.uint32(336).bool(message.phpGenericServices);
     }
-
     if (message.deprecated === true) {
       writer.uint32(184).bool(message.deprecated);
     }
-
     if (message.ccEnableArenas === true) {
       writer.uint32(248).bool(message.ccEnableArenas);
     }
-
     if (message.objcClassPrefix !== "") {
       writer.uint32(290).string(message.objcClassPrefix);
     }
-
     if (message.csharpNamespace !== "") {
       writer.uint32(298).string(message.csharpNamespace);
     }
-
     if (message.swiftPrefix !== "") {
       writer.uint32(314).string(message.swiftPrefix);
     }
-
     if (message.phpClassPrefix !== "") {
       writer.uint32(322).string(message.phpClassPrefix);
     }
-
     if (message.phpNamespace !== "") {
       writer.uint32(330).string(message.phpNamespace);
     }
-
     if (message.phpMetadataNamespace !== "") {
       writer.uint32(354).string(message.phpMetadataNamespace);
     }
-
     if (message.rubyPackage !== "") {
       writer.uint32(362).string(message.rubyPackage);
     }
-
     for (const v of message.uninterpretedOption) {
       UninterpretedOption.encode(v!, writer.uint32(7994).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): FileOptions {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): FileOptions {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseFileOptions();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.javaPackage = reader.string();
           break;
-
         case 8:
           message.javaOuterClassname = reader.string();
           break;
-
         case 10:
           message.javaMultipleFiles = reader.bool();
           break;
-
         case 20:
           message.javaGenerateEqualsAndHash = reader.bool();
           break;
-
         case 27:
           message.javaStringCheckUtf8 = reader.bool();
           break;
-
         case 9:
           message.optimizeFor = reader.int32() as any;
           break;
-
         case 11:
           message.goPackage = reader.string();
           break;
-
         case 16:
           message.ccGenericServices = reader.bool();
           break;
-
         case 17:
           message.javaGenericServices = reader.bool();
           break;
-
         case 18:
           message.pyGenericServices = reader.bool();
           break;
-
         case 42:
           message.phpGenericServices = reader.bool();
           break;
-
         case 23:
           message.deprecated = reader.bool();
           break;
-
         case 31:
           message.ccEnableArenas = reader.bool();
           break;
-
         case 36:
           message.objcClassPrefix = reader.string();
           break;
-
         case 37:
           message.csharpNamespace = reader.string();
           break;
-
         case 39:
           message.swiftPrefix = reader.string();
           break;
-
         case 40:
           message.phpClassPrefix = reader.string();
           break;
-
         case 41:
           message.phpNamespace = reader.string();
           break;
-
         case 44:
           message.phpMetadataNamespace = reader.string();
           break;
-
         case 45:
           message.rubyPackage = reader.string();
           break;
-
         case 999:
           message.uninterpretedOption.push(UninterpretedOption.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): FileOptions {
-    return {
-      javaPackage: isSet(object.javaPackage) ? String(object.javaPackage) : "",
-      javaOuterClassname: isSet(object.javaOuterClassname) ? String(object.javaOuterClassname) : "",
-      javaMultipleFiles: isSet(object.javaMultipleFiles) ? Boolean(object.javaMultipleFiles) : false,
-      javaGenerateEqualsAndHash: isSet(object.javaGenerateEqualsAndHash)
-        ? Boolean(object.javaGenerateEqualsAndHash)
-        : false,
-      javaStringCheckUtf8: isSet(object.javaStringCheckUtf8) ? Boolean(object.javaStringCheckUtf8) : false,
-      optimizeFor: isSet(object.optimizeFor) ? fileOptions_OptimizeModeFromJSON(object.optimizeFor) : 0,
-      goPackage: isSet(object.goPackage) ? String(object.goPackage) : "",
-      ccGenericServices: isSet(object.ccGenericServices) ? Boolean(object.ccGenericServices) : false,
-      javaGenericServices: isSet(object.javaGenericServices) ? Boolean(object.javaGenericServices) : false,
-      pyGenericServices: isSet(object.pyGenericServices) ? Boolean(object.pyGenericServices) : false,
-      phpGenericServices: isSet(object.phpGenericServices) ? Boolean(object.phpGenericServices) : false,
-      deprecated: isSet(object.deprecated) ? Boolean(object.deprecated) : false,
-      ccEnableArenas: isSet(object.ccEnableArenas) ? Boolean(object.ccEnableArenas) : false,
-      objcClassPrefix: isSet(object.objcClassPrefix) ? String(object.objcClassPrefix) : "",
-      csharpNamespace: isSet(object.csharpNamespace) ? String(object.csharpNamespace) : "",
-      swiftPrefix: isSet(object.swiftPrefix) ? String(object.swiftPrefix) : "",
-      phpClassPrefix: isSet(object.phpClassPrefix) ? String(object.phpClassPrefix) : "",
-      phpNamespace: isSet(object.phpNamespace) ? String(object.phpNamespace) : "",
-      phpMetadataNamespace: isSet(object.phpMetadataNamespace) ? String(object.phpMetadataNamespace) : "",
-      rubyPackage: isSet(object.rubyPackage) ? String(object.rubyPackage) : "",
-      uninterpretedOption: Array.isArray(object?.uninterpretedOption)
-        ? object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseFileOptions();
+    if (isSet(object.javaPackage)) obj.javaPackage = String(object.javaPackage);
+    if (isSet(object.javaOuterClassname)) obj.javaOuterClassname = String(object.javaOuterClassname);
+    if (isSet(object.javaMultipleFiles)) obj.javaMultipleFiles = Boolean(object.javaMultipleFiles);
+    if (isSet(object.javaGenerateEqualsAndHash))
+      obj.javaGenerateEqualsAndHash = Boolean(object.javaGenerateEqualsAndHash);
+    if (isSet(object.javaStringCheckUtf8)) obj.javaStringCheckUtf8 = Boolean(object.javaStringCheckUtf8);
+    if (isSet(object.optimizeFor)) obj.optimizeFor = fileOptions_OptimizeModeFromJSON(object.optimizeFor);
+    if (isSet(object.goPackage)) obj.goPackage = String(object.goPackage);
+    if (isSet(object.ccGenericServices)) obj.ccGenericServices = Boolean(object.ccGenericServices);
+    if (isSet(object.javaGenericServices)) obj.javaGenericServices = Boolean(object.javaGenericServices);
+    if (isSet(object.pyGenericServices)) obj.pyGenericServices = Boolean(object.pyGenericServices);
+    if (isSet(object.phpGenericServices)) obj.phpGenericServices = Boolean(object.phpGenericServices);
+    if (isSet(object.deprecated)) obj.deprecated = Boolean(object.deprecated);
+    if (isSet(object.ccEnableArenas)) obj.ccEnableArenas = Boolean(object.ccEnableArenas);
+    if (isSet(object.objcClassPrefix)) obj.objcClassPrefix = String(object.objcClassPrefix);
+    if (isSet(object.csharpNamespace)) obj.csharpNamespace = String(object.csharpNamespace);
+    if (isSet(object.swiftPrefix)) obj.swiftPrefix = String(object.swiftPrefix);
+    if (isSet(object.phpClassPrefix)) obj.phpClassPrefix = String(object.phpClassPrefix);
+    if (isSet(object.phpNamespace)) obj.phpNamespace = String(object.phpNamespace);
+    if (isSet(object.phpMetadataNamespace)) obj.phpMetadataNamespace = String(object.phpMetadataNamespace);
+    if (isSet(object.rubyPackage)) obj.rubyPackage = String(object.rubyPackage);
+    if (Array.isArray(object?.uninterpretedOption))
+      obj.uninterpretedOption = object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: FileOptions): unknown {
+  toJSON(message: FileOptions): JsonSafe<FileOptions> {
     const obj: any = {};
     message.javaPackage !== undefined && (obj.javaPackage = message.javaPackage);
     message.javaOuterClassname !== undefined && (obj.javaOuterClassname = message.javaOuterClassname);
@@ -3002,7 +2515,6 @@ export const FileOptions = {
     message.phpNamespace !== undefined && (obj.phpNamespace = message.phpNamespace);
     message.phpMetadataNamespace !== undefined && (obj.phpMetadataNamespace = message.phpMetadataNamespace);
     message.rubyPackage !== undefined && (obj.rubyPackage = message.rubyPackage);
-
     if (message.uninterpretedOption) {
       obj.uninterpretedOption = message.uninterpretedOption.map((e) =>
         e ? UninterpretedOption.toJSON(e) : undefined,
@@ -3010,10 +2522,8 @@ export const FileOptions = {
     } else {
       obj.uninterpretedOption = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<FileOptions>, I>>(object: I): FileOptions {
     const message = createBaseFileOptions();
     message.javaPackage = object.javaPackage ?? "";
@@ -3041,7 +2551,6 @@ export const FileOptions = {
     return message;
   },
 };
-
 function createBaseMessageOptions(): MessageOptions {
   return {
     messageSetWireFormat: false,
@@ -3051,92 +2560,73 @@ function createBaseMessageOptions(): MessageOptions {
     uninterpretedOption: [],
   };
 }
-
 export const MessageOptions = {
-  encode(message: MessageOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.MessageOptions",
+  encode(message: MessageOptions, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.messageSetWireFormat === true) {
       writer.uint32(8).bool(message.messageSetWireFormat);
     }
-
     if (message.noStandardDescriptorAccessor === true) {
       writer.uint32(16).bool(message.noStandardDescriptorAccessor);
     }
-
     if (message.deprecated === true) {
       writer.uint32(24).bool(message.deprecated);
     }
-
     if (message.mapEntry === true) {
       writer.uint32(56).bool(message.mapEntry);
     }
-
     for (const v of message.uninterpretedOption) {
       UninterpretedOption.encode(v!, writer.uint32(7994).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MessageOptions {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MessageOptions {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMessageOptions();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.messageSetWireFormat = reader.bool();
           break;
-
         case 2:
           message.noStandardDescriptorAccessor = reader.bool();
           break;
-
         case 3:
           message.deprecated = reader.bool();
           break;
-
         case 7:
           message.mapEntry = reader.bool();
           break;
-
         case 999:
           message.uninterpretedOption.push(UninterpretedOption.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MessageOptions {
-    return {
-      messageSetWireFormat: isSet(object.messageSetWireFormat) ? Boolean(object.messageSetWireFormat) : false,
-      noStandardDescriptorAccessor: isSet(object.noStandardDescriptorAccessor)
-        ? Boolean(object.noStandardDescriptorAccessor)
-        : false,
-      deprecated: isSet(object.deprecated) ? Boolean(object.deprecated) : false,
-      mapEntry: isSet(object.mapEntry) ? Boolean(object.mapEntry) : false,
-      uninterpretedOption: Array.isArray(object?.uninterpretedOption)
-        ? object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseMessageOptions();
+    if (isSet(object.messageSetWireFormat)) obj.messageSetWireFormat = Boolean(object.messageSetWireFormat);
+    if (isSet(object.noStandardDescriptorAccessor))
+      obj.noStandardDescriptorAccessor = Boolean(object.noStandardDescriptorAccessor);
+    if (isSet(object.deprecated)) obj.deprecated = Boolean(object.deprecated);
+    if (isSet(object.mapEntry)) obj.mapEntry = Boolean(object.mapEntry);
+    if (Array.isArray(object?.uninterpretedOption))
+      obj.uninterpretedOption = object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: MessageOptions): unknown {
+  toJSON(message: MessageOptions): JsonSafe<MessageOptions> {
     const obj: any = {};
     message.messageSetWireFormat !== undefined && (obj.messageSetWireFormat = message.messageSetWireFormat);
     message.noStandardDescriptorAccessor !== undefined &&
       (obj.noStandardDescriptorAccessor = message.noStandardDescriptorAccessor);
     message.deprecated !== undefined && (obj.deprecated = message.deprecated);
     message.mapEntry !== undefined && (obj.mapEntry = message.mapEntry);
-
     if (message.uninterpretedOption) {
       obj.uninterpretedOption = message.uninterpretedOption.map((e) =>
         e ? UninterpretedOption.toJSON(e) : undefined,
@@ -3144,10 +2634,8 @@ export const MessageOptions = {
     } else {
       obj.uninterpretedOption = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MessageOptions>, I>>(object: I): MessageOptions {
     const message = createBaseMessageOptions();
     message.messageSetWireFormat = object.messageSetWireFormat ?? false;
@@ -3159,7 +2647,6 @@ export const MessageOptions = {
     return message;
   },
 };
-
 function createBaseFieldOptions(): FieldOptions {
   return {
     ctype: 1,
@@ -3171,101 +2658,80 @@ function createBaseFieldOptions(): FieldOptions {
     uninterpretedOption: [],
   };
 }
-
 export const FieldOptions = {
-  encode(message: FieldOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.FieldOptions",
+  encode(message: FieldOptions, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.ctype !== 1) {
       writer.uint32(8).int32(message.ctype);
     }
-
     if (message.packed === true) {
       writer.uint32(16).bool(message.packed);
     }
-
     if (message.jstype !== 1) {
       writer.uint32(48).int32(message.jstype);
     }
-
     if (message.lazy === true) {
       writer.uint32(40).bool(message.lazy);
     }
-
     if (message.deprecated === true) {
       writer.uint32(24).bool(message.deprecated);
     }
-
     if (message.weak === true) {
       writer.uint32(80).bool(message.weak);
     }
-
     for (const v of message.uninterpretedOption) {
       UninterpretedOption.encode(v!, writer.uint32(7994).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): FieldOptions {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): FieldOptions {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseFieldOptions();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.ctype = reader.int32() as any;
           break;
-
         case 2:
           message.packed = reader.bool();
           break;
-
         case 6:
           message.jstype = reader.int32() as any;
           break;
-
         case 5:
           message.lazy = reader.bool();
           break;
-
         case 3:
           message.deprecated = reader.bool();
           break;
-
         case 10:
           message.weak = reader.bool();
           break;
-
         case 999:
           message.uninterpretedOption.push(UninterpretedOption.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): FieldOptions {
-    return {
-      ctype: isSet(object.ctype) ? fieldOptions_CTypeFromJSON(object.ctype) : 0,
-      packed: isSet(object.packed) ? Boolean(object.packed) : false,
-      jstype: isSet(object.jstype) ? fieldOptions_JSTypeFromJSON(object.jstype) : 0,
-      lazy: isSet(object.lazy) ? Boolean(object.lazy) : false,
-      deprecated: isSet(object.deprecated) ? Boolean(object.deprecated) : false,
-      weak: isSet(object.weak) ? Boolean(object.weak) : false,
-      uninterpretedOption: Array.isArray(object?.uninterpretedOption)
-        ? object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseFieldOptions();
+    if (isSet(object.ctype)) obj.ctype = fieldOptions_CTypeFromJSON(object.ctype);
+    if (isSet(object.packed)) obj.packed = Boolean(object.packed);
+    if (isSet(object.jstype)) obj.jstype = fieldOptions_JSTypeFromJSON(object.jstype);
+    if (isSet(object.lazy)) obj.lazy = Boolean(object.lazy);
+    if (isSet(object.deprecated)) obj.deprecated = Boolean(object.deprecated);
+    if (isSet(object.weak)) obj.weak = Boolean(object.weak);
+    if (Array.isArray(object?.uninterpretedOption))
+      obj.uninterpretedOption = object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: FieldOptions): unknown {
+  toJSON(message: FieldOptions): JsonSafe<FieldOptions> {
     const obj: any = {};
     message.ctype !== undefined && (obj.ctype = fieldOptions_CTypeToJSON(message.ctype));
     message.packed !== undefined && (obj.packed = message.packed);
@@ -3273,7 +2739,6 @@ export const FieldOptions = {
     message.lazy !== undefined && (obj.lazy = message.lazy);
     message.deprecated !== undefined && (obj.deprecated = message.deprecated);
     message.weak !== undefined && (obj.weak = message.weak);
-
     if (message.uninterpretedOption) {
       obj.uninterpretedOption = message.uninterpretedOption.map((e) =>
         e ? UninterpretedOption.toJSON(e) : undefined,
@@ -3281,10 +2746,8 @@ export const FieldOptions = {
     } else {
       obj.uninterpretedOption = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<FieldOptions>, I>>(object: I): FieldOptions {
     const message = createBaseFieldOptions();
     message.ctype = object.ctype ?? 1;
@@ -3298,55 +2761,44 @@ export const FieldOptions = {
     return message;
   },
 };
-
 function createBaseOneofOptions(): OneofOptions {
   return {
     uninterpretedOption: [],
   };
 }
-
 export const OneofOptions = {
-  encode(message: OneofOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.OneofOptions",
+  encode(message: OneofOptions, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.uninterpretedOption) {
       UninterpretedOption.encode(v!, writer.uint32(7994).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): OneofOptions {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): OneofOptions {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseOneofOptions();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 999:
           message.uninterpretedOption.push(UninterpretedOption.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): OneofOptions {
-    return {
-      uninterpretedOption: Array.isArray(object?.uninterpretedOption)
-        ? object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseOneofOptions();
+    if (Array.isArray(object?.uninterpretedOption))
+      obj.uninterpretedOption = object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: OneofOptions): unknown {
+  toJSON(message: OneofOptions): JsonSafe<OneofOptions> {
     const obj: any = {};
-
     if (message.uninterpretedOption) {
       obj.uninterpretedOption = message.uninterpretedOption.map((e) =>
         e ? UninterpretedOption.toJSON(e) : undefined,
@@ -3354,10 +2806,8 @@ export const OneofOptions = {
     } else {
       obj.uninterpretedOption = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<OneofOptions>, I>>(object: I): OneofOptions {
     const message = createBaseOneofOptions();
     message.uninterpretedOption =
@@ -3365,7 +2815,6 @@ export const OneofOptions = {
     return message;
   },
 };
-
 function createBaseEnumOptions(): EnumOptions {
   return {
     allowAlias: false,
@@ -3373,69 +2822,55 @@ function createBaseEnumOptions(): EnumOptions {
     uninterpretedOption: [],
   };
 }
-
 export const EnumOptions = {
-  encode(message: EnumOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.EnumOptions",
+  encode(message: EnumOptions, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.allowAlias === true) {
       writer.uint32(16).bool(message.allowAlias);
     }
-
     if (message.deprecated === true) {
       writer.uint32(24).bool(message.deprecated);
     }
-
     for (const v of message.uninterpretedOption) {
       UninterpretedOption.encode(v!, writer.uint32(7994).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EnumOptions {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EnumOptions {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEnumOptions();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 2:
           message.allowAlias = reader.bool();
           break;
-
         case 3:
           message.deprecated = reader.bool();
           break;
-
         case 999:
           message.uninterpretedOption.push(UninterpretedOption.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EnumOptions {
-    return {
-      allowAlias: isSet(object.allowAlias) ? Boolean(object.allowAlias) : false,
-      deprecated: isSet(object.deprecated) ? Boolean(object.deprecated) : false,
-      uninterpretedOption: Array.isArray(object?.uninterpretedOption)
-        ? object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseEnumOptions();
+    if (isSet(object.allowAlias)) obj.allowAlias = Boolean(object.allowAlias);
+    if (isSet(object.deprecated)) obj.deprecated = Boolean(object.deprecated);
+    if (Array.isArray(object?.uninterpretedOption))
+      obj.uninterpretedOption = object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: EnumOptions): unknown {
+  toJSON(message: EnumOptions): JsonSafe<EnumOptions> {
     const obj: any = {};
     message.allowAlias !== undefined && (obj.allowAlias = message.allowAlias);
     message.deprecated !== undefined && (obj.deprecated = message.deprecated);
-
     if (message.uninterpretedOption) {
       obj.uninterpretedOption = message.uninterpretedOption.map((e) =>
         e ? UninterpretedOption.toJSON(e) : undefined,
@@ -3443,10 +2878,8 @@ export const EnumOptions = {
     } else {
       obj.uninterpretedOption = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EnumOptions>, I>>(object: I): EnumOptions {
     const message = createBaseEnumOptions();
     message.allowAlias = object.allowAlias ?? false;
@@ -3456,66 +2889,53 @@ export const EnumOptions = {
     return message;
   },
 };
-
 function createBaseEnumValueOptions(): EnumValueOptions {
   return {
     deprecated: false,
     uninterpretedOption: [],
   };
 }
-
 export const EnumValueOptions = {
-  encode(message: EnumValueOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.EnumValueOptions",
+  encode(message: EnumValueOptions, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.deprecated === true) {
       writer.uint32(8).bool(message.deprecated);
     }
-
     for (const v of message.uninterpretedOption) {
       UninterpretedOption.encode(v!, writer.uint32(7994).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EnumValueOptions {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EnumValueOptions {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEnumValueOptions();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.deprecated = reader.bool();
           break;
-
         case 999:
           message.uninterpretedOption.push(UninterpretedOption.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EnumValueOptions {
-    return {
-      deprecated: isSet(object.deprecated) ? Boolean(object.deprecated) : false,
-      uninterpretedOption: Array.isArray(object?.uninterpretedOption)
-        ? object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseEnumValueOptions();
+    if (isSet(object.deprecated)) obj.deprecated = Boolean(object.deprecated);
+    if (Array.isArray(object?.uninterpretedOption))
+      obj.uninterpretedOption = object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: EnumValueOptions): unknown {
+  toJSON(message: EnumValueOptions): JsonSafe<EnumValueOptions> {
     const obj: any = {};
     message.deprecated !== undefined && (obj.deprecated = message.deprecated);
-
     if (message.uninterpretedOption) {
       obj.uninterpretedOption = message.uninterpretedOption.map((e) =>
         e ? UninterpretedOption.toJSON(e) : undefined,
@@ -3523,10 +2943,8 @@ export const EnumValueOptions = {
     } else {
       obj.uninterpretedOption = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EnumValueOptions>, I>>(object: I): EnumValueOptions {
     const message = createBaseEnumValueOptions();
     message.deprecated = object.deprecated ?? false;
@@ -3535,66 +2953,53 @@ export const EnumValueOptions = {
     return message;
   },
 };
-
 function createBaseServiceOptions(): ServiceOptions {
   return {
     deprecated: false,
     uninterpretedOption: [],
   };
 }
-
 export const ServiceOptions = {
-  encode(message: ServiceOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.ServiceOptions",
+  encode(message: ServiceOptions, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.deprecated === true) {
       writer.uint32(264).bool(message.deprecated);
     }
-
     for (const v of message.uninterpretedOption) {
       UninterpretedOption.encode(v!, writer.uint32(7994).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ServiceOptions {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): ServiceOptions {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseServiceOptions();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 33:
           message.deprecated = reader.bool();
           break;
-
         case 999:
           message.uninterpretedOption.push(UninterpretedOption.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): ServiceOptions {
-    return {
-      deprecated: isSet(object.deprecated) ? Boolean(object.deprecated) : false,
-      uninterpretedOption: Array.isArray(object?.uninterpretedOption)
-        ? object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseServiceOptions();
+    if (isSet(object.deprecated)) obj.deprecated = Boolean(object.deprecated);
+    if (Array.isArray(object?.uninterpretedOption))
+      obj.uninterpretedOption = object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: ServiceOptions): unknown {
+  toJSON(message: ServiceOptions): JsonSafe<ServiceOptions> {
     const obj: any = {};
     message.deprecated !== undefined && (obj.deprecated = message.deprecated);
-
     if (message.uninterpretedOption) {
       obj.uninterpretedOption = message.uninterpretedOption.map((e) =>
         e ? UninterpretedOption.toJSON(e) : undefined,
@@ -3602,10 +3007,8 @@ export const ServiceOptions = {
     } else {
       obj.uninterpretedOption = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<ServiceOptions>, I>>(object: I): ServiceOptions {
     const message = createBaseServiceOptions();
     message.deprecated = object.deprecated ?? false;
@@ -3614,7 +3017,6 @@ export const ServiceOptions = {
     return message;
   },
 };
-
 function createBaseMethodOptions(): MethodOptions {
   return {
     deprecated: false,
@@ -3622,72 +3024,57 @@ function createBaseMethodOptions(): MethodOptions {
     uninterpretedOption: [],
   };
 }
-
 export const MethodOptions = {
-  encode(message: MethodOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.MethodOptions",
+  encode(message: MethodOptions, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.deprecated === true) {
       writer.uint32(264).bool(message.deprecated);
     }
-
     if (message.idempotencyLevel !== 1) {
       writer.uint32(272).int32(message.idempotencyLevel);
     }
-
     for (const v of message.uninterpretedOption) {
       UninterpretedOption.encode(v!, writer.uint32(7994).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MethodOptions {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MethodOptions {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMethodOptions();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 33:
           message.deprecated = reader.bool();
           break;
-
         case 34:
           message.idempotencyLevel = reader.int32() as any;
           break;
-
         case 999:
           message.uninterpretedOption.push(UninterpretedOption.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MethodOptions {
-    return {
-      deprecated: isSet(object.deprecated) ? Boolean(object.deprecated) : false,
-      idempotencyLevel: isSet(object.idempotencyLevel)
-        ? methodOptions_IdempotencyLevelFromJSON(object.idempotencyLevel)
-        : 0,
-      uninterpretedOption: Array.isArray(object?.uninterpretedOption)
-        ? object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseMethodOptions();
+    if (isSet(object.deprecated)) obj.deprecated = Boolean(object.deprecated);
+    if (isSet(object.idempotencyLevel))
+      obj.idempotencyLevel = methodOptions_IdempotencyLevelFromJSON(object.idempotencyLevel);
+    if (Array.isArray(object?.uninterpretedOption))
+      obj.uninterpretedOption = object.uninterpretedOption.map((e: any) => UninterpretedOption.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: MethodOptions): unknown {
+  toJSON(message: MethodOptions): JsonSafe<MethodOptions> {
     const obj: any = {};
     message.deprecated !== undefined && (obj.deprecated = message.deprecated);
     message.idempotencyLevel !== undefined &&
       (obj.idempotencyLevel = methodOptions_IdempotencyLevelToJSON(message.idempotencyLevel));
-
     if (message.uninterpretedOption) {
       obj.uninterpretedOption = message.uninterpretedOption.map((e) =>
         e ? UninterpretedOption.toJSON(e) : undefined,
@@ -3695,10 +3082,8 @@ export const MethodOptions = {
     } else {
       obj.uninterpretedOption = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MethodOptions>, I>>(object: I): MethodOptions {
     const message = createBaseMethodOptions();
     message.deprecated = object.deprecated ?? false;
@@ -3708,126 +3093,102 @@ export const MethodOptions = {
     return message;
   },
 };
-
 function createBaseUninterpretedOption(): UninterpretedOption {
   return {
     name: [],
     identifierValue: "",
-    positiveIntValue: Long.UZERO,
-    negativeIntValue: Long.ZERO,
+    positiveIntValue: BigInt(0),
+    negativeIntValue: BigInt(0),
     doubleValue: 0,
     stringValue: new Uint8Array(),
     aggregateValue: "",
   };
 }
-
 export const UninterpretedOption = {
-  encode(message: UninterpretedOption, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.UninterpretedOption",
+  encode(message: UninterpretedOption, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.name) {
       UninterpretedOption_NamePart.encode(v!, writer.uint32(18).fork()).ldelim();
     }
-
     if (message.identifierValue !== "") {
       writer.uint32(26).string(message.identifierValue);
     }
-
-    if (!message.positiveIntValue.isZero()) {
+    if (message.positiveIntValue !== BigInt(0)) {
       writer.uint32(32).uint64(message.positiveIntValue);
     }
-
-    if (!message.negativeIntValue.isZero()) {
+    if (message.negativeIntValue !== BigInt(0)) {
       writer.uint32(40).int64(message.negativeIntValue);
     }
-
     if (message.doubleValue !== 0) {
       writer.uint32(49).double(message.doubleValue);
     }
-
     if (message.stringValue.length !== 0) {
       writer.uint32(58).bytes(message.stringValue);
     }
-
     if (message.aggregateValue !== "") {
       writer.uint32(66).string(message.aggregateValue);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): UninterpretedOption {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): UninterpretedOption {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUninterpretedOption();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 2:
           message.name.push(UninterpretedOption_NamePart.decode(reader, reader.uint32()));
           break;
-
         case 3:
           message.identifierValue = reader.string();
           break;
-
         case 4:
-          message.positiveIntValue = reader.uint64() as Long;
+          message.positiveIntValue = reader.uint64();
           break;
-
         case 5:
-          message.negativeIntValue = reader.int64() as Long;
+          message.negativeIntValue = reader.int64();
           break;
-
         case 6:
           message.doubleValue = reader.double();
           break;
-
         case 7:
           message.stringValue = reader.bytes();
           break;
-
         case 8:
           message.aggregateValue = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): UninterpretedOption {
-    return {
-      name: Array.isArray(object?.name)
-        ? object.name.map((e: any) => UninterpretedOption_NamePart.fromJSON(e))
-        : [],
-      identifierValue: isSet(object.identifierValue) ? String(object.identifierValue) : "",
-      positiveIntValue: isSet(object.positiveIntValue) ? Long.fromValue(object.positiveIntValue) : Long.UZERO,
-      negativeIntValue: isSet(object.negativeIntValue) ? Long.fromValue(object.negativeIntValue) : Long.ZERO,
-      doubleValue: isSet(object.doubleValue) ? Number(object.doubleValue) : 0,
-      stringValue: isSet(object.stringValue) ? bytesFromBase64(object.stringValue) : new Uint8Array(),
-      aggregateValue: isSet(object.aggregateValue) ? String(object.aggregateValue) : "",
-    };
+    const obj = createBaseUninterpretedOption();
+    if (Array.isArray(object?.name))
+      obj.name = object.name.map((e: any) => UninterpretedOption_NamePart.fromJSON(e));
+    if (isSet(object.identifierValue)) obj.identifierValue = String(object.identifierValue);
+    if (isSet(object.positiveIntValue)) obj.positiveIntValue = BigInt(object.positiveIntValue.toString());
+    if (isSet(object.negativeIntValue)) obj.negativeIntValue = BigInt(object.negativeIntValue.toString());
+    if (isSet(object.doubleValue)) obj.doubleValue = Number(object.doubleValue);
+    if (isSet(object.stringValue)) obj.stringValue = bytesFromBase64(object.stringValue);
+    if (isSet(object.aggregateValue)) obj.aggregateValue = String(object.aggregateValue);
+    return obj;
   },
-
-  toJSON(message: UninterpretedOption): unknown {
+  toJSON(message: UninterpretedOption): JsonSafe<UninterpretedOption> {
     const obj: any = {};
-
     if (message.name) {
       obj.name = message.name.map((e) => (e ? UninterpretedOption_NamePart.toJSON(e) : undefined));
     } else {
       obj.name = [];
     }
-
     message.identifierValue !== undefined && (obj.identifierValue = message.identifierValue);
     message.positiveIntValue !== undefined &&
-      (obj.positiveIntValue = (message.positiveIntValue || Long.UZERO).toString());
+      (obj.positiveIntValue = (message.positiveIntValue || BigInt(0)).toString());
     message.negativeIntValue !== undefined &&
-      (obj.negativeIntValue = (message.negativeIntValue || Long.ZERO).toString());
+      (obj.negativeIntValue = (message.negativeIntValue || BigInt(0)).toString());
     message.doubleValue !== undefined && (obj.doubleValue = message.doubleValue);
     message.stringValue !== undefined &&
       (obj.stringValue = base64FromBytes(
@@ -3836,86 +3197,71 @@ export const UninterpretedOption = {
     message.aggregateValue !== undefined && (obj.aggregateValue = message.aggregateValue);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<UninterpretedOption>, I>>(object: I): UninterpretedOption {
     const message = createBaseUninterpretedOption();
     message.name = object.name?.map((e) => UninterpretedOption_NamePart.fromPartial(e)) || [];
     message.identifierValue = object.identifierValue ?? "";
-    message.positiveIntValue =
-      object.positiveIntValue !== undefined && object.positiveIntValue !== null
-        ? Long.fromValue(object.positiveIntValue)
-        : Long.UZERO;
-    message.negativeIntValue =
-      object.negativeIntValue !== undefined && object.negativeIntValue !== null
-        ? Long.fromValue(object.negativeIntValue)
-        : Long.ZERO;
+    if (object.positiveIntValue !== undefined && object.positiveIntValue !== null) {
+      message.positiveIntValue = BigInt(object.positiveIntValue.toString());
+    }
+    if (object.negativeIntValue !== undefined && object.negativeIntValue !== null) {
+      message.negativeIntValue = BigInt(object.negativeIntValue.toString());
+    }
     message.doubleValue = object.doubleValue ?? 0;
     message.stringValue = object.stringValue ?? new Uint8Array();
     message.aggregateValue = object.aggregateValue ?? "";
     return message;
   },
 };
-
 function createBaseUninterpretedOption_NamePart(): UninterpretedOption_NamePart {
   return {
     namePart: "",
     isExtension: false,
   };
 }
-
 export const UninterpretedOption_NamePart = {
-  encode(message: UninterpretedOption_NamePart, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.NamePart",
+  encode(message: UninterpretedOption_NamePart, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.namePart !== "") {
       writer.uint32(10).string(message.namePart);
     }
-
     if (message.isExtension === true) {
       writer.uint32(16).bool(message.isExtension);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): UninterpretedOption_NamePart {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): UninterpretedOption_NamePart {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUninterpretedOption_NamePart();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.namePart = reader.string();
           break;
-
         case 2:
           message.isExtension = reader.bool();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): UninterpretedOption_NamePart {
-    return {
-      namePart: isSet(object.namePart) ? String(object.namePart) : "",
-      isExtension: isSet(object.isExtension) ? Boolean(object.isExtension) : false,
-    };
+    const obj = createBaseUninterpretedOption_NamePart();
+    if (isSet(object.namePart)) obj.namePart = String(object.namePart);
+    if (isSet(object.isExtension)) obj.isExtension = Boolean(object.isExtension);
+    return obj;
   },
-
-  toJSON(message: UninterpretedOption_NamePart): unknown {
+  toJSON(message: UninterpretedOption_NamePart): JsonSafe<UninterpretedOption_NamePart> {
     const obj: any = {};
     message.namePart !== undefined && (obj.namePart = message.namePart);
     message.isExtension !== undefined && (obj.isExtension = message.isExtension);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<UninterpretedOption_NamePart>, I>>(
     object: I,
   ): UninterpretedOption_NamePart {
@@ -3925,71 +3271,57 @@ export const UninterpretedOption_NamePart = {
     return message;
   },
 };
-
 function createBaseSourceCodeInfo(): SourceCodeInfo {
   return {
     location: [],
   };
 }
-
 export const SourceCodeInfo = {
-  encode(message: SourceCodeInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.SourceCodeInfo",
+  encode(message: SourceCodeInfo, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.location) {
       SourceCodeInfo_Location.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): SourceCodeInfo {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): SourceCodeInfo {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSourceCodeInfo();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.location.push(SourceCodeInfo_Location.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): SourceCodeInfo {
-    return {
-      location: Array.isArray(object?.location)
-        ? object.location.map((e: any) => SourceCodeInfo_Location.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseSourceCodeInfo();
+    if (Array.isArray(object?.location))
+      obj.location = object.location.map((e: any) => SourceCodeInfo_Location.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: SourceCodeInfo): unknown {
+  toJSON(message: SourceCodeInfo): JsonSafe<SourceCodeInfo> {
     const obj: any = {};
-
     if (message.location) {
       obj.location = message.location.map((e) => (e ? SourceCodeInfo_Location.toJSON(e) : undefined));
     } else {
       obj.location = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<SourceCodeInfo>, I>>(object: I): SourceCodeInfo {
     const message = createBaseSourceCodeInfo();
     message.location = object.location?.map((e) => SourceCodeInfo_Location.fromPartial(e)) || [];
     return message;
   },
 };
-
 function createBaseSourceCodeInfo_Location(): SourceCodeInfo_Location {
   return {
     path: [],
@@ -3999,134 +3331,104 @@ function createBaseSourceCodeInfo_Location(): SourceCodeInfo_Location {
     leadingDetachedComments: [],
   };
 }
-
 export const SourceCodeInfo_Location = {
-  encode(message: SourceCodeInfo_Location, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.Location",
+  encode(message: SourceCodeInfo_Location, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     writer.uint32(10).fork();
-
     for (const v of message.path) {
       writer.int32(v);
     }
-
     writer.ldelim();
     writer.uint32(18).fork();
-
     for (const v of message.span) {
       writer.int32(v);
     }
-
     writer.ldelim();
-
     if (message.leadingComments !== "") {
       writer.uint32(26).string(message.leadingComments);
     }
-
     if (message.trailingComments !== "") {
       writer.uint32(34).string(message.trailingComments);
     }
-
     for (const v of message.leadingDetachedComments) {
       writer.uint32(50).string(v!);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): SourceCodeInfo_Location {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): SourceCodeInfo_Location {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSourceCodeInfo_Location();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           if ((tag & 7) === 2) {
             const end2 = reader.uint32() + reader.pos;
-
             while (reader.pos < end2) {
               message.path.push(reader.int32());
             }
           } else {
             message.path.push(reader.int32());
           }
-
           break;
-
         case 2:
           if ((tag & 7) === 2) {
             const end2 = reader.uint32() + reader.pos;
-
             while (reader.pos < end2) {
               message.span.push(reader.int32());
             }
           } else {
             message.span.push(reader.int32());
           }
-
           break;
-
         case 3:
           message.leadingComments = reader.string();
           break;
-
         case 4:
           message.trailingComments = reader.string();
           break;
-
         case 6:
           message.leadingDetachedComments.push(reader.string());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): SourceCodeInfo_Location {
-    return {
-      path: Array.isArray(object?.path) ? object.path.map((e: any) => Number(e)) : [],
-      span: Array.isArray(object?.span) ? object.span.map((e: any) => Number(e)) : [],
-      leadingComments: isSet(object.leadingComments) ? String(object.leadingComments) : "",
-      trailingComments: isSet(object.trailingComments) ? String(object.trailingComments) : "",
-      leadingDetachedComments: Array.isArray(object?.leadingDetachedComments)
-        ? object.leadingDetachedComments.map((e: any) => String(e))
-        : [],
-    };
+    const obj = createBaseSourceCodeInfo_Location();
+    if (Array.isArray(object?.path)) obj.path = object.path.map((e: any) => Number(e));
+    if (Array.isArray(object?.span)) obj.span = object.span.map((e: any) => Number(e));
+    if (isSet(object.leadingComments)) obj.leadingComments = String(object.leadingComments);
+    if (isSet(object.trailingComments)) obj.trailingComments = String(object.trailingComments);
+    if (Array.isArray(object?.leadingDetachedComments))
+      obj.leadingDetachedComments = object.leadingDetachedComments.map((e: any) => String(e));
+    return obj;
   },
-
-  toJSON(message: SourceCodeInfo_Location): unknown {
+  toJSON(message: SourceCodeInfo_Location): JsonSafe<SourceCodeInfo_Location> {
     const obj: any = {};
-
     if (message.path) {
       obj.path = message.path.map((e) => Math.round(e));
     } else {
       obj.path = [];
     }
-
     if (message.span) {
       obj.span = message.span.map((e) => Math.round(e));
     } else {
       obj.span = [];
     }
-
     message.leadingComments !== undefined && (obj.leadingComments = message.leadingComments);
     message.trailingComments !== undefined && (obj.trailingComments = message.trailingComments);
-
     if (message.leadingDetachedComments) {
       obj.leadingDetachedComments = message.leadingDetachedComments.map((e) => e);
     } else {
       obj.leadingDetachedComments = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<SourceCodeInfo_Location>, I>>(object: I): SourceCodeInfo_Location {
     const message = createBaseSourceCodeInfo_Location();
     message.path = object.path?.map((e) => e) || [];
@@ -4137,55 +3439,44 @@ export const SourceCodeInfo_Location = {
     return message;
   },
 };
-
 function createBaseGeneratedCodeInfo(): GeneratedCodeInfo {
   return {
     annotation: [],
   };
 }
-
 export const GeneratedCodeInfo = {
-  encode(message: GeneratedCodeInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.GeneratedCodeInfo",
+  encode(message: GeneratedCodeInfo, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.annotation) {
       GeneratedCodeInfo_Annotation.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GeneratedCodeInfo {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): GeneratedCodeInfo {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGeneratedCodeInfo();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.annotation.push(GeneratedCodeInfo_Annotation.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): GeneratedCodeInfo {
-    return {
-      annotation: Array.isArray(object?.annotation)
-        ? object.annotation.map((e: any) => GeneratedCodeInfo_Annotation.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseGeneratedCodeInfo();
+    if (Array.isArray(object?.annotation))
+      obj.annotation = object.annotation.map((e: any) => GeneratedCodeInfo_Annotation.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: GeneratedCodeInfo): unknown {
+  toJSON(message: GeneratedCodeInfo): JsonSafe<GeneratedCodeInfo> {
     const obj: any = {};
-
     if (message.annotation) {
       obj.annotation = message.annotation.map((e) =>
         e ? GeneratedCodeInfo_Annotation.toJSON(e) : undefined,
@@ -4193,17 +3484,14 @@ export const GeneratedCodeInfo = {
     } else {
       obj.annotation = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<GeneratedCodeInfo>, I>>(object: I): GeneratedCodeInfo {
     const message = createBaseGeneratedCodeInfo();
     message.annotation = object.annotation?.map((e) => GeneratedCodeInfo_Annotation.fromPartial(e)) || [];
     return message;
   },
 };
-
 function createBaseGeneratedCodeInfo_Annotation(): GeneratedCodeInfo_Annotation {
   return {
     path: [],
@@ -4212,99 +3500,78 @@ function createBaseGeneratedCodeInfo_Annotation(): GeneratedCodeInfo_Annotation 
     end: 0,
   };
 }
-
 export const GeneratedCodeInfo_Annotation = {
-  encode(message: GeneratedCodeInfo_Annotation, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/google.protobuf.Annotation",
+  encode(message: GeneratedCodeInfo_Annotation, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     writer.uint32(10).fork();
-
     for (const v of message.path) {
       writer.int32(v);
     }
-
     writer.ldelim();
-
     if (message.sourceFile !== "") {
       writer.uint32(18).string(message.sourceFile);
     }
-
     if (message.begin !== 0) {
       writer.uint32(24).int32(message.begin);
     }
-
     if (message.end !== 0) {
       writer.uint32(32).int32(message.end);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GeneratedCodeInfo_Annotation {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): GeneratedCodeInfo_Annotation {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGeneratedCodeInfo_Annotation();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           if ((tag & 7) === 2) {
             const end2 = reader.uint32() + reader.pos;
-
             while (reader.pos < end2) {
               message.path.push(reader.int32());
             }
           } else {
             message.path.push(reader.int32());
           }
-
           break;
-
         case 2:
           message.sourceFile = reader.string();
           break;
-
         case 3:
           message.begin = reader.int32();
           break;
-
         case 4:
           message.end = reader.int32();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): GeneratedCodeInfo_Annotation {
-    return {
-      path: Array.isArray(object?.path) ? object.path.map((e: any) => Number(e)) : [],
-      sourceFile: isSet(object.sourceFile) ? String(object.sourceFile) : "",
-      begin: isSet(object.begin) ? Number(object.begin) : 0,
-      end: isSet(object.end) ? Number(object.end) : 0,
-    };
+    const obj = createBaseGeneratedCodeInfo_Annotation();
+    if (Array.isArray(object?.path)) obj.path = object.path.map((e: any) => Number(e));
+    if (isSet(object.sourceFile)) obj.sourceFile = String(object.sourceFile);
+    if (isSet(object.begin)) obj.begin = Number(object.begin);
+    if (isSet(object.end)) obj.end = Number(object.end);
+    return obj;
   },
-
-  toJSON(message: GeneratedCodeInfo_Annotation): unknown {
+  toJSON(message: GeneratedCodeInfo_Annotation): JsonSafe<GeneratedCodeInfo_Annotation> {
     const obj: any = {};
-
     if (message.path) {
       obj.path = message.path.map((e) => Math.round(e));
     } else {
       obj.path = [];
     }
-
     message.sourceFile !== undefined && (obj.sourceFile = message.sourceFile);
     message.begin !== undefined && (obj.begin = Math.round(message.begin));
     message.end !== undefined && (obj.end = Math.round(message.end));
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<GeneratedCodeInfo_Annotation>, I>>(
     object: I,
   ): GeneratedCodeInfo_Annotation {

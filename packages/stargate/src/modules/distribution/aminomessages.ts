@@ -7,7 +7,7 @@ import {
   MsgWithdrawValidatorCommission,
 } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 
-import { AminoConverter } from "../../aminotypes";
+import { AminoConverter } from "../..";
 
 /** Changes the withdraw address for a delegator (or validator self-delegation) */
 export interface AminoMsgSetWithdrawAddress extends AminoMsg {
@@ -72,10 +72,7 @@ export function isAminoMsgFundCommunityPool(msg: AminoMsg): msg is AminoMsgFundC
   return msg.type === "cosmos-sdk/MsgFundCommunityPool";
 }
 
-export function createDistributionAminoConverters(): Record<
-  string,
-  AminoConverter | "not_supported_by_chain"
-> {
+export function createDistributionAminoConverters(): Record<string, AminoConverter> {
   return {
     "/cosmos.distribution.v1beta1.MsgFundCommunityPool": {
       aminoType: "cosmos-sdk/MsgFundCommunityPool",

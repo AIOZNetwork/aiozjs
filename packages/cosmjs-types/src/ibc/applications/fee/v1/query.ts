@@ -4,281 +4,236 @@ import { PacketId } from "../../../core/channel/v1/channel";
 import { IdentifiedPacketFees } from "./fee";
 import { Coin } from "../../../../cosmos/base/v1beta1/coin";
 import { FeeEnabledChannel } from "./genesis";
-import { Long, isSet, DeepPartial, Exact, Rpc } from "../../../../helpers";
-import * as _m0 from "protobufjs/minimal";
+import { BinaryReader, BinaryWriter } from "../../../../binary";
+import { isSet, DeepPartial, Exact, Rpc } from "../../../../helpers";
+import { JsonSafe } from "../../../../json-safe";
 export const protobufPackage = "ibc.applications.fee.v1";
 /** QueryIncentivizedPacketsRequest defines the request type for the IncentivizedPackets rpc */
-
 export interface QueryIncentivizedPacketsRequest {
   /** pagination defines an optional pagination for the request. */
   pagination?: PageRequest;
   /** block height at which to query */
-
-  queryHeight: Long;
+  queryHeight: bigint;
 }
 /** QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPackets rpc */
-
 export interface QueryIncentivizedPacketsResponse {
   /** list of identified fees for incentivized packets */
   incentivizedPackets: IdentifiedPacketFees[];
 }
 /** QueryIncentivizedPacketRequest defines the request type for the IncentivizedPacket rpc */
-
 export interface QueryIncentivizedPacketRequest {
   /** unique packet identifier comprised of channel ID, port ID and sequence */
-  packetId?: PacketId;
+  packetId: PacketId;
   /** block height at which to query */
-
-  queryHeight: Long;
+  queryHeight: bigint;
 }
 /** QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc */
-
 export interface QueryIncentivizedPacketResponse {
   /** the identified fees for the incentivized packet */
-  incentivizedPacket?: IdentifiedPacketFees;
+  incentivizedPacket: IdentifiedPacketFees;
 }
 /**
  * QueryIncentivizedPacketsForChannelRequest defines the request type for querying for all incentivized packets
  * for a specific channel
  */
-
 export interface QueryIncentivizedPacketsForChannelRequest {
   /** pagination defines an optional pagination for the request. */
   pagination?: PageRequest;
   portId: string;
   channelId: string;
   /** Height to query at */
-
-  queryHeight: Long;
+  queryHeight: bigint;
 }
 /** QueryIncentivizedPacketsResponse defines the response type for the incentivized packets RPC */
-
 export interface QueryIncentivizedPacketsForChannelResponse {
   /** Map of all incentivized_packets */
   incentivizedPackets: IdentifiedPacketFees[];
 }
 /** QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc */
-
 export interface QueryTotalRecvFeesRequest {
   /** the packet identifier for the associated fees */
-  packetId?: PacketId;
+  packetId: PacketId;
 }
 /** QueryTotalRecvFeesResponse defines the response type for the TotalRecvFees rpc */
-
 export interface QueryTotalRecvFeesResponse {
   /** the total packet receive fees */
   recvFees: Coin[];
 }
 /** QueryTotalAckFeesRequest defines the request type for the TotalAckFees rpc */
-
 export interface QueryTotalAckFeesRequest {
   /** the packet identifier for the associated fees */
-  packetId?: PacketId;
+  packetId: PacketId;
 }
 /** QueryTotalAckFeesResponse defines the response type for the TotalAckFees rpc */
-
 export interface QueryTotalAckFeesResponse {
   /** the total packet acknowledgement fees */
   ackFees: Coin[];
 }
 /** QueryTotalTimeoutFeesRequest defines the request type for the TotalTimeoutFees rpc */
-
 export interface QueryTotalTimeoutFeesRequest {
   /** the packet identifier for the associated fees */
-  packetId?: PacketId;
+  packetId: PacketId;
 }
 /** QueryTotalTimeoutFeesResponse defines the response type for the TotalTimeoutFees rpc */
-
 export interface QueryTotalTimeoutFeesResponse {
   /** the total packet timeout fees */
   timeoutFees: Coin[];
 }
 /** QueryPayeeRequest defines the request type for the Payee rpc */
-
 export interface QueryPayeeRequest {
   /** unique channel identifier */
   channelId: string;
   /** the relayer address to which the distribution address is registered */
-
   relayer: string;
 }
 /** QueryPayeeResponse defines the response type for the Payee rpc */
-
 export interface QueryPayeeResponse {
   /** the payee address to which packet fees are paid out */
   payeeAddress: string;
 }
 /** QueryCounterpartyPayeeRequest defines the request type for the CounterpartyPayee rpc */
-
 export interface QueryCounterpartyPayeeRequest {
   /** unique channel identifier */
   channelId: string;
   /** the relayer address to which the counterparty is registered */
-
   relayer: string;
 }
 /** QueryCounterpartyPayeeResponse defines the response type for the CounterpartyPayee rpc */
-
 export interface QueryCounterpartyPayeeResponse {
   /** the counterparty payee address used to compensate forward relaying */
   counterpartyPayee: string;
 }
 /** QueryFeeEnabledChannelsRequest defines the request type for the FeeEnabledChannels rpc */
-
 export interface QueryFeeEnabledChannelsRequest {
   /** pagination defines an optional pagination for the request. */
   pagination?: PageRequest;
   /** block height at which to query */
-
-  queryHeight: Long;
+  queryHeight: bigint;
 }
 /** QueryFeeEnabledChannelsResponse defines the response type for the FeeEnabledChannels rpc */
-
 export interface QueryFeeEnabledChannelsResponse {
   /** list of fee enabled channels */
   feeEnabledChannels: FeeEnabledChannel[];
 }
 /** QueryFeeEnabledChannelRequest defines the request type for the FeeEnabledChannel rpc */
-
 export interface QueryFeeEnabledChannelRequest {
   /** unique port identifier */
   portId: string;
   /** unique channel identifier */
-
   channelId: string;
 }
 /** QueryFeeEnabledChannelResponse defines the response type for the FeeEnabledChannel rpc */
-
 export interface QueryFeeEnabledChannelResponse {
   /** boolean flag representing the fee enabled channel status */
   feeEnabled: boolean;
 }
-
 function createBaseQueryIncentivizedPacketsRequest(): QueryIncentivizedPacketsRequest {
   return {
     pagination: undefined,
-    queryHeight: Long.UZERO,
+    queryHeight: BigInt(0),
   };
 }
-
 export const QueryIncentivizedPacketsRequest = {
-  encode(message: QueryIncentivizedPacketsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryIncentivizedPacketsRequest",
+  encode(
+    message: QueryIncentivizedPacketsRequest,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
-
-    if (!message.queryHeight.isZero()) {
+    if (message.queryHeight !== BigInt(0)) {
       writer.uint32(16).uint64(message.queryHeight);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryIncentivizedPacketsRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryIncentivizedPacketsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryIncentivizedPacketsRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.pagination = PageRequest.decode(reader, reader.uint32());
           break;
-
         case 2:
-          message.queryHeight = reader.uint64() as Long;
+          message.queryHeight = reader.uint64();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryIncentivizedPacketsRequest {
-    return {
-      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
-      queryHeight: isSet(object.queryHeight) ? Long.fromValue(object.queryHeight) : Long.UZERO,
-    };
+    const obj = createBaseQueryIncentivizedPacketsRequest();
+    if (isSet(object.pagination)) obj.pagination = PageRequest.fromJSON(object.pagination);
+    if (isSet(object.queryHeight)) obj.queryHeight = BigInt(object.queryHeight.toString());
+    return obj;
   },
-
-  toJSON(message: QueryIncentivizedPacketsRequest): unknown {
+  toJSON(message: QueryIncentivizedPacketsRequest): JsonSafe<QueryIncentivizedPacketsRequest> {
     const obj: any = {};
     message.pagination !== undefined &&
       (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
-    message.queryHeight !== undefined && (obj.queryHeight = (message.queryHeight || Long.UZERO).toString());
+    message.queryHeight !== undefined && (obj.queryHeight = (message.queryHeight || BigInt(0)).toString());
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryIncentivizedPacketsRequest>, I>>(
     object: I,
   ): QueryIncentivizedPacketsRequest {
     const message = createBaseQueryIncentivizedPacketsRequest();
-    message.pagination =
-      object.pagination !== undefined && object.pagination !== null
-        ? PageRequest.fromPartial(object.pagination)
-        : undefined;
-    message.queryHeight =
-      object.queryHeight !== undefined && object.queryHeight !== null
-        ? Long.fromValue(object.queryHeight)
-        : Long.UZERO;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromPartial(object.pagination);
+    }
+    if (object.queryHeight !== undefined && object.queryHeight !== null) {
+      message.queryHeight = BigInt(object.queryHeight.toString());
+    }
     return message;
   },
 };
-
 function createBaseQueryIncentivizedPacketsResponse(): QueryIncentivizedPacketsResponse {
   return {
     incentivizedPackets: [],
   };
 }
-
 export const QueryIncentivizedPacketsResponse = {
-  encode(message: QueryIncentivizedPacketsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryIncentivizedPacketsResponse",
+  encode(
+    message: QueryIncentivizedPacketsResponse,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     for (const v of message.incentivizedPackets) {
       IdentifiedPacketFees.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryIncentivizedPacketsResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryIncentivizedPacketsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryIncentivizedPacketsResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.incentivizedPackets.push(IdentifiedPacketFees.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryIncentivizedPacketsResponse {
-    return {
-      incentivizedPackets: Array.isArray(object?.incentivizedPackets)
-        ? object.incentivizedPackets.map((e: any) => IdentifiedPacketFees.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseQueryIncentivizedPacketsResponse();
+    if (Array.isArray(object?.incentivizedPackets))
+      obj.incentivizedPackets = object.incentivizedPackets.map((e: any) => IdentifiedPacketFees.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: QueryIncentivizedPacketsResponse): unknown {
+  toJSON(message: QueryIncentivizedPacketsResponse): JsonSafe<QueryIncentivizedPacketsResponse> {
     const obj: any = {};
-
     if (message.incentivizedPackets) {
       obj.incentivizedPackets = message.incentivizedPackets.map((e) =>
         e ? IdentifiedPacketFees.toJSON(e) : undefined,
@@ -286,10 +241,8 @@ export const QueryIncentivizedPacketsResponse = {
     } else {
       obj.incentivizedPackets = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryIncentivizedPacketsResponse>, I>>(
     object: I,
   ): QueryIncentivizedPacketsResponse {
@@ -299,130 +252,112 @@ export const QueryIncentivizedPacketsResponse = {
     return message;
   },
 };
-
 function createBaseQueryIncentivizedPacketRequest(): QueryIncentivizedPacketRequest {
   return {
-    packetId: undefined,
-    queryHeight: Long.UZERO,
+    packetId: PacketId.fromPartial({}),
+    queryHeight: BigInt(0),
   };
 }
-
 export const QueryIncentivizedPacketRequest = {
-  encode(message: QueryIncentivizedPacketRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryIncentivizedPacketRequest",
+  encode(
+    message: QueryIncentivizedPacketRequest,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.packetId !== undefined) {
       PacketId.encode(message.packetId, writer.uint32(10).fork()).ldelim();
     }
-
-    if (!message.queryHeight.isZero()) {
+    if (message.queryHeight !== BigInt(0)) {
       writer.uint32(16).uint64(message.queryHeight);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryIncentivizedPacketRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryIncentivizedPacketRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryIncentivizedPacketRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.packetId = PacketId.decode(reader, reader.uint32());
           break;
-
         case 2:
-          message.queryHeight = reader.uint64() as Long;
+          message.queryHeight = reader.uint64();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryIncentivizedPacketRequest {
-    return {
-      packetId: isSet(object.packetId) ? PacketId.fromJSON(object.packetId) : undefined,
-      queryHeight: isSet(object.queryHeight) ? Long.fromValue(object.queryHeight) : Long.UZERO,
-    };
+    const obj = createBaseQueryIncentivizedPacketRequest();
+    if (isSet(object.packetId)) obj.packetId = PacketId.fromJSON(object.packetId);
+    if (isSet(object.queryHeight)) obj.queryHeight = BigInt(object.queryHeight.toString());
+    return obj;
   },
-
-  toJSON(message: QueryIncentivizedPacketRequest): unknown {
+  toJSON(message: QueryIncentivizedPacketRequest): JsonSafe<QueryIncentivizedPacketRequest> {
     const obj: any = {};
     message.packetId !== undefined &&
       (obj.packetId = message.packetId ? PacketId.toJSON(message.packetId) : undefined);
-    message.queryHeight !== undefined && (obj.queryHeight = (message.queryHeight || Long.UZERO).toString());
+    message.queryHeight !== undefined && (obj.queryHeight = (message.queryHeight || BigInt(0)).toString());
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryIncentivizedPacketRequest>, I>>(
     object: I,
   ): QueryIncentivizedPacketRequest {
     const message = createBaseQueryIncentivizedPacketRequest();
-    message.packetId =
-      object.packetId !== undefined && object.packetId !== null
-        ? PacketId.fromPartial(object.packetId)
-        : undefined;
-    message.queryHeight =
-      object.queryHeight !== undefined && object.queryHeight !== null
-        ? Long.fromValue(object.queryHeight)
-        : Long.UZERO;
+    if (object.packetId !== undefined && object.packetId !== null) {
+      message.packetId = PacketId.fromPartial(object.packetId);
+    }
+    if (object.queryHeight !== undefined && object.queryHeight !== null) {
+      message.queryHeight = BigInt(object.queryHeight.toString());
+    }
     return message;
   },
 };
-
 function createBaseQueryIncentivizedPacketResponse(): QueryIncentivizedPacketResponse {
   return {
-    incentivizedPacket: undefined,
+    incentivizedPacket: IdentifiedPacketFees.fromPartial({}),
   };
 }
-
 export const QueryIncentivizedPacketResponse = {
-  encode(message: QueryIncentivizedPacketResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryIncentivizedPacketResponse",
+  encode(
+    message: QueryIncentivizedPacketResponse,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.incentivizedPacket !== undefined) {
       IdentifiedPacketFees.encode(message.incentivizedPacket, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryIncentivizedPacketResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryIncentivizedPacketResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryIncentivizedPacketResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.incentivizedPacket = IdentifiedPacketFees.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryIncentivizedPacketResponse {
-    return {
-      incentivizedPacket: isSet(object.incentivizedPacket)
-        ? IdentifiedPacketFees.fromJSON(object.incentivizedPacket)
-        : undefined,
-    };
+    const obj = createBaseQueryIncentivizedPacketResponse();
+    if (isSet(object.incentivizedPacket))
+      obj.incentivizedPacket = IdentifiedPacketFees.fromJSON(object.incentivizedPacket);
+    return obj;
   },
-
-  toJSON(message: QueryIncentivizedPacketResponse): unknown {
+  toJSON(message: QueryIncentivizedPacketResponse): JsonSafe<QueryIncentivizedPacketResponse> {
     const obj: any = {};
     message.incentivizedPacket !== undefined &&
       (obj.incentivizedPacket = message.incentivizedPacket
@@ -430,174 +365,147 @@ export const QueryIncentivizedPacketResponse = {
         : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryIncentivizedPacketResponse>, I>>(
     object: I,
   ): QueryIncentivizedPacketResponse {
     const message = createBaseQueryIncentivizedPacketResponse();
-    message.incentivizedPacket =
-      object.incentivizedPacket !== undefined && object.incentivizedPacket !== null
-        ? IdentifiedPacketFees.fromPartial(object.incentivizedPacket)
-        : undefined;
+    if (object.incentivizedPacket !== undefined && object.incentivizedPacket !== null) {
+      message.incentivizedPacket = IdentifiedPacketFees.fromPartial(object.incentivizedPacket);
+    }
     return message;
   },
 };
-
 function createBaseQueryIncentivizedPacketsForChannelRequest(): QueryIncentivizedPacketsForChannelRequest {
   return {
     pagination: undefined,
     portId: "",
     channelId: "",
-    queryHeight: Long.UZERO,
+    queryHeight: BigInt(0),
   };
 }
-
 export const QueryIncentivizedPacketsForChannelRequest = {
+  typeUrl: "/ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelRequest",
   encode(
     message: QueryIncentivizedPacketsForChannelRequest,
-    writer: _m0.Writer = _m0.Writer.create(),
-  ): _m0.Writer {
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
-
     if (message.portId !== "") {
       writer.uint32(18).string(message.portId);
     }
-
     if (message.channelId !== "") {
       writer.uint32(26).string(message.channelId);
     }
-
-    if (!message.queryHeight.isZero()) {
+    if (message.queryHeight !== BigInt(0)) {
       writer.uint32(32).uint64(message.queryHeight);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryIncentivizedPacketsForChannelRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryIncentivizedPacketsForChannelRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryIncentivizedPacketsForChannelRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.pagination = PageRequest.decode(reader, reader.uint32());
           break;
-
         case 2:
           message.portId = reader.string();
           break;
-
         case 3:
           message.channelId = reader.string();
           break;
-
         case 4:
-          message.queryHeight = reader.uint64() as Long;
+          message.queryHeight = reader.uint64();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryIncentivizedPacketsForChannelRequest {
-    return {
-      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
-      queryHeight: isSet(object.queryHeight) ? Long.fromValue(object.queryHeight) : Long.UZERO,
-    };
+    const obj = createBaseQueryIncentivizedPacketsForChannelRequest();
+    if (isSet(object.pagination)) obj.pagination = PageRequest.fromJSON(object.pagination);
+    if (isSet(object.portId)) obj.portId = String(object.portId);
+    if (isSet(object.channelId)) obj.channelId = String(object.channelId);
+    if (isSet(object.queryHeight)) obj.queryHeight = BigInt(object.queryHeight.toString());
+    return obj;
   },
-
-  toJSON(message: QueryIncentivizedPacketsForChannelRequest): unknown {
+  toJSON(
+    message: QueryIncentivizedPacketsForChannelRequest,
+  ): JsonSafe<QueryIncentivizedPacketsForChannelRequest> {
     const obj: any = {};
     message.pagination !== undefined &&
       (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
     message.portId !== undefined && (obj.portId = message.portId);
     message.channelId !== undefined && (obj.channelId = message.channelId);
-    message.queryHeight !== undefined && (obj.queryHeight = (message.queryHeight || Long.UZERO).toString());
+    message.queryHeight !== undefined && (obj.queryHeight = (message.queryHeight || BigInt(0)).toString());
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryIncentivizedPacketsForChannelRequest>, I>>(
     object: I,
   ): QueryIncentivizedPacketsForChannelRequest {
     const message = createBaseQueryIncentivizedPacketsForChannelRequest();
-    message.pagination =
-      object.pagination !== undefined && object.pagination !== null
-        ? PageRequest.fromPartial(object.pagination)
-        : undefined;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromPartial(object.pagination);
+    }
     message.portId = object.portId ?? "";
     message.channelId = object.channelId ?? "";
-    message.queryHeight =
-      object.queryHeight !== undefined && object.queryHeight !== null
-        ? Long.fromValue(object.queryHeight)
-        : Long.UZERO;
+    if (object.queryHeight !== undefined && object.queryHeight !== null) {
+      message.queryHeight = BigInt(object.queryHeight.toString());
+    }
     return message;
   },
 };
-
 function createBaseQueryIncentivizedPacketsForChannelResponse(): QueryIncentivizedPacketsForChannelResponse {
   return {
     incentivizedPackets: [],
   };
 }
-
 export const QueryIncentivizedPacketsForChannelResponse = {
+  typeUrl: "/ibc.applications.fee.v1.QueryIncentivizedPacketsForChannelResponse",
   encode(
     message: QueryIncentivizedPacketsForChannelResponse,
-    writer: _m0.Writer = _m0.Writer.create(),
-  ): _m0.Writer {
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     for (const v of message.incentivizedPackets) {
       IdentifiedPacketFees.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryIncentivizedPacketsForChannelResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryIncentivizedPacketsForChannelResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryIncentivizedPacketsForChannelResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.incentivizedPackets.push(IdentifiedPacketFees.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryIncentivizedPacketsForChannelResponse {
-    return {
-      incentivizedPackets: Array.isArray(object?.incentivizedPackets)
-        ? object.incentivizedPackets.map((e: any) => IdentifiedPacketFees.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseQueryIncentivizedPacketsForChannelResponse();
+    if (Array.isArray(object?.incentivizedPackets))
+      obj.incentivizedPackets = object.incentivizedPackets.map((e: any) => IdentifiedPacketFees.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: QueryIncentivizedPacketsForChannelResponse): unknown {
+  toJSON(
+    message: QueryIncentivizedPacketsForChannelResponse,
+  ): JsonSafe<QueryIncentivizedPacketsForChannelResponse> {
     const obj: any = {};
-
     if (message.incentivizedPackets) {
       obj.incentivizedPackets = message.incentivizedPackets.map((e) =>
         e ? IdentifiedPacketFees.toJSON(e) : undefined,
@@ -605,10 +513,8 @@ export const QueryIncentivizedPacketsForChannelResponse = {
     } else {
       obj.incentivizedPackets = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryIncentivizedPacketsForChannelResponse>, I>>(
     object: I,
   ): QueryIncentivizedPacketsForChannelResponse {
@@ -618,124 +524,101 @@ export const QueryIncentivizedPacketsForChannelResponse = {
     return message;
   },
 };
-
 function createBaseQueryTotalRecvFeesRequest(): QueryTotalRecvFeesRequest {
   return {
-    packetId: undefined,
+    packetId: PacketId.fromPartial({}),
   };
 }
-
 export const QueryTotalRecvFeesRequest = {
-  encode(message: QueryTotalRecvFeesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryTotalRecvFeesRequest",
+  encode(message: QueryTotalRecvFeesRequest, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.packetId !== undefined) {
       PacketId.encode(message.packetId, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryTotalRecvFeesRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryTotalRecvFeesRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryTotalRecvFeesRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.packetId = PacketId.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryTotalRecvFeesRequest {
-    return {
-      packetId: isSet(object.packetId) ? PacketId.fromJSON(object.packetId) : undefined,
-    };
+    const obj = createBaseQueryTotalRecvFeesRequest();
+    if (isSet(object.packetId)) obj.packetId = PacketId.fromJSON(object.packetId);
+    return obj;
   },
-
-  toJSON(message: QueryTotalRecvFeesRequest): unknown {
+  toJSON(message: QueryTotalRecvFeesRequest): JsonSafe<QueryTotalRecvFeesRequest> {
     const obj: any = {};
     message.packetId !== undefined &&
       (obj.packetId = message.packetId ? PacketId.toJSON(message.packetId) : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryTotalRecvFeesRequest>, I>>(
     object: I,
   ): QueryTotalRecvFeesRequest {
     const message = createBaseQueryTotalRecvFeesRequest();
-    message.packetId =
-      object.packetId !== undefined && object.packetId !== null
-        ? PacketId.fromPartial(object.packetId)
-        : undefined;
+    if (object.packetId !== undefined && object.packetId !== null) {
+      message.packetId = PacketId.fromPartial(object.packetId);
+    }
     return message;
   },
 };
-
 function createBaseQueryTotalRecvFeesResponse(): QueryTotalRecvFeesResponse {
   return {
     recvFees: [],
   };
 }
-
 export const QueryTotalRecvFeesResponse = {
-  encode(message: QueryTotalRecvFeesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryTotalRecvFeesResponse",
+  encode(message: QueryTotalRecvFeesResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.recvFees) {
       Coin.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryTotalRecvFeesResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryTotalRecvFeesResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryTotalRecvFeesResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.recvFees.push(Coin.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryTotalRecvFeesResponse {
-    return {
-      recvFees: Array.isArray(object?.recvFees) ? object.recvFees.map((e: any) => Coin.fromJSON(e)) : [],
-    };
+    const obj = createBaseQueryTotalRecvFeesResponse();
+    if (Array.isArray(object?.recvFees)) obj.recvFees = object.recvFees.map((e: any) => Coin.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: QueryTotalRecvFeesResponse): unknown {
+  toJSON(message: QueryTotalRecvFeesResponse): JsonSafe<QueryTotalRecvFeesResponse> {
     const obj: any = {};
-
     if (message.recvFees) {
       obj.recvFees = message.recvFees.map((e) => (e ? Coin.toJSON(e) : undefined));
     } else {
       obj.recvFees = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryTotalRecvFeesResponse>, I>>(
     object: I,
   ): QueryTotalRecvFeesResponse {
@@ -744,124 +627,101 @@ export const QueryTotalRecvFeesResponse = {
     return message;
   },
 };
-
 function createBaseQueryTotalAckFeesRequest(): QueryTotalAckFeesRequest {
   return {
-    packetId: undefined,
+    packetId: PacketId.fromPartial({}),
   };
 }
-
 export const QueryTotalAckFeesRequest = {
-  encode(message: QueryTotalAckFeesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryTotalAckFeesRequest",
+  encode(message: QueryTotalAckFeesRequest, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.packetId !== undefined) {
       PacketId.encode(message.packetId, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryTotalAckFeesRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryTotalAckFeesRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryTotalAckFeesRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.packetId = PacketId.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryTotalAckFeesRequest {
-    return {
-      packetId: isSet(object.packetId) ? PacketId.fromJSON(object.packetId) : undefined,
-    };
+    const obj = createBaseQueryTotalAckFeesRequest();
+    if (isSet(object.packetId)) obj.packetId = PacketId.fromJSON(object.packetId);
+    return obj;
   },
-
-  toJSON(message: QueryTotalAckFeesRequest): unknown {
+  toJSON(message: QueryTotalAckFeesRequest): JsonSafe<QueryTotalAckFeesRequest> {
     const obj: any = {};
     message.packetId !== undefined &&
       (obj.packetId = message.packetId ? PacketId.toJSON(message.packetId) : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryTotalAckFeesRequest>, I>>(
     object: I,
   ): QueryTotalAckFeesRequest {
     const message = createBaseQueryTotalAckFeesRequest();
-    message.packetId =
-      object.packetId !== undefined && object.packetId !== null
-        ? PacketId.fromPartial(object.packetId)
-        : undefined;
+    if (object.packetId !== undefined && object.packetId !== null) {
+      message.packetId = PacketId.fromPartial(object.packetId);
+    }
     return message;
   },
 };
-
 function createBaseQueryTotalAckFeesResponse(): QueryTotalAckFeesResponse {
   return {
     ackFees: [],
   };
 }
-
 export const QueryTotalAckFeesResponse = {
-  encode(message: QueryTotalAckFeesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryTotalAckFeesResponse",
+  encode(message: QueryTotalAckFeesResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.ackFees) {
       Coin.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryTotalAckFeesResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryTotalAckFeesResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryTotalAckFeesResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.ackFees.push(Coin.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryTotalAckFeesResponse {
-    return {
-      ackFees: Array.isArray(object?.ackFees) ? object.ackFees.map((e: any) => Coin.fromJSON(e)) : [],
-    };
+    const obj = createBaseQueryTotalAckFeesResponse();
+    if (Array.isArray(object?.ackFees)) obj.ackFees = object.ackFees.map((e: any) => Coin.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: QueryTotalAckFeesResponse): unknown {
+  toJSON(message: QueryTotalAckFeesResponse): JsonSafe<QueryTotalAckFeesResponse> {
     const obj: any = {};
-
     if (message.ackFees) {
       obj.ackFees = message.ackFees.map((e) => (e ? Coin.toJSON(e) : undefined));
     } else {
       obj.ackFees = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryTotalAckFeesResponse>, I>>(
     object: I,
   ): QueryTotalAckFeesResponse {
@@ -870,126 +730,102 @@ export const QueryTotalAckFeesResponse = {
     return message;
   },
 };
-
 function createBaseQueryTotalTimeoutFeesRequest(): QueryTotalTimeoutFeesRequest {
   return {
-    packetId: undefined,
+    packetId: PacketId.fromPartial({}),
   };
 }
-
 export const QueryTotalTimeoutFeesRequest = {
-  encode(message: QueryTotalTimeoutFeesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryTotalTimeoutFeesRequest",
+  encode(message: QueryTotalTimeoutFeesRequest, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.packetId !== undefined) {
       PacketId.encode(message.packetId, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryTotalTimeoutFeesRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryTotalTimeoutFeesRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryTotalTimeoutFeesRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.packetId = PacketId.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryTotalTimeoutFeesRequest {
-    return {
-      packetId: isSet(object.packetId) ? PacketId.fromJSON(object.packetId) : undefined,
-    };
+    const obj = createBaseQueryTotalTimeoutFeesRequest();
+    if (isSet(object.packetId)) obj.packetId = PacketId.fromJSON(object.packetId);
+    return obj;
   },
-
-  toJSON(message: QueryTotalTimeoutFeesRequest): unknown {
+  toJSON(message: QueryTotalTimeoutFeesRequest): JsonSafe<QueryTotalTimeoutFeesRequest> {
     const obj: any = {};
     message.packetId !== undefined &&
       (obj.packetId = message.packetId ? PacketId.toJSON(message.packetId) : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryTotalTimeoutFeesRequest>, I>>(
     object: I,
   ): QueryTotalTimeoutFeesRequest {
     const message = createBaseQueryTotalTimeoutFeesRequest();
-    message.packetId =
-      object.packetId !== undefined && object.packetId !== null
-        ? PacketId.fromPartial(object.packetId)
-        : undefined;
+    if (object.packetId !== undefined && object.packetId !== null) {
+      message.packetId = PacketId.fromPartial(object.packetId);
+    }
     return message;
   },
 };
-
 function createBaseQueryTotalTimeoutFeesResponse(): QueryTotalTimeoutFeesResponse {
   return {
     timeoutFees: [],
   };
 }
-
 export const QueryTotalTimeoutFeesResponse = {
-  encode(message: QueryTotalTimeoutFeesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryTotalTimeoutFeesResponse",
+  encode(message: QueryTotalTimeoutFeesResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.timeoutFees) {
       Coin.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryTotalTimeoutFeesResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryTotalTimeoutFeesResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryTotalTimeoutFeesResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.timeoutFees.push(Coin.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryTotalTimeoutFeesResponse {
-    return {
-      timeoutFees: Array.isArray(object?.timeoutFees)
-        ? object.timeoutFees.map((e: any) => Coin.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseQueryTotalTimeoutFeesResponse();
+    if (Array.isArray(object?.timeoutFees))
+      obj.timeoutFees = object.timeoutFees.map((e: any) => Coin.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: QueryTotalTimeoutFeesResponse): unknown {
+  toJSON(message: QueryTotalTimeoutFeesResponse): JsonSafe<QueryTotalTimeoutFeesResponse> {
     const obj: any = {};
-
     if (message.timeoutFees) {
       obj.timeoutFees = message.timeoutFees.map((e) => (e ? Coin.toJSON(e) : undefined));
     } else {
       obj.timeoutFees = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryTotalTimeoutFeesResponse>, I>>(
     object: I,
   ): QueryTotalTimeoutFeesResponse {
@@ -998,67 +834,55 @@ export const QueryTotalTimeoutFeesResponse = {
     return message;
   },
 };
-
 function createBaseQueryPayeeRequest(): QueryPayeeRequest {
   return {
     channelId: "",
     relayer: "",
   };
 }
-
 export const QueryPayeeRequest = {
-  encode(message: QueryPayeeRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryPayeeRequest",
+  encode(message: QueryPayeeRequest, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.channelId !== "") {
       writer.uint32(10).string(message.channelId);
     }
-
     if (message.relayer !== "") {
       writer.uint32(18).string(message.relayer);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryPayeeRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryPayeeRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryPayeeRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.channelId = reader.string();
           break;
-
         case 2:
           message.relayer = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryPayeeRequest {
-    return {
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
-      relayer: isSet(object.relayer) ? String(object.relayer) : "",
-    };
+    const obj = createBaseQueryPayeeRequest();
+    if (isSet(object.channelId)) obj.channelId = String(object.channelId);
+    if (isSet(object.relayer)) obj.relayer = String(object.relayer);
+    return obj;
   },
-
-  toJSON(message: QueryPayeeRequest): unknown {
+  toJSON(message: QueryPayeeRequest): JsonSafe<QueryPayeeRequest> {
     const obj: any = {};
     message.channelId !== undefined && (obj.channelId = message.channelId);
     message.relayer !== undefined && (obj.relayer = message.relayer);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryPayeeRequest>, I>>(object: I): QueryPayeeRequest {
     const message = createBaseQueryPayeeRequest();
     message.channelId = object.channelId ?? "";
@@ -1066,123 +890,101 @@ export const QueryPayeeRequest = {
     return message;
   },
 };
-
 function createBaseQueryPayeeResponse(): QueryPayeeResponse {
   return {
     payeeAddress: "",
   };
 }
-
 export const QueryPayeeResponse = {
-  encode(message: QueryPayeeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryPayeeResponse",
+  encode(message: QueryPayeeResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.payeeAddress !== "") {
       writer.uint32(10).string(message.payeeAddress);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryPayeeResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryPayeeResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryPayeeResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.payeeAddress = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryPayeeResponse {
-    return {
-      payeeAddress: isSet(object.payeeAddress) ? String(object.payeeAddress) : "",
-    };
+    const obj = createBaseQueryPayeeResponse();
+    if (isSet(object.payeeAddress)) obj.payeeAddress = String(object.payeeAddress);
+    return obj;
   },
-
-  toJSON(message: QueryPayeeResponse): unknown {
+  toJSON(message: QueryPayeeResponse): JsonSafe<QueryPayeeResponse> {
     const obj: any = {};
     message.payeeAddress !== undefined && (obj.payeeAddress = message.payeeAddress);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryPayeeResponse>, I>>(object: I): QueryPayeeResponse {
     const message = createBaseQueryPayeeResponse();
     message.payeeAddress = object.payeeAddress ?? "";
     return message;
   },
 };
-
 function createBaseQueryCounterpartyPayeeRequest(): QueryCounterpartyPayeeRequest {
   return {
     channelId: "",
     relayer: "",
   };
 }
-
 export const QueryCounterpartyPayeeRequest = {
-  encode(message: QueryCounterpartyPayeeRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryCounterpartyPayeeRequest",
+  encode(message: QueryCounterpartyPayeeRequest, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.channelId !== "") {
       writer.uint32(10).string(message.channelId);
     }
-
     if (message.relayer !== "") {
       writer.uint32(18).string(message.relayer);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryCounterpartyPayeeRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryCounterpartyPayeeRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryCounterpartyPayeeRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.channelId = reader.string();
           break;
-
         case 2:
           message.relayer = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryCounterpartyPayeeRequest {
-    return {
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
-      relayer: isSet(object.relayer) ? String(object.relayer) : "",
-    };
+    const obj = createBaseQueryCounterpartyPayeeRequest();
+    if (isSet(object.channelId)) obj.channelId = String(object.channelId);
+    if (isSet(object.relayer)) obj.relayer = String(object.relayer);
+    return obj;
   },
-
-  toJSON(message: QueryCounterpartyPayeeRequest): unknown {
+  toJSON(message: QueryCounterpartyPayeeRequest): JsonSafe<QueryCounterpartyPayeeRequest> {
     const obj: any = {};
     message.channelId !== undefined && (obj.channelId = message.channelId);
     message.relayer !== undefined && (obj.relayer = message.relayer);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryCounterpartyPayeeRequest>, I>>(
     object: I,
   ): QueryCounterpartyPayeeRequest {
@@ -1192,56 +994,49 @@ export const QueryCounterpartyPayeeRequest = {
     return message;
   },
 };
-
 function createBaseQueryCounterpartyPayeeResponse(): QueryCounterpartyPayeeResponse {
   return {
     counterpartyPayee: "",
   };
 }
-
 export const QueryCounterpartyPayeeResponse = {
-  encode(message: QueryCounterpartyPayeeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryCounterpartyPayeeResponse",
+  encode(
+    message: QueryCounterpartyPayeeResponse,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.counterpartyPayee !== "") {
       writer.uint32(10).string(message.counterpartyPayee);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryCounterpartyPayeeResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryCounterpartyPayeeResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryCounterpartyPayeeResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.counterpartyPayee = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryCounterpartyPayeeResponse {
-    return {
-      counterpartyPayee: isSet(object.counterpartyPayee) ? String(object.counterpartyPayee) : "",
-    };
+    const obj = createBaseQueryCounterpartyPayeeResponse();
+    if (isSet(object.counterpartyPayee)) obj.counterpartyPayee = String(object.counterpartyPayee);
+    return obj;
   },
-
-  toJSON(message: QueryCounterpartyPayeeResponse): unknown {
+  toJSON(message: QueryCounterpartyPayeeResponse): JsonSafe<QueryCounterpartyPayeeResponse> {
     const obj: any = {};
     message.counterpartyPayee !== undefined && (obj.counterpartyPayee = message.counterpartyPayee);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryCounterpartyPayeeResponse>, I>>(
     object: I,
   ): QueryCounterpartyPayeeResponse {
@@ -1250,132 +1045,113 @@ export const QueryCounterpartyPayeeResponse = {
     return message;
   },
 };
-
 function createBaseQueryFeeEnabledChannelsRequest(): QueryFeeEnabledChannelsRequest {
   return {
     pagination: undefined,
-    queryHeight: Long.UZERO,
+    queryHeight: BigInt(0),
   };
 }
-
 export const QueryFeeEnabledChannelsRequest = {
-  encode(message: QueryFeeEnabledChannelsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryFeeEnabledChannelsRequest",
+  encode(
+    message: QueryFeeEnabledChannelsRequest,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
-
-    if (!message.queryHeight.isZero()) {
+    if (message.queryHeight !== BigInt(0)) {
       writer.uint32(16).uint64(message.queryHeight);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFeeEnabledChannelsRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryFeeEnabledChannelsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryFeeEnabledChannelsRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.pagination = PageRequest.decode(reader, reader.uint32());
           break;
-
         case 2:
-          message.queryHeight = reader.uint64() as Long;
+          message.queryHeight = reader.uint64();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryFeeEnabledChannelsRequest {
-    return {
-      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
-      queryHeight: isSet(object.queryHeight) ? Long.fromValue(object.queryHeight) : Long.UZERO,
-    };
+    const obj = createBaseQueryFeeEnabledChannelsRequest();
+    if (isSet(object.pagination)) obj.pagination = PageRequest.fromJSON(object.pagination);
+    if (isSet(object.queryHeight)) obj.queryHeight = BigInt(object.queryHeight.toString());
+    return obj;
   },
-
-  toJSON(message: QueryFeeEnabledChannelsRequest): unknown {
+  toJSON(message: QueryFeeEnabledChannelsRequest): JsonSafe<QueryFeeEnabledChannelsRequest> {
     const obj: any = {};
     message.pagination !== undefined &&
       (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
-    message.queryHeight !== undefined && (obj.queryHeight = (message.queryHeight || Long.UZERO).toString());
+    message.queryHeight !== undefined && (obj.queryHeight = (message.queryHeight || BigInt(0)).toString());
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryFeeEnabledChannelsRequest>, I>>(
     object: I,
   ): QueryFeeEnabledChannelsRequest {
     const message = createBaseQueryFeeEnabledChannelsRequest();
-    message.pagination =
-      object.pagination !== undefined && object.pagination !== null
-        ? PageRequest.fromPartial(object.pagination)
-        : undefined;
-    message.queryHeight =
-      object.queryHeight !== undefined && object.queryHeight !== null
-        ? Long.fromValue(object.queryHeight)
-        : Long.UZERO;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromPartial(object.pagination);
+    }
+    if (object.queryHeight !== undefined && object.queryHeight !== null) {
+      message.queryHeight = BigInt(object.queryHeight.toString());
+    }
     return message;
   },
 };
-
 function createBaseQueryFeeEnabledChannelsResponse(): QueryFeeEnabledChannelsResponse {
   return {
     feeEnabledChannels: [],
   };
 }
-
 export const QueryFeeEnabledChannelsResponse = {
-  encode(message: QueryFeeEnabledChannelsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryFeeEnabledChannelsResponse",
+  encode(
+    message: QueryFeeEnabledChannelsResponse,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     for (const v of message.feeEnabledChannels) {
       FeeEnabledChannel.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFeeEnabledChannelsResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryFeeEnabledChannelsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryFeeEnabledChannelsResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.feeEnabledChannels.push(FeeEnabledChannel.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryFeeEnabledChannelsResponse {
-    return {
-      feeEnabledChannels: Array.isArray(object?.feeEnabledChannels)
-        ? object.feeEnabledChannels.map((e: any) => FeeEnabledChannel.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseQueryFeeEnabledChannelsResponse();
+    if (Array.isArray(object?.feeEnabledChannels))
+      obj.feeEnabledChannels = object.feeEnabledChannels.map((e: any) => FeeEnabledChannel.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: QueryFeeEnabledChannelsResponse): unknown {
+  toJSON(message: QueryFeeEnabledChannelsResponse): JsonSafe<QueryFeeEnabledChannelsResponse> {
     const obj: any = {};
-
     if (message.feeEnabledChannels) {
       obj.feeEnabledChannels = message.feeEnabledChannels.map((e) =>
         e ? FeeEnabledChannel.toJSON(e) : undefined,
@@ -1383,10 +1159,8 @@ export const QueryFeeEnabledChannelsResponse = {
     } else {
       obj.feeEnabledChannels = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryFeeEnabledChannelsResponse>, I>>(
     object: I,
   ): QueryFeeEnabledChannelsResponse {
@@ -1396,67 +1170,55 @@ export const QueryFeeEnabledChannelsResponse = {
     return message;
   },
 };
-
 function createBaseQueryFeeEnabledChannelRequest(): QueryFeeEnabledChannelRequest {
   return {
     portId: "",
     channelId: "",
   };
 }
-
 export const QueryFeeEnabledChannelRequest = {
-  encode(message: QueryFeeEnabledChannelRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryFeeEnabledChannelRequest",
+  encode(message: QueryFeeEnabledChannelRequest, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.portId !== "") {
       writer.uint32(10).string(message.portId);
     }
-
     if (message.channelId !== "") {
       writer.uint32(18).string(message.channelId);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFeeEnabledChannelRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryFeeEnabledChannelRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryFeeEnabledChannelRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.portId = reader.string();
           break;
-
         case 2:
           message.channelId = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryFeeEnabledChannelRequest {
-    return {
-      portId: isSet(object.portId) ? String(object.portId) : "",
-      channelId: isSet(object.channelId) ? String(object.channelId) : "",
-    };
+    const obj = createBaseQueryFeeEnabledChannelRequest();
+    if (isSet(object.portId)) obj.portId = String(object.portId);
+    if (isSet(object.channelId)) obj.channelId = String(object.channelId);
+    return obj;
   },
-
-  toJSON(message: QueryFeeEnabledChannelRequest): unknown {
+  toJSON(message: QueryFeeEnabledChannelRequest): JsonSafe<QueryFeeEnabledChannelRequest> {
     const obj: any = {};
     message.portId !== undefined && (obj.portId = message.portId);
     message.channelId !== undefined && (obj.channelId = message.channelId);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryFeeEnabledChannelRequest>, I>>(
     object: I,
   ): QueryFeeEnabledChannelRequest {
@@ -1466,56 +1228,49 @@ export const QueryFeeEnabledChannelRequest = {
     return message;
   },
 };
-
 function createBaseQueryFeeEnabledChannelResponse(): QueryFeeEnabledChannelResponse {
   return {
     feeEnabled: false,
   };
 }
-
 export const QueryFeeEnabledChannelResponse = {
-  encode(message: QueryFeeEnabledChannelResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/ibc.applications.fee.v1.QueryFeeEnabledChannelResponse",
+  encode(
+    message: QueryFeeEnabledChannelResponse,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.feeEnabled === true) {
       writer.uint32(8).bool(message.feeEnabled);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFeeEnabledChannelResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryFeeEnabledChannelResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryFeeEnabledChannelResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.feeEnabled = reader.bool();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): QueryFeeEnabledChannelResponse {
-    return {
-      feeEnabled: isSet(object.feeEnabled) ? Boolean(object.feeEnabled) : false,
-    };
+    const obj = createBaseQueryFeeEnabledChannelResponse();
+    if (isSet(object.feeEnabled)) obj.feeEnabled = Boolean(object.feeEnabled);
+    return obj;
   },
-
-  toJSON(message: QueryFeeEnabledChannelResponse): unknown {
+  toJSON(message: QueryFeeEnabledChannelResponse): JsonSafe<QueryFeeEnabledChannelResponse> {
     const obj: any = {};
     message.feeEnabled !== undefined && (obj.feeEnabled = message.feeEnabled);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<QueryFeeEnabledChannelResponse>, I>>(
     object: I,
   ): QueryFeeEnabledChannelResponse {
@@ -1525,43 +1280,32 @@ export const QueryFeeEnabledChannelResponse = {
   },
 };
 /** Query defines the ICS29 gRPC querier service. */
-
 export interface Query {
   /** IncentivizedPackets returns all incentivized packets and their associated fees */
   IncentivizedPackets(request: QueryIncentivizedPacketsRequest): Promise<QueryIncentivizedPacketsResponse>;
   /** IncentivizedPacket returns all packet fees for a packet given its identifier */
-
   IncentivizedPacket(request: QueryIncentivizedPacketRequest): Promise<QueryIncentivizedPacketResponse>;
   /** Gets all incentivized packets for a specific channel */
-
   IncentivizedPacketsForChannel(
     request: QueryIncentivizedPacketsForChannelRequest,
   ): Promise<QueryIncentivizedPacketsForChannelResponse>;
   /** TotalRecvFees returns the total receive fees for a packet given its identifier */
-
   TotalRecvFees(request: QueryTotalRecvFeesRequest): Promise<QueryTotalRecvFeesResponse>;
   /** TotalAckFees returns the total acknowledgement fees for a packet given its identifier */
-
   TotalAckFees(request: QueryTotalAckFeesRequest): Promise<QueryTotalAckFeesResponse>;
   /** TotalTimeoutFees returns the total timeout fees for a packet given its identifier */
-
   TotalTimeoutFees(request: QueryTotalTimeoutFeesRequest): Promise<QueryTotalTimeoutFeesResponse>;
   /** Payee returns the registered payee address for a specific channel given the relayer address */
-
   Payee(request: QueryPayeeRequest): Promise<QueryPayeeResponse>;
   /** CounterpartyPayee returns the registered counterparty payee for forward relaying */
-
   CounterpartyPayee(request: QueryCounterpartyPayeeRequest): Promise<QueryCounterpartyPayeeResponse>;
   /** FeeEnabledChannels returns a list of all fee enabled channels */
-
   FeeEnabledChannels(request: QueryFeeEnabledChannelsRequest): Promise<QueryFeeEnabledChannelsResponse>;
   /** FeeEnabledChannel returns true if the provided port and channel identifiers belong to a fee enabled channel */
-
   FeeEnabledChannel(request: QueryFeeEnabledChannelRequest): Promise<QueryFeeEnabledChannelResponse>;
 }
 export class QueryClientImpl implements Query {
   private readonly rpc: Rpc;
-
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.IncentivizedPackets = this.IncentivizedPackets.bind(this);
@@ -1575,66 +1319,56 @@ export class QueryClientImpl implements Query {
     this.FeeEnabledChannels = this.FeeEnabledChannels.bind(this);
     this.FeeEnabledChannel = this.FeeEnabledChannel.bind(this);
   }
-
   IncentivizedPackets(request: QueryIncentivizedPacketsRequest): Promise<QueryIncentivizedPacketsResponse> {
     const data = QueryIncentivizedPacketsRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "IncentivizedPackets", data);
-    return promise.then((data) => QueryIncentivizedPacketsResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryIncentivizedPacketsResponse.decode(new BinaryReader(data)));
   }
-
   IncentivizedPacket(request: QueryIncentivizedPacketRequest): Promise<QueryIncentivizedPacketResponse> {
     const data = QueryIncentivizedPacketRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "IncentivizedPacket", data);
-    return promise.then((data) => QueryIncentivizedPacketResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryIncentivizedPacketResponse.decode(new BinaryReader(data)));
   }
-
   IncentivizedPacketsForChannel(
     request: QueryIncentivizedPacketsForChannelRequest,
   ): Promise<QueryIncentivizedPacketsForChannelResponse> {
     const data = QueryIncentivizedPacketsForChannelRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "IncentivizedPacketsForChannel", data);
-    return promise.then((data) => QueryIncentivizedPacketsForChannelResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryIncentivizedPacketsForChannelResponse.decode(new BinaryReader(data)));
   }
-
   TotalRecvFees(request: QueryTotalRecvFeesRequest): Promise<QueryTotalRecvFeesResponse> {
     const data = QueryTotalRecvFeesRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "TotalRecvFees", data);
-    return promise.then((data) => QueryTotalRecvFeesResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryTotalRecvFeesResponse.decode(new BinaryReader(data)));
   }
-
   TotalAckFees(request: QueryTotalAckFeesRequest): Promise<QueryTotalAckFeesResponse> {
     const data = QueryTotalAckFeesRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "TotalAckFees", data);
-    return promise.then((data) => QueryTotalAckFeesResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryTotalAckFeesResponse.decode(new BinaryReader(data)));
   }
-
   TotalTimeoutFees(request: QueryTotalTimeoutFeesRequest): Promise<QueryTotalTimeoutFeesResponse> {
     const data = QueryTotalTimeoutFeesRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "TotalTimeoutFees", data);
-    return promise.then((data) => QueryTotalTimeoutFeesResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryTotalTimeoutFeesResponse.decode(new BinaryReader(data)));
   }
-
   Payee(request: QueryPayeeRequest): Promise<QueryPayeeResponse> {
     const data = QueryPayeeRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "Payee", data);
-    return promise.then((data) => QueryPayeeResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryPayeeResponse.decode(new BinaryReader(data)));
   }
-
   CounterpartyPayee(request: QueryCounterpartyPayeeRequest): Promise<QueryCounterpartyPayeeResponse> {
     const data = QueryCounterpartyPayeeRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "CounterpartyPayee", data);
-    return promise.then((data) => QueryCounterpartyPayeeResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryCounterpartyPayeeResponse.decode(new BinaryReader(data)));
   }
-
   FeeEnabledChannels(request: QueryFeeEnabledChannelsRequest): Promise<QueryFeeEnabledChannelsResponse> {
     const data = QueryFeeEnabledChannelsRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "FeeEnabledChannels", data);
-    return promise.then((data) => QueryFeeEnabledChannelsResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryFeeEnabledChannelsResponse.decode(new BinaryReader(data)));
   }
-
   FeeEnabledChannel(request: QueryFeeEnabledChannelRequest): Promise<QueryFeeEnabledChannelResponse> {
     const data = QueryFeeEnabledChannelRequest.encode(request).finish();
     const promise = this.rpc.request("ibc.applications.fee.v1.Query", "FeeEnabledChannel", data);
-    return promise.then((data) => QueryFeeEnabledChannelResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => QueryFeeEnabledChannelResponse.decode(new BinaryReader(data)));
   }
 }

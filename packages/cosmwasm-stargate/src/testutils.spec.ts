@@ -19,6 +19,7 @@ import {
   setupBankExtension,
 } from "@cosmjs/stargate";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { assertDefinedAndNotNull } from "@cosmjs/utils";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { AuthInfo, SignDoc, TxBody } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -101,17 +102,11 @@ export const unused = {
 
 export const validator = {
   /**
-   * delegator_address from /cosmos.staking.v1beta1.MsgCreateValidator in scripts/wasmd/template/.wasmd/config/genesis.json
-   *
-   * `jq ".app_state.genutil.gen_txs[0].body.messages[0].delegator_address" scripts/wasmd/template/.wasmd/config/genesis.json`
-   */
-  delegatorAddress: "wasm1tjgue6r5kqj5dets24pwaa9u7wuzucpwuva0rv",
-  /**
    * validator_address from /cosmos.staking.v1beta1.MsgCreateValidator in scripts/wasmd/template/.wasmd/config/genesis.json
    *
    * `jq ".app_state.genutil.gen_txs[0].body.messages[0].validator_address" scripts/wasmd/template/.wasmd/config/genesis.json`
    */
-  validatorAddress: "wasmvaloper1tjgue6r5kqj5dets24pwaa9u7wuzucpwfsgndk",
+  validatorAddress: "wasmvaloper1k2vfqeu2upskfv7awn29g5kvxxnmugkzy6rch0",
   accountNumber: 0,
   sequence: 1,
 };
@@ -169,8 +164,8 @@ export function fromOneElementArray<T>(elements: ArrayLike<T>): T {
 export async function makeWasmClient(
   endpoint: string,
 ): Promise<QueryClient & AuthExtension & BankExtension & WasmExtension> {
-  const tmClient = await Tendermint34Client.connect(endpoint);
-  return QueryClient.withExtensions(tmClient, setupAuthExtension, setupBankExtension, setupWasmExtension);
+  const cometClient = await Tendermint34Client.connect(endpoint);
+  return QueryClient.withExtensions(cometClient, setupAuthExtension, setupBankExtension, setupWasmExtension);
 }
 
 /**
@@ -219,10 +214,13 @@ export class ModifyingDirectSecp256k1HdWallet extends DirectSecp256k1HdWallet {
       memo: "This was modified",
     });
     const authInfo = AuthInfo.decode(signDoc.authInfoBytes);
-    const signers = authInfo.signerInfos.map((signerInfo) => ({
-      pubkey: signerInfo.publicKey!,
-      sequence: signerInfo.sequence.toNumber(),
-    }));
+    const signers = authInfo.signerInfos.map((signerInfo) => {
+      assertDefinedAndNotNull(signerInfo.publicKey);
+      return {
+        pubkey: signerInfo.publicKey,
+        sequence: Number(signerInfo.sequence),
+      };
+    });
     const modifiedFeeAmount = coins(3000, "ucosm");
     const modifiedGasLimit = 333333;
     const modifiedFeeGranter = undefined;

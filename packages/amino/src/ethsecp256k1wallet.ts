@@ -1,5 +1,5 @@
-import { Secp256k1, Keccak256 } from "@cosmjs/crypto";
-import { Bech32, fromHex, fromBase64, fromUtf8, toHex, toBase64, toUtf8 } from "@cosmjs/encoding";
+import { Keccak256, Secp256k1 } from "@cosmjs/crypto";
+import { fromBase64, fromHex, fromUtf8, toBase64, toBech32, toHex, toUtf8 } from "@cosmjs/encoding";
 import { assert, isNonNullObject } from "@cosmjs/utils/build";
 
 import { ethAddressChecksumRaw, rawEthSecp256k1PubkeyToRawAddress } from "./addresses";
@@ -49,7 +49,7 @@ export interface EthSecp256k1WalletSerialization {
  * The data of a wallet serialization that is encrypted.
  * All fields in here must be JSON types.
  */
- interface EthSecp256k1WalletData {
+interface EthSecp256k1WalletData {
   readonly privkey: string;
   readonly prefix: string;
 }
@@ -93,7 +93,7 @@ export class EthSecp256k1Wallet implements OfflineAminoSigner {
    * @param password The user provided password used to generate an encryption key via a KDF.
    *                 This is not normalized internally (see "Unicode normalization" to learn more).
    */
-   public static async deserialize(serialization: string, password: string): Promise<EthSecp256k1Wallet> {
+  public static async deserialize(serialization: string, password: string): Promise<EthSecp256k1Wallet> {
     const root = JSON.parse(serialization);
     if (!isNonNullObject(root)) throw new Error("Root document is not an object.");
     switch ((root as any).type) {
@@ -158,7 +158,7 @@ export class EthSecp256k1Wallet implements OfflineAminoSigner {
   }
 
   private get address(): string {
-    return Bech32.encode(this.prefix, rawEthSecp256k1PubkeyToRawAddress(this.pubkey));
+    return toBech32(this.prefix, rawEthSecp256k1PubkeyToRawAddress(this.pubkey));
   }
 
   private get addressHex(): string {
@@ -195,7 +195,7 @@ export class EthSecp256k1Wallet implements OfflineAminoSigner {
    * @param password The user provided password used to generate an encryption key via a KDF.
    *                 This is not normalized internally (see "Unicode normalization" to learn more).
    */
-   public async serialize(password: string): Promise<string> {
+  public async serialize(password: string): Promise<string> {
     const kdfConfiguration = basicPasswordHashingOptions;
     const encryptionKey = await executeKdf(password, kdfConfiguration);
     return this.serializeWithEncryptionKey(encryptionKey, kdfConfiguration);

@@ -26,6 +26,7 @@ export function isMsgCancelSendToEvmChainEncodeObject(
   encodeObject: EncodeObject,
 ): encodeObject is MsgCancelSendToEvmChainEncodeObject {
   return (
+    // eslint-disable-next-line prettier/prettier
     (encodeObject as MsgCancelSendToEvmChainEncodeObject).typeUrl === "/gravity.gravity.v1.MsgCancelSendToEvmChain"
   );
 }

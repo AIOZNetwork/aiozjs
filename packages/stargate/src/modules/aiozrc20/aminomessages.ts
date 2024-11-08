@@ -12,7 +12,7 @@ export interface AminoMsgConvertCoin extends AminoMsg {
     readonly sender: string;
     /** Hex account address */
     readonly receiver: string;
-    readonly coin?: Coin;
+    readonly coin: Coin;
   };
 }
 

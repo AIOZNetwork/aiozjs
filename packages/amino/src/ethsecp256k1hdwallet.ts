@@ -2,19 +2,19 @@ import {
   Bip39,
   EnglishMnemonic,
   HdPath,
+  keccak256,
   pathToString,
   Random,
   Secp256k1,
   Secp256k1Keypair,
-  keccak256,
   Slip10,
   Slip10Curve,
   stringToPath,
 } from "@cosmjs/crypto";
-import { fromBase64, fromUtf8, toBase64, toUtf8, Bech32 } from "@cosmjs/encoding";
+import { fromBase64, fromUtf8, toBase64, toBech32, toUtf8 } from "@cosmjs/encoding";
 import { assert, isNonNullObject } from "@cosmjs/utils";
 
-import { rawEthSecp256k1PubkeyToRawAddress, ethAddressChecksumRaw } from "./addresses";
+import { ethAddressChecksumRaw, rawEthSecp256k1PubkeyToRawAddress } from "./addresses";
 import { makeEthPath } from "./paths";
 import { encodeEthSecp256k1Signature } from "./signature";
 import { serializeSignDoc, StdSignDoc } from "./signdoc";
@@ -266,7 +266,7 @@ export class EthSecp256k1HdWallet implements OfflineAminoSigner {
       algo: algo,
       pubkey: pubkey,
       address: address,
-      addressHex: addressHex
+      addressHex: addressHex,
     }));
   }
 
@@ -347,14 +347,14 @@ export class EthSecp256k1HdWallet implements OfflineAminoSigner {
     return Promise.all(
       this.accounts.map(async ({ hdPath, prefix }) => {
         const { privkey, pubkey } = await this.getKeyPair(hdPath);
-        const address = Bech32.encode(prefix, rawEthSecp256k1PubkeyToRawAddress(pubkey));
+        const address = toBech32(prefix, rawEthSecp256k1PubkeyToRawAddress(pubkey));
         const addressHex = ethAddressChecksumRaw(rawEthSecp256k1PubkeyToRawAddress(pubkey));
         return {
           algo: "eth_secp256k1" as const,
           privkey: privkey,
           pubkey: pubkey,
           address: address,
-          addressHex: addressHex
+          addressHex: addressHex,
         };
       }),
     );

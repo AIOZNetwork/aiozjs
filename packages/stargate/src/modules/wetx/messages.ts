@@ -4,7 +4,6 @@ import { FeeMarketEIP1559Transaction, FeeMarketEIP1559TxData } from "@ethereumjs
 import { bigIntToHex, bufferToBigInt, toBuffer } from "@ethereumjs/util";
 import { ExtensionOptionsWrappedEthereumTx, MsgWrappedEthereumTx } from "cosmjs-types/aioz/wetx/v1/tx";
 import { DynamicFeeTx, MsgEthereumTx } from "cosmjs-types/ethermint/evm/v1/tx";
-import Long from "long";
 
 import { DynamicFeeTxEncodeObject } from "../ethermint/messages";
 
@@ -57,7 +56,7 @@ export function createMsgWrappedEthereumTxEncodeObjectFromTxData(
       chainId: bigIntToHex(tx.chainId),
       gasTipCap: bigIntToHex(tx.maxPriorityFeePerGas),
       gasFeeCap: bigIntToHex(tx.maxFeePerGas),
-      gas: Long.fromString(bigIntToHex(tx.gasLimit), true, 16),
+      gas: tx.gasLimit,
       to: tx.to?.toString(),
       value: bigIntToHex(tx.value),
       data: Uint8Array.from(tx.data),

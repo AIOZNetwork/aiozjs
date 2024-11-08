@@ -2,7 +2,7 @@
 import { iavlSpec, ics23, tendermintSpec, verifyExistence, verifyNonExistence } from "@confio/ics23";
 import { toAscii, toHex } from "@cosmjs/encoding";
 import { firstEvent } from "@cosmjs/stream";
-import { tendermint34, Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { CometClient, tendermint34 } from "@cosmjs/tendermint-rpc";
 import { arrayContentEquals, assert, assertDefined, isNonNullObject, sleep } from "@cosmjs/utils";
 import { ProofOps } from "cosmjs-types/tendermint/crypto/proof";
 import { Stream } from "xstream";
@@ -45,24 +45,24 @@ export interface QueryAbciResponse {
 
 export class QueryClient {
   /** Constructs a QueryClient with 0 extensions */
-  public static withExtensions(tmClient: Tendermint34Client): QueryClient;
+  public static withExtensions(cometClient: CometClient): QueryClient;
 
   /** Constructs a QueryClient with 1 extension */
   public static withExtensions<A extends object>(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
   ): QueryClient & A;
 
   /** Constructs a QueryClient with 2 extensions */
   public static withExtensions<A extends object, B extends object>(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
   ): QueryClient & A & B;
 
   /** Constructs a QueryClient with 3 extensions */
   public static withExtensions<A extends object, B extends object, C extends object>(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -70,7 +70,7 @@ export class QueryClient {
 
   /** Constructs a QueryClient with 4 extensions */
   public static withExtensions<A extends object, B extends object, C extends object, D extends object>(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -85,7 +85,7 @@ export class QueryClient {
     D extends object,
     E extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -102,7 +102,7 @@ export class QueryClient {
     E extends object,
     F extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -121,7 +121,7 @@ export class QueryClient {
     F extends object,
     G extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -142,7 +142,7 @@ export class QueryClient {
     G extends object,
     H extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -165,7 +165,7 @@ export class QueryClient {
     H extends object,
     I extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -190,7 +190,7 @@ export class QueryClient {
     I extends object,
     J extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -217,7 +217,7 @@ export class QueryClient {
     J extends object,
     K extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -246,7 +246,7 @@ export class QueryClient {
     K extends object,
     L extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -277,7 +277,7 @@ export class QueryClient {
     L extends object,
     M extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -310,7 +310,7 @@ export class QueryClient {
     M extends object,
     N extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -345,7 +345,7 @@ export class QueryClient {
     N extends object,
     O extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -382,7 +382,7 @@ export class QueryClient {
     O extends object,
     P extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -421,7 +421,7 @@ export class QueryClient {
     P extends object,
     Q extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -462,7 +462,7 @@ export class QueryClient {
     Q extends object,
     R extends object,
   >(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     setupExtensionA: QueryExtensionSetup<A>,
     setupExtensionB: QueryExtensionSetup<B>,
     setupExtensionC: QueryExtensionSetup<C>,
@@ -484,10 +484,10 @@ export class QueryClient {
   ): QueryClient & A & B & C & D & E & F & G & H & I & J & K & L & M & N & O & P & Q & R;
 
   public static withExtensions(
-    tmClient: Tendermint34Client,
+    cometClient: CometClient,
     ...extensionSetups: Array<QueryExtensionSetup<object>>
   ): any {
-    const client = new QueryClient(tmClient);
+    const client = new QueryClient(cometClient);
     const extensions = extensionSetups.map((setupExtension) => setupExtension(client));
     for (const extension of extensions) {
       assert(isNonNullObject(extension), `Extension must be a non-null object`);
@@ -506,22 +506,10 @@ export class QueryClient {
     return client;
   }
 
-  private readonly tmClient: Tendermint34Client;
+  private readonly cometClient: CometClient;
 
-  public constructor(tmClient: Tendermint34Client) {
-    this.tmClient = tmClient;
-  }
-
-  /**
-   * @deprecated use queryStoreVerified instead
-   */
-  public async queryVerified(
-    store: string,
-    queryKey: Uint8Array,
-    desiredHeight?: number,
-  ): Promise<Uint8Array> {
-    const { value } = await this.queryStoreVerified(store, queryKey, desiredHeight);
-    return value;
+  public constructor(cometClient: CometClient) {
+    this.cometClient = cometClient;
   }
 
   /**
@@ -569,7 +557,7 @@ export class QueryClient {
     queryKey: Uint8Array,
     desiredHeight?: number,
   ): Promise<ProvenQuery> {
-    const { key, value, height, proof, code, log } = await this.tmClient.abciQuery({
+    const { key, value, height, proof, code, log } = await this.cometClient.abciQuery({
       // we need the StoreKey for the module, not the module name
       // https://github.com/cosmos/cosmos-sdk/blob/8cab43c8120fec5200c3459cbf4a92017bb6f287/x/auth/types/keys.go#L12
       path: `/store/${store}/key`,
@@ -611,20 +599,6 @@ export class QueryClient {
   /**
    * Performs an ABCI query to Tendermint without requesting a proof.
    *
-   * @deprecated use queryAbci instead
-   */
-  public async queryUnverified(
-    path: string,
-    request: Uint8Array,
-    desiredHeight?: number,
-  ): Promise<Uint8Array> {
-    const response = await this.queryAbci(path, request, desiredHeight);
-    return response.value;
-  }
-
-  /**
-   * Performs an ABCI query to Tendermint without requesting a proof.
-   *
    * If the `desiredHeight` is set, a particular height is requested. Otherwise
    * the latest height is requested. The response contains the actual height of
    * the query.
@@ -634,7 +608,7 @@ export class QueryClient {
     request: Uint8Array,
     desiredHeight?: number,
   ): Promise<QueryAbciResponse> {
-    const response = await this.tmClient.abciQuery({
+    const response = await this.cometClient.abciQuery({
       path: path,
       data: request,
       prove: false,
@@ -667,7 +641,7 @@ export class QueryClient {
     let nextHeader: tendermint34.Header | undefined;
     let headersSubscription: Stream<tendermint34.NewBlockHeaderEvent> | undefined;
     try {
-      headersSubscription = this.tmClient.subscribeNewBlockHeader();
+      headersSubscription = this.cometClient.subscribeNewBlockHeader();
     } catch {
       // Ignore exception caused by non-WebSocket Tendermint clients
     }
@@ -682,7 +656,7 @@ export class QueryClient {
 
     while (!nextHeader) {
       // start from current height to avoid backend error for minHeight in the future
-      const correctHeader = (await this.tmClient.blockchain(height, searchHeight)).blockMetas
+      const correctHeader = (await this.cometClient.blockchain(height, searchHeight)).blockMetas
         .map((meta) => meta.header)
         .find((h) => h.height === searchHeight);
       if (correctHeader) {

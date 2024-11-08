@@ -7,16 +7,14 @@ import {
   coin,
   coins,
   DeliverTxResponse,
-  logs,
   SigningStargateClient,
   StdFee,
 } from "@cosmjs/stargate";
-import { assert } from "@cosmjs/utils";
+import { assert, assertDefined } from "@cosmjs/utils";
 import { MsgExecuteContract, MsgInstantiateContract, MsgStoreCode } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { ContractCodeHistoryOperationType } from "cosmjs-types/cosmwasm/wasm/v1/types";
-import Long from "long";
+import { AbsoluteTxPosition, ContractCodeHistoryOperationType } from "cosmjs-types/cosmwasm/wasm/v1/types";
 
-import { SigningCosmWasmClient } from "../../signingcosmwasmclient";
+import { findAttribute, SigningCosmWasmClient } from "../../signingcosmwasmclient";
 import {
   alice,
   bech32AddressMatcher,
@@ -74,7 +72,7 @@ async function instantiateContract(
     typeUrl: "/cosmwasm.wasm.v1.MsgInstantiateContract",
     value: MsgInstantiateContract.fromPartial({
       sender: alice.address0,
-      codeId: Long.fromNumber(codeId),
+      codeId: BigInt(codeId),
       label: "my escrow",
       msg: toUtf8(
         JSON.stringify({
@@ -137,18 +135,19 @@ describe("WasmExtension", () => {
       const wallet = await DirectSecp256k1HdWallet.fromMnemonic(alice.mnemonic, { prefix: wasmd.prefix });
       const result = await uploadContract(wallet, hackatom);
       assertIsDeliverTxSuccess(result);
-      hackatomCodeId = Number.parseInt(
-        JSON.parse(result.rawLog!)[0]
-          .events.find((event: any) => event.type === "store_code")
-          .attributes.find((attribute: any) => attribute.key === "code_id").value,
-        10,
-      );
+      const codeIdFromEvents = result.events
+        .find((event) => event.type === "store_code")
+        ?.attributes.find((attribute) => attribute.key === "code_id")?.value;
+      assertDefined(codeIdFromEvents);
+      hackatomCodeId = Number.parseInt(codeIdFromEvents, 10);
 
       const instantiateResult = await instantiateContract(wallet, hackatomCodeId, makeRandomAddress());
       assertIsDeliverTxSuccess(instantiateResult);
-      hackatomContractAddress = JSON.parse(instantiateResult.rawLog!)[0]
-        .events.find((event: any) => event.type === "instantiate")
-        .attributes.find((attribute: any) => attribute.key === "_contract_address").value;
+      const addr = instantiateResult.events
+        .find((event) => event.type === "instantiate")
+        ?.attributes.find((attribute) => attribute.key === "_contract_address")?.value;
+      assertDefined(addr);
+      hackatomContractAddress = addr;
     }
   });
 
@@ -160,7 +159,7 @@ describe("WasmExtension", () => {
       const { codeInfos } = await client.wasm.listCodeInfo();
       assert(codeInfos);
       const lastCode = codeInfos[codeInfos.length - 1];
-      expect(lastCode.codeId.toNumber()).toEqual(hackatomCodeId);
+      expect(Number(lastCode.codeId)).toEqual(hackatomCodeId);
       expect(lastCode.creator).toEqual(alice.address0);
       expect(toHex(lastCode.dataHash)).toEqual(toHex(sha256(hackatom.data)));
     });
@@ -173,7 +172,7 @@ describe("WasmExtension", () => {
       const client = await makeWasmClient(wasmd.endpoint);
       const { codeInfo, data } = await client.wasm.getCode(hackatomCodeId);
       assert(codeInfo);
-      expect(codeInfo.codeId.toNumber()).toEqual(hackatomCodeId);
+      expect(Number(codeInfo.codeId)).toEqual(hackatomCodeId);
       expect(codeInfo.creator).toEqual(alice.address0);
       expect(toHex(codeInfo.dataHash)).toEqual(toHex(sha256(hackatom.data)));
       expect(data).toEqual(hackatom.data);
@@ -197,11 +196,12 @@ describe("WasmExtension", () => {
 
       const beneficiaryAddress = makeRandomAddress();
       const funds = coins(707707, "ucosm");
-      const result = await instantiateContract(wallet, hackatomCodeId, beneficiaryAddress, funds);
-      assertIsDeliverTxSuccess(result);
-      const myAddress = JSON.parse(result.rawLog!)[0]
-        .events.find((event: any) => event.type === "instantiate")
-        .attributes!.find((attribute: any) => attribute.key === "_contract_address").value;
+      const instantiateResult = await instantiateContract(wallet, hackatomCodeId, beneficiaryAddress, funds);
+      assertIsDeliverTxSuccess(instantiateResult);
+      const myAddress = instantiateResult.events
+        .find((event) => event.type === "instantiate")
+        ?.attributes.find((attribute) => attribute.key === "_contract_address")?.value;
+      assertDefined(myAddress);
 
       const { contracts: newContracts } = await client.wasm.listContractsByCodeId(hackatomCodeId);
       assert(newContracts);
@@ -211,15 +211,20 @@ describe("WasmExtension", () => {
 
       const { contractInfo } = await client.wasm.getContractInfo(myAddress);
       assert(contractInfo);
-      expect(contractInfo).toEqual({
-        codeId: Long.fromNumber(hackatomCodeId, true),
-        creator: alice.address0,
-        label: "my escrow",
-        admin: "",
-        ibcPortId: "",
-        created: undefined,
-        extension: undefined,
-      });
+      expect(contractInfo).toEqual(
+        jasmine.objectContaining({
+          codeId: BigInt(hackatomCodeId),
+          creator: alice.address0,
+          label: "my escrow",
+          admin: "",
+          ibcPortId: "",
+          created: AbsoluteTxPosition.fromPartial({
+            blockHeight: BigInt(instantiateResult.height),
+            txIndex: BigInt(0),
+          }),
+          extension: undefined,
+        }),
+      );
       expect(contractInfo.admin).toEqual("");
     });
 
@@ -228,7 +233,9 @@ describe("WasmExtension", () => {
       assert(hackatomCodeId);
       const client = await makeWasmClient(wasmd.endpoint);
       const nonExistentAddress = makeRandomAddress();
-      await expectAsync(client.wasm.getContractInfo(nonExistentAddress)).toBeRejectedWithError(/not found/i);
+      await expectAsync(client.wasm.getContractInfo(nonExistentAddress)).toBeRejectedWithError(
+        /no such contract/i,
+      );
     });
   });
 
@@ -245,15 +252,16 @@ describe("WasmExtension", () => {
       const result = await instantiateContract(wallet, hackatomCodeId, beneficiaryAddress, funds);
       assertIsDeliverTxSuccess(result);
 
-      const myAddress = JSON.parse(result.rawLog!)[0]
-        .events.find((event: any) => event.type === "instantiate")
-        .attributes!.find((attribute: any) => attribute.key === "_contract_address").value;
+      const myAddress = result.events
+        .find((event) => event.type === "instantiate")
+        ?.attributes.find((attribute) => attribute.key === "_contract_address")?.value;
+      assertDefined(myAddress);
 
       const history = await client.wasm.getContractCodeHistory(myAddress);
       assert(history.entries);
       expect(history.entries).toContain(
         jasmine.objectContaining({
-          codeId: Long.fromNumber(hackatomCodeId, true),
+          codeId: BigInt(hackatomCodeId),
           operation: ContractCodeHistoryOperationType.CONTRACT_CODE_HISTORY_OPERATION_TYPE_INIT,
           msg: toUtf8(
             JSON.stringify({
@@ -295,7 +303,7 @@ describe("WasmExtension", () => {
       const client = await makeWasmClient(wasmd.endpoint);
       const nonExistentAddress = makeRandomAddress();
       await expectAsync(client.wasm.getAllContractState(nonExistentAddress)).toBeRejectedWithError(
-        /not found/i,
+        /no such contract/i,
       );
     });
   });
@@ -326,7 +334,7 @@ describe("WasmExtension", () => {
       const nonExistentAddress = makeRandomAddress();
       await expectAsync(
         client.wasm.queryContractRaw(nonExistentAddress, hackatomConfigKey),
-      ).toBeRejectedWithError(/not found/i);
+      ).toBeRejectedWithError(/no such contract/i);
     });
   });
 
@@ -356,7 +364,7 @@ describe("WasmExtension", () => {
       const nonExistentAddress = makeRandomAddress();
       const request = { verifier: {} };
       await expectAsync(client.wasm.queryContractSmart(nonExistentAddress, request)).toBeRejectedWithError(
-        /not found/i,
+        /no such contract/i,
       );
     });
   });
@@ -376,12 +384,11 @@ describe("WasmExtension", () => {
       {
         const result = await uploadContract(wallet, getHackatom());
         assertIsDeliverTxSuccess(result);
-        const parsedLogs = logs.parseLogs(logs.parseRawLog(result.rawLog));
-        const codeIdAttr = logs.findAttribute(parsedLogs, "store_code", "code_id");
+        const codeIdAttr = findAttribute(result.events, "store_code", "code_id");
         codeId = Number.parseInt(codeIdAttr.value, 10);
         expect(codeId).toBeGreaterThanOrEqual(1);
         expect(codeId).toBeLessThanOrEqual(200);
-        const actionAttr = logs.findAttribute(parsedLogs, "message", "module");
+        const actionAttr = findAttribute(result.events, "message", "module");
         expect(actionAttr.value).toEqual("wasm");
       }
 
@@ -391,12 +398,14 @@ describe("WasmExtension", () => {
       {
         const result = await instantiateContract(wallet, codeId, beneficiaryAddress, funds);
         assertIsDeliverTxSuccess(result);
-        const parsedLogs = logs.parseLogs(logs.parseRawLog(result.rawLog));
-        const contractAddressAttr = logs.findAttribute(parsedLogs, "instantiate", "_contract_address");
+        const contractAddressAttr = findAttribute(result.events, "instantiate", "_contract_address");
         contractAddress = contractAddressAttr.value;
-        const amountAttr = logs.findAttribute(parsedLogs, "transfer", "amount");
-        expect(amountAttr.value).toEqual("1234ucosm,321ustake");
-        const actionAttr = logs.findAttribute(parsedLogs, "message", "module");
+        const amountAttrs = result.events
+          .filter((e) => e.type == "transfer")
+          .flatMap((e) => e.attributes.filter((a) => a.key == "amount"));
+        expect(amountAttrs[0].value).toEqual("5000000ucosm"); // fee
+        expect(amountAttrs[1].value).toEqual("1234ucosm,321ustake"); // instantiate funds
+        const actionAttr = findAttribute(result.events, "message", "module");
         expect(actionAttr.value).toEqual("wasm");
 
         const balanceUcosm = await client.bank.balance(contractAddress, "ucosm");
@@ -409,8 +418,7 @@ describe("WasmExtension", () => {
       {
         const result = await executeContract(wallet, contractAddress, { release: {} });
         assertIsDeliverTxSuccess(result);
-        const parsedLogs = logs.parseLogs(logs.parseRawLog(result.rawLog));
-        const wasmEvent = parsedLogs.find(() => true)?.events.find((e) => e.type === "wasm");
+        const wasmEvent = result.events.find((e) => e.type === "wasm");
         assert(wasmEvent, "Event of type wasm expected");
         expect(wasmEvent.attributes).toContain({ key: "action", value: "release" });
         expect(wasmEvent.attributes).toContain({

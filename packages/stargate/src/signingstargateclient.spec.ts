@@ -11,6 +11,7 @@ import {
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { assert, sleep } from "@cosmjs/utils";
 import { DeepPartial } from "cosmjs-types";
+import { BinaryWriter } from "cosmjs-types/binary";
 import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { BasicAllowance } from "cosmjs-types/cosmos/feegrant/v1beta1/feegrant";
@@ -18,8 +19,6 @@ import { MsgGrantAllowance } from "cosmjs-types/cosmos/feegrant/v1beta1/tx";
 import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Any } from "cosmjs-types/google/protobuf/any";
-import Long from "long";
-import protobuf from "protobufjs/minimal";
 
 import { AminoTypes } from "./aminotypes";
 import {
@@ -29,7 +28,11 @@ import {
   setupFeegrantExtension,
 } from "./modules";
 import { QueryClient } from "./queryclient";
-import { PrivateSigningStargateClient, SigningStargateClient } from "./signingstargateclient";
+import {
+  PrivateSigningStargateClient,
+  SigningStargateClient,
+  SigningStargateClientOptions,
+} from "./signingstargateclient";
 import { assertIsDeliverTxFailure, assertIsDeliverTxSuccess, isDeliverTxFailure } from "./stargateclient";
 import {
   defaultGasPrice,
@@ -41,6 +44,7 @@ import {
   ModifyingSecp256k1HdWallet,
   pendingWithoutSimapp,
   simapp,
+  simapp50Enabled,
   validator,
 } from "./testutils.spec";
 
@@ -51,8 +55,8 @@ describe("SigningStargateClient", () => {
       const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
       const registry = new Registry();
       registry.register("/custom.MsgCustom", MsgSend);
-      const options = { ...defaultSigningClientOptions, registry: registry };
-      const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrl, wallet, options);
+      const options: SigningStargateClientOptions = { ...defaultSigningClientOptions, registry: registry };
+      const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrlHttp, wallet, options);
       const openedClient = client as unknown as PrivateSigningStargateClient;
       expect(openedClient.registry.lookupType("/custom.MsgCustom")).toEqual(MsgSend);
     });
@@ -63,7 +67,7 @@ describe("SigningStargateClient", () => {
       pendingWithoutSimapp();
       const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         wallet,
         defaultSigningClientOptions,
       );
@@ -91,7 +95,7 @@ describe("SigningStargateClient", () => {
       pendingWithoutSimapp();
       const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         wallet,
         defaultSigningClientOptions,
       );
@@ -116,18 +120,24 @@ describe("SigningStargateClient", () => {
         memo,
       );
       assertIsDeliverTxSuccess(result);
-      expect(result.rawLog).toBeTruthy();
+
+      if (simapp50Enabled()) {
+        expect(result.rawLog).toEqual(""); // empty now (https://github.com/cosmos/cosmos-sdk/pull/15845)
+      } else {
+        expect(result.rawLog).toBeTruthy();
+      }
+      expect(result.events.length).toBeGreaterThanOrEqual(1);
 
       // got tokens
       const after = await client.getBalance(beneficiaryAddress, "ucosm");
       expect(after).toEqual(amount[0]);
     });
 
-    it("works with legacy Amino signer", async () => {
+    it("works with Amino JSON signer", async () => {
       pendingWithoutSimapp();
       const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         wallet,
         defaultSigningClientOptions,
       );
@@ -152,7 +162,13 @@ describe("SigningStargateClient", () => {
         memo,
       );
       assertIsDeliverTxSuccess(result);
-      expect(result.rawLog).toBeTruthy();
+
+      if (simapp50Enabled()) {
+        expect(result.rawLog).toEqual(""); // empty now (https://github.com/cosmos/cosmos-sdk/pull/15845)
+      } else {
+        expect(result.rawLog).toBeTruthy();
+      }
+      expect(result.events.length).toBeGreaterThanOrEqual(1);
 
       // got tokens
       const after = await client.getBalance(beneficiaryAddress, "ucosm");
@@ -166,13 +182,13 @@ describe("SigningStargateClient", () => {
       });
       const [{ address: signer }, { address: payer }] = await wallet.getAccounts();
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         wallet,
         defaultSigningClientOptions,
       );
 
-      const tmClient = await Tendermint34Client.connect(simapp.tendermintUrl);
-      const queryClient = QueryClient.withExtensions(tmClient, setupFeegrantExtension);
+      const cometClient = await Tendermint34Client.connect(simapp.tendermintUrlHttp);
+      const queryClient = QueryClient.withExtensions(cometClient, setupFeegrantExtension);
       let allowanceExists: boolean;
       try {
         const _existingAllowance = await queryClient.feegrant.allowance(payer, signer);
@@ -186,14 +202,16 @@ describe("SigningStargateClient", () => {
         const allowance: Any = {
           typeUrl: "/cosmos.feegrant.v1beta1.BasicAllowance",
           value: Uint8Array.from(
-            BasicAllowance.encode({
-              spendLimit: [
-                {
-                  denom: "ucosm",
-                  amount: "1234567",
-                },
-              ],
-            }).finish(),
+            BasicAllowance.encode(
+              BasicAllowance.fromPartial({
+                spendLimit: [
+                  {
+                    denom: "ucosm",
+                    amount: "1234567",
+                  },
+                ],
+              }),
+            ).finish(),
           ),
         };
         const grantMsg = {
@@ -204,7 +222,8 @@ describe("SigningStargateClient", () => {
             allowance: allowance,
           }),
         };
-        const grantResult = await client.signAndBroadcast(payer, [grantMsg], "auto", "Create allowance");
+        const fee = 1.5; // See https://github.com/cosmos/cosmos-sdk/issues/16020
+        const grantResult = await client.signAndBroadcast(payer, [grantMsg], fee, "Create allowance");
         assertIsDeliverTxSuccess(grantResult);
       }
 
@@ -237,7 +256,7 @@ describe("SigningStargateClient", () => {
       pending("We cannot test this easily anymore since the IBC module was removed from simapp");
       const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         wallet,
         defaultSigningClientOptions,
       );
@@ -255,7 +274,7 @@ describe("SigningStargateClient", () => {
           coin(1234, "ucosm"),
           "fooPort",
           "fooChannel",
-          { revisionHeight: Long.fromNumber(123), revisionNumber: Long.fromNumber(456) },
+          { revisionHeight: BigInt(123), revisionNumber: BigInt(456) },
           Math.floor(Date.now() / 1000) + 60,
           fee,
           memo,
@@ -282,11 +301,11 @@ describe("SigningStargateClient", () => {
       }
     });
 
-    it("works with Amino signing", async () => {
+    it("works with Amino JSON signer", async () => {
       pending("We cannot test this easily anymore since the IBC module was removed from simapp");
       const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         wallet,
         defaultSigningClientOptions,
       );
@@ -304,7 +323,7 @@ describe("SigningStargateClient", () => {
           coin(1234, "ucosm"),
           "fooPort",
           "fooChannel",
-          { revisionHeight: Long.fromNumber(123), revisionNumber: Long.fromNumber(456) },
+          { revisionHeight: BigInt(123), revisionNumber: BigInt(456) },
           Math.floor(Date.now() / 1000) + 60,
           fee,
           memo,
@@ -338,7 +357,7 @@ describe("SigningStargateClient", () => {
         pendingWithoutSimapp();
         const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -360,16 +379,16 @@ describe("SigningStargateClient", () => {
         const result = await client.signAndBroadcast(faucet.address0, [msgAny], fee, memo);
         assertIsDeliverTxSuccess(result);
         expect(result.code).toEqual(0);
-        expect(result.gasWanted).toEqual(222_000);
-        expect(result.gasUsed).toBeLessThanOrEqual(222_000);
-        expect(result.gasUsed).toBeGreaterThan(100_000);
+        expect(result.gasWanted).toEqual(222_000n);
+        expect(Number(result.gasUsed)).toBeLessThanOrEqual(222_000);
+        expect(Number(result.gasUsed)).toBeGreaterThan(100_000);
       });
 
       it("returns DeliverTxFailure on DeliverTx failure", async () => {
         pendingWithoutSimapp();
         const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -390,15 +409,15 @@ describe("SigningStargateClient", () => {
         const result = await client.signAndBroadcast(faucet.address0, [msgAny], fee);
         assertIsDeliverTxFailure(result);
         expect(result.code).toBeGreaterThan(0);
-        expect(result.gasWanted).toEqual(99_000);
-        expect(result.gasUsed).toBeLessThanOrEqual(99_000);
-        expect(result.gasUsed).toBeGreaterThan(40_000);
+        expect(result.gasWanted).toEqual(99_000n);
+        expect(Number(result.gasUsed)).toBeLessThanOrEqual(99_000);
+        expect(Number(result.gasUsed)).toBeGreaterThan(40_000);
       });
 
       it("works with auto gas", async () => {
         pendingWithoutSimapp();
         const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
-        const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrl, wallet, {
+        const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrlHttp, wallet, {
           ...defaultSigningClientOptions,
           gasPrice: defaultGasPrice,
         });
@@ -420,7 +439,7 @@ describe("SigningStargateClient", () => {
         pendingWithoutSimapp();
         const wallet = await ModifyingDirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -450,16 +469,43 @@ describe("SigningStargateClient", () => {
         // From ModifyingDirectSecp256k1HdWallet
         expect(tx.body.memo).toEqual("This was modified");
         expect({ ...tx.authInfo.fee!.amount[0] }).toEqual(coin(3000, "ucosm"));
-        expect(tx.authInfo.fee!.gasLimit.toNumber()).toEqual(333333);
+        expect(tx.authInfo.fee!.gasLimit).toEqual(BigInt(333333));
       });
     });
 
     describe("legacy Amino mode", () => {
+      it("works with special characters in memo", async () => {
+        pendingWithoutSimapp();
+        const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          defaultSigningClientOptions,
+        );
+
+        const msgSend: MsgSend = {
+          fromAddress: faucet.address0,
+          toAddress: makeRandomAddress(),
+          amount: coins(1234, "ucosm"),
+        };
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msgSend,
+        };
+        const fee = {
+          amount: coins(2000, "ucosm"),
+          gas: "200000",
+        };
+        const memo = "ampersand:&,lt:<,gt:>";
+        const result = await client.signAndBroadcast(faucet.address0, [msgAny], fee, memo);
+        assertIsDeliverTxSuccess(result);
+      });
+
       it("works with bank MsgSend", async () => {
         pendingWithoutSimapp();
         const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -486,7 +532,7 @@ describe("SigningStargateClient", () => {
         pendingWithoutSimapp();
         const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -526,13 +572,11 @@ describe("SigningStargateClient", () => {
         };
         const CustomMsgDelegate = {
           // Adapted from autogenerated MsgDelegate implementation
-          encode(
-            message: CustomMsgDelegate,
-            writer: protobuf.Writer = protobuf.Writer.create(),
-          ): protobuf.Writer {
+          typeUrl: "foobar",
+          encode(message: CustomMsgDelegate, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
             writer.uint32(10).string(message.customDelegatorAddress ?? "");
             writer.uint32(18).string(message.customValidatorAddress ?? "");
-            if (message.customAmount !== undefined && message.customAmount !== undefined) {
+            if (message.customAmount !== undefined) {
               Coin.encode(message.customAmount, writer.uint32(26).fork()).ldelim();
             }
             return writer;
@@ -540,10 +584,6 @@ describe("SigningStargateClient", () => {
 
           decode(): CustomMsgDelegate {
             throw new Error("decode method should not be required");
-          },
-
-          fromJSON(): CustomMsgDelegate {
-            throw new Error("fromJSON method should not be required");
           },
 
           fromPartial(object: DeepPartial<CustomMsgDelegate>): CustomMsgDelegate {
@@ -564,10 +604,6 @@ describe("SigningStargateClient", () => {
               message.customAmount = undefined;
             }
             return message;
-          },
-
-          toJSON(): unknown {
-            throw new Error("toJSON method should not be required");
           },
         };
         customRegistry.register(msgDelegateTypeUrl, CustomMsgDelegate);
@@ -602,12 +638,16 @@ describe("SigningStargateClient", () => {
             }),
           },
         });
-        const options = {
+        const options: SigningStargateClientOptions = {
           ...defaultSigningClientOptions,
           registry: customRegistry,
           aminoTypes: customAminoTypes,
         };
-        const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrl, wallet, options);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          options,
+        );
 
         const msg: CustomMsgDelegate = {
           customDelegatorAddress: faucet.address0,
@@ -631,7 +671,7 @@ describe("SigningStargateClient", () => {
         pendingWithoutSimapp();
         const wallet = await ModifyingSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -661,7 +701,161 @@ describe("SigningStargateClient", () => {
         // From ModifyingSecp256k1HdWallet
         expect(tx.body.memo).toEqual("This was modified");
         expect({ ...tx.authInfo.fee!.amount[0] }).toEqual(coin(3000, "ucosm"));
-        expect(tx.authInfo.fee!.gasLimit.toNumber()).toEqual(333333);
+        expect(tx.authInfo.fee!.gasLimit).toEqual(BigInt(333333));
+      });
+    });
+  });
+
+  describe("signAndBroadcastSync", () => {
+    describe("direct mode", () => {
+      it("works", async () => {
+        pendingWithoutSimapp();
+        const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          defaultSigningClientOptions,
+        );
+
+        const msgSend: MsgSend = {
+          fromAddress: faucet.address0,
+          toAddress: makeRandomAddress(),
+          amount: coins(1234, "ucosm"),
+        };
+
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msgSend,
+        };
+        const fee = {
+          amount: coins(2000, "ucosm"),
+          gas: "222000", // 222k
+        };
+        const memo = "Use your power wisely";
+        const transactionHash = await client.signAndBroadcastSync(faucet.address0, [msgAny], fee, memo);
+
+        expect(transactionHash).toMatch(/^[0-9A-F]{64}$/);
+
+        await sleep(simapp.blockTime * 1.5);
+      });
+
+      it("works with auto gas", async () => {
+        pendingWithoutSimapp();
+        const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrlHttp, wallet, {
+          ...defaultSigningClientOptions,
+          gasPrice: defaultGasPrice,
+        });
+
+        const msgSend: MsgSend = {
+          fromAddress: faucet.address0,
+          toAddress: makeRandomAddress(),
+          amount: coins(1234, "ucosm"),
+        };
+
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msgSend,
+        };
+        const transactionHash = await client.signAndBroadcastSync(faucet.address0, [msgAny], "auto");
+
+        expect(transactionHash).toMatch(/^[0-9A-F]{64}$/);
+
+        await sleep(simapp.blockTime * 1.5);
+      });
+
+      it("works with a modifying signer", async () => {
+        pendingWithoutSimapp();
+        const wallet = await ModifyingDirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          defaultSigningClientOptions,
+        );
+
+        const msgSend: MsgSend = {
+          fromAddress: faucet.address0,
+          toAddress: makeRandomAddress(),
+          amount: coins(1234, "ucosm"),
+        };
+
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msgSend,
+        };
+
+        const fee = {
+          amount: coins(2000, "ucosm"),
+          gas: "222000", // 222k
+        };
+        const memo = "Use your power wisely";
+        const transactionHash = await client.signAndBroadcastSync(faucet.address0, [msgAny], fee, memo);
+
+        expect(transactionHash).toMatch(/^[0-9A-F]{64}$/);
+
+        await sleep(simapp.blockTime * 1.5);
+      });
+    });
+
+    describe("legacy Amino mode", () => {
+      it("works with special characters in memo", async () => {
+        pendingWithoutSimapp();
+        const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          defaultSigningClientOptions,
+        );
+
+        const msgSend: MsgSend = {
+          fromAddress: faucet.address0,
+          toAddress: makeRandomAddress(),
+          amount: coins(1234, "ucosm"),
+        };
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msgSend,
+        };
+        const fee = {
+          amount: coins(2000, "ucosm"),
+          gas: "200000",
+        };
+        const memo = "ampersand:&,lt:<,gt:>";
+        const transactionHash = await client.signAndBroadcastSync(faucet.address0, [msgAny], fee, memo);
+
+        expect(transactionHash).toMatch(/^[0-9A-F]{64}$/);
+
+        await sleep(simapp.blockTime * 1.5);
+      });
+
+      it("works with bank MsgSend", async () => {
+        pendingWithoutSimapp();
+        const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          defaultSigningClientOptions,
+        );
+
+        const msgSend: MsgSend = {
+          fromAddress: faucet.address0,
+          toAddress: makeRandomAddress(),
+          amount: coins(1234, "ucosm"),
+        };
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msgSend,
+        };
+        const fee = {
+          amount: coins(2000, "ucosm"),
+          gas: "200000",
+        };
+        const memo = "Use your tokens wisely";
+        const transactionHash = await client.signAndBroadcastSync(faucet.address0, [msgAny], fee, memo);
+
+        expect(transactionHash).toMatch(/^[0-9A-F]{64}$/);
+
+        await sleep(simapp.blockTime * 1.5);
       });
     });
   });
@@ -672,7 +866,7 @@ describe("SigningStargateClient", () => {
         pendingWithoutSimapp();
         const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -702,7 +896,7 @@ describe("SigningStargateClient", () => {
         pendingWithoutSimapp();
         const wallet = await ModifyingDirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -728,11 +922,79 @@ describe("SigningStargateClient", () => {
         // From ModifyingDirectSecp256k1HdWallet
         expect(body.memo).toEqual("This was modified");
         expect({ ...authInfo.fee!.amount[0] }).toEqual(coin(3000, "ucosm"));
-        expect(authInfo.fee!.gasLimit.toNumber()).toEqual(333333);
+        expect(authInfo.fee!.gasLimit).toEqual(BigInt(333333));
 
         // ensure signature is valid
         const result = await client.broadcastTx(Uint8Array.from(TxRaw.encode(signed).finish()));
         assertIsDeliverTxSuccess(result);
+      });
+
+      it("works with custom timeoutHeight", async () => {
+        pendingWithoutSimapp();
+        const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          defaultSigningClientOptions,
+        );
+
+        const msg = MsgSend.fromPartial({
+          fromAddress: faucet.address0,
+          toAddress: faucet.address0,
+          amount: [coin(1, "ucosm")],
+        });
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msg,
+        };
+        const fee = {
+          amount: coins(2000, "ucosm"),
+          gas: "222000", // 222k
+        };
+        const memo = "Use your power wisely";
+        const height = await client.getHeight();
+        const signed = await client.sign(faucet.address0, [msgAny], fee, memo, undefined, BigInt(height + 3));
+
+        // ensure signature is valid
+        const result = await client.broadcastTx(Uint8Array.from(TxRaw.encode(signed).finish()));
+        assertIsDeliverTxSuccess(result);
+      });
+
+      it("fails with past timeoutHeight", async () => {
+        pendingWithoutSimapp();
+        const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          defaultSigningClientOptions,
+        );
+
+        const msg = MsgSend.fromPartial({
+          fromAddress: faucet.address0,
+          toAddress: faucet.address0,
+          amount: [coin(1, "ucosm")],
+        });
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msg,
+        };
+        const fee = {
+          amount: coins(2000, "ucosm"),
+          gas: "222000", // 222k
+        };
+        const memo = "Use your power wisely";
+        const height = await client.getHeight();
+        const signed = await client.sign(faucet.address0, [msgAny], fee, memo, undefined, BigInt(height - 1));
+
+        await expectAsync(
+          client.broadcastTx(Uint8Array.from(TxRaw.encode(signed).finish())),
+        ).toBeRejectedWith(
+          jasmine.objectContaining({
+            code: 30,
+          }),
+        );
+
+        client.disconnect();
       });
     });
 
@@ -741,7 +1003,7 @@ describe("SigningStargateClient", () => {
         pendingWithoutSimapp();
         const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -771,7 +1033,7 @@ describe("SigningStargateClient", () => {
         pendingWithoutSimapp();
         const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -813,11 +1075,9 @@ describe("SigningStargateClient", () => {
           customValidatorAddress: "",
         };
         const CustomMsgDelegate = {
+          typeUrl: "foobar",
           // Adapted from autogenerated MsgDelegate implementation
-          encode(
-            message: CustomMsgDelegate,
-            writer: protobuf.Writer = protobuf.Writer.create(),
-          ): protobuf.Writer {
+          encode(message: CustomMsgDelegate, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
             writer.uint32(10).string(message.customDelegatorAddress ?? "");
             writer.uint32(18).string(message.customValidatorAddress ?? "");
             if (message.customAmount !== undefined && message.customAmount !== undefined) {
@@ -828,10 +1088,6 @@ describe("SigningStargateClient", () => {
 
           decode(): CustomMsgDelegate {
             throw new Error("decode method should not be required");
-          },
-
-          fromJSON(): CustomMsgDelegate {
-            throw new Error("fromJSON method should not be required");
           },
 
           fromPartial(object: DeepPartial<CustomMsgDelegate>): CustomMsgDelegate {
@@ -852,10 +1108,6 @@ describe("SigningStargateClient", () => {
               message.customAmount = undefined;
             }
             return message;
-          },
-
-          toJSON(): unknown {
-            throw new Error("toJSON method should not be required");
           },
         };
         customRegistry.register(msgDelegateTypeUrl, CustomMsgDelegate);
@@ -890,12 +1142,16 @@ describe("SigningStargateClient", () => {
             }),
           },
         });
-        const options = {
+        const options: SigningStargateClientOptions = {
           ...defaultSigningClientOptions,
           registry: customRegistry,
           aminoTypes: customAminoTypes,
         };
-        const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrl, wallet, options);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          options,
+        );
 
         const msg: CustomMsgDelegate = {
           customDelegatorAddress: faucet.address0,
@@ -922,7 +1178,7 @@ describe("SigningStargateClient", () => {
         pendingWithoutSimapp();
         const wallet = await ModifyingSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
         const client = await SigningStargateClient.connectWithSigner(
-          simapp.tendermintUrl,
+          simapp.tendermintUrlHttp,
           wallet,
           defaultSigningClientOptions,
         );
@@ -948,11 +1204,79 @@ describe("SigningStargateClient", () => {
         // From ModifyingSecp256k1HdWallet
         expect(body.memo).toEqual("This was modified");
         expect({ ...authInfo.fee!.amount[0] }).toEqual(coin(3000, "ucosm"));
-        expect(authInfo.fee!.gasLimit.toNumber()).toEqual(333333);
+        expect(authInfo.fee!.gasLimit).toEqual(BigInt(333333));
 
         // ensure signature is valid
         const result = await client.broadcastTx(Uint8Array.from(TxRaw.encode(signed).finish()));
         assertIsDeliverTxSuccess(result);
+      });
+
+      it("works with custom timeoutHeight", async () => {
+        pendingWithoutSimapp();
+        const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          defaultSigningClientOptions,
+        );
+
+        const msg = MsgSend.fromPartial({
+          fromAddress: faucet.address0,
+          toAddress: faucet.address0,
+          amount: [coin(1, "ucosm")],
+        });
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msg,
+        };
+        const fee = {
+          amount: coins(2000, "ucosm"),
+          gas: "200000",
+        };
+        const memo = "Use your tokens wisely";
+        const height = await client.getHeight();
+        const signed = await client.sign(faucet.address0, [msgAny], fee, memo, undefined, BigInt(height + 3));
+
+        // ensure signature is valid
+        const result = await client.broadcastTx(Uint8Array.from(TxRaw.encode(signed).finish()));
+        assertIsDeliverTxSuccess(result);
+      });
+
+      it("fails with past timeoutHeight", async () => {
+        pendingWithoutSimapp();
+        const wallet = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic);
+        const client = await SigningStargateClient.connectWithSigner(
+          simapp.tendermintUrlHttp,
+          wallet,
+          defaultSigningClientOptions,
+        );
+
+        const msg = MsgSend.fromPartial({
+          fromAddress: faucet.address0,
+          toAddress: faucet.address0,
+          amount: [coin(1, "ucosm")],
+        });
+        const msgAny: MsgSendEncodeObject = {
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: msg,
+        };
+        const fee = {
+          amount: coins(2000, "ucosm"),
+          gas: "200000",
+        };
+        const memo = "Use your tokens wisely";
+        const height = await client.getHeight();
+        const signed = await client.sign(faucet.address0, [msgAny], fee, memo, undefined, BigInt(height - 1));
+
+        await expectAsync(
+          client.broadcastTx(Uint8Array.from(TxRaw.encode(signed).finish())),
+        ).toBeRejectedWith(
+          jasmine.objectContaining({
+            code: 30,
+          }),
+        );
+
+        client.disconnect();
       });
     });
   });

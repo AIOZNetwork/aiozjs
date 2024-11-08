@@ -10,7 +10,7 @@ import {
   Registry,
   TxBodyEncodeObject,
 } from "@cosmjs/proto-signing";
-import { assertIsDeliverTxSuccess, coins, logs, MsgSendEncodeObject, StdFee } from "@cosmjs/stargate";
+import { assertIsDeliverTxSuccess, coins, MsgSendEncodeObject, StdFee } from "@cosmjs/stargate";
 import { assert, sleep } from "@cosmjs/utils";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { ReadonlyDate } from "readonly-date";
@@ -60,7 +60,7 @@ describe("CosmWasmClient", () => {
       pendingWithoutWasmd();
       const client = await CosmWasmClient.connect(wasmd.endpoint);
       const openedClient = client as unknown as PrivateCosmWasmClient;
-      const getCodeSpy = spyOn(openedClient.tmClient!, "status").and.callThrough();
+      const getCodeSpy = spyOn(openedClient.cometClient!, "status").and.callThrough();
 
       expect(await client.getChainId()).toEqual(wasmd.chainId); // from network
       expect(await client.getChainId()).toEqual(wasmd.chainId); // from cache
@@ -188,7 +188,6 @@ describe("CosmWasmClient", () => {
         amount: coins(5000, "ucosm"),
         gas: "890000",
       };
-
       const chainId = await client.getChainId();
       const sequenceResponse = await client.getSequence(alice.address0);
       assert(sequenceResponse);
@@ -222,8 +221,11 @@ describe("CosmWasmClient", () => {
       const signedTx = Uint8Array.from(TxRaw.encode(txRaw).finish());
       const result = await client.broadcastTx(signedTx);
       assertIsDeliverTxSuccess(result);
-      const amountAttr = logs.findAttribute(logs.parseRawLog(result.rawLog), "transfer", "amount");
-      expect(amountAttr.value).toEqual("1234567ucosm");
+      const amountAttrs = result.events
+        .filter((e) => e.type == "transfer")
+        .flatMap((e) => e.attributes.filter((a) => a.key == "amount"));
+      expect(amountAttrs[0].value).toEqual("5000ucosm"); // fee
+      expect(amountAttrs[1].value).toEqual("1234567ucosm"); // MsgSend amount
       expect(result.transactionHash).toMatch(/^[0-9A-F]{64}$/);
     });
   });
@@ -283,6 +285,21 @@ describe("CosmWasmClient", () => {
       const expectedAddresses = deployedHackatom.instances.map((info) => info.address);
 
       // Test first 3 instances we get from scripts/wasmd/init.sh. There may me more than that in the result.
+      expect(result[0]).toEqual(expectedAddresses[0]);
+      expect(result[1]).toEqual(expectedAddresses[1]);
+      expect(result[2]).toEqual(expectedAddresses[2]);
+    });
+  });
+
+  describe("getContractsByCreator", () => {
+    it("works", async () => {
+      pendingWithoutWasmd();
+      const client = await CosmWasmClient.connect(wasmd.endpoint);
+      const result = await client.getContractsByCreator(alice.address0);
+      const expectedAddresses = deployedHackatom.instances.map((info) => info.address);
+
+      // Test first 3 instances we get from scripts/wasmd/init.sh. There may me more than that in the result.
+      expect(result.length).toBeGreaterThanOrEqual(3);
       expect(result[0]).toEqual(expectedAddresses[0]);
       expect(result[1]).toEqual(expectedAddresses[1]);
       expect(result[2]).toEqual(expectedAddresses[2]);
@@ -385,7 +402,7 @@ describe("CosmWasmClient", () => {
       const nonExistentAddress = makeRandomAddress();
       const client = await CosmWasmClient.connect(wasmd.endpoint);
       await expectAsync(client.queryContractRaw(nonExistentAddress, configKey)).toBeRejectedWithError(
-        /not found/i,
+        /no such contract/i,
       );
     });
   });
@@ -445,7 +462,7 @@ describe("CosmWasmClient", () => {
       const client = await CosmWasmClient.connect(wasmd.endpoint);
       await expectAsync(
         client.queryContractSmart(nonExistentAddress, { verifier: {} }),
-      ).toBeRejectedWithError(/not found/i);
+      ).toBeRejectedWithError(/no such contract/i);
     });
   });
 });

@@ -2,8 +2,9 @@
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
 import { BridgeValidator, EvmChainAddress } from "./types";
 import { Any } from "../../../google/protobuf/any";
-import * as _m0 from "protobufjs/minimal";
-import { isSet, DeepPartial, Exact, Long, bytesFromBase64, base64FromBytes, Rpc } from "../../../helpers";
+import { BinaryReader, BinaryWriter } from "../../../binary";
+import { isSet, DeepPartial, Exact, bytesFromBase64, base64FromBytes, Rpc } from "../../../helpers";
+import { JsonSafe } from "../../../json-safe";
 export const protobufPackage = "gravity.gravity.v1";
 /**
  * MsgSetOrchestratorAddress
@@ -20,7 +21,6 @@ export const protobufPackage = "gravity.gravity.v1";
  * This is a hex encoded 0x EVM chain public key that will be used by this validator
  * on EVM chain
  */
-
 export interface MsgSetOrchestratorAddress {
   validator: string;
   orchestrator: string;
@@ -44,10 +44,9 @@ export interface MsgSetOrchestratorAddressResponse {}
  * chain store and submit them to EVM chain to update the validator set
  * -------------
  */
-
 export interface MsgValsetConfirm {
   chainName: string;
-  nonce: Long;
+  nonce: bigint;
   orchestrator: string;
   evmAddress: string;
   signature: string;
@@ -71,14 +70,13 @@ export interface MsgValsetConfirmResponse {}
  * certain percentage of the AMOUNT, as determined by governance.
  * This Msg will be rejected if CHAIN_FEE is insufficient.
  */
-
 export interface MsgSendToEvmChain {
   sender: string;
   chainName: string;
   evmDest: string;
-  amount?: Coin;
-  bridgeFee?: Coin;
-  chainFee?: Coin;
+  amount: Coin;
+  bridgeFee: Coin;
+  chainFee: Coin;
 }
 export interface MsgSendToEvmChainResponse {}
 /**
@@ -92,7 +90,6 @@ export interface MsgSendToEvmChainResponse {}
  * can finally submit the batch
  * -------------
  */
-
 export interface MsgRequestBatch {
   sender: string;
   denom: string;
@@ -109,10 +106,9 @@ export interface MsgRequestBatchResponse {}
  * as well as an Ethereum signature over this batch by the validator
  * -------------
  */
-
 export interface MsgConfirmBatch {
   chainName: string;
-  nonce: Long;
+  nonce: bigint;
   tokenContract: string;
   evmSigner: string;
   orchestrator: string;
@@ -129,11 +125,10 @@ export interface MsgConfirmBatchResponse {}
  * as well as an Ethereum signature over this batch by the validator
  * -------------
  */
-
 export interface MsgConfirmLogicCall {
   chainName: string;
   invalidationId: string;
-  invalidationNonce: Long;
+  invalidationNonce: bigint;
   evmSigner: string;
   orchestrator: string;
   signature: string;
@@ -146,11 +141,10 @@ export interface MsgConfirmLogicCallResponse {}
  * issued to the Cosmos address in question
  * -------------
  */
-
 export interface MsgSendToCosmosClaim {
   chainName: string;
-  eventNonce: Long;
-  evmBlockHeight: Long;
+  eventNonce: bigint;
+  evmBlockHeight: bigint;
   tokenContract: string;
   amount: string;
   evmSender: string;
@@ -165,11 +159,10 @@ export interface MsgSendToCosmosClaimResponse {}
  * issued to the Cosmos address in question
  * -------------
  */
-
 export interface MsgSendFromEvmChainToEvmChainClaim {
   chainName: string;
-  eventNonce: Long;
-  evmBlockHeight: Long;
+  eventNonce: bigint;
+  evmBlockHeight: bigint;
   tokenContract: string;
   amount: string;
   evmSender: string;
@@ -185,14 +178,11 @@ export interface MsgSendFromEvmChainToEvmChainClaimResponse {}
  * The Pending forwards will be executed in order of their original SendToCosmos.EventNonce
  * The funds in the queue will be sent to a local gravity-prefixed address if IBC transfer is not possible
  */
-
 export interface MsgExecuteIbcAutoForwards {
   chainName: string;
   /** How many queued forwards to clear, be careful about gas limits */
-
-  forwardsToClear: Long;
+  forwardsToClear: bigint;
   /** This message's sender */
-
   executor: string;
 }
 export interface MsgExecuteIbcAutoForwardsResponse {}
@@ -200,12 +190,11 @@ export interface MsgExecuteIbcAutoForwardsResponse {}
  * BatchSendToEvmChainClaim claims that a batch of send to EVM chain
  * operations on the bridge contract was executed.
  */
-
 export interface MsgBatchSendToEvmChainClaim {
   chainName: string;
-  eventNonce: Long;
-  evmBlockHeight: Long;
-  batchNonce: Long;
+  eventNonce: bigint;
+  evmBlockHeight: bigint;
+  batchNonce: bigint;
   tokenContract: string;
   orchestrator: string;
 }
@@ -215,16 +204,15 @@ export interface MsgBatchSendToEvmChainClaimResponse {}
  * to learn about an ERC20 that someone deployed
  * to represent a Cosmos asset
  */
-
 export interface MsgERC20DeployedClaim {
   chainName: string;
-  eventNonce: Long;
-  evmBlockHeight: Long;
+  eventNonce: bigint;
+  evmBlockHeight: bigint;
   cosmosDenom: string;
   tokenContract: string;
   name: string;
   symbol: string;
-  decimals: Long;
+  decimals: bigint;
   orchestrator: string;
 }
 export interface MsgERC20DeployedClaimResponse {}
@@ -232,13 +220,12 @@ export interface MsgERC20DeployedClaimResponse {}
  * This informs the Cosmos module that a logic
  * call has been executed
  */
-
 export interface MsgLogicCallExecutedClaim {
   chainName: string;
-  eventNonce: Long;
-  evmBlockHeight: Long;
+  eventNonce: bigint;
+  evmBlockHeight: bigint;
   invalidationId: Uint8Array;
-  invalidationNonce: Long;
+  invalidationNonce: bigint;
   orchestrator: string;
 }
 export interface MsgLogicCallExecutedClaimResponse {}
@@ -246,12 +233,11 @@ export interface MsgLogicCallExecutedClaimResponse {}
  * This informs the Cosmos module that a validator
  * set has been updated.
  */
-
 export interface MsgValsetUpdatedClaim {
   chainName: string;
-  eventNonce: Long;
-  valsetNonce: Long;
-  evmBlockHeight: Long;
+  eventNonce: bigint;
+  valsetNonce: bigint;
+  evmBlockHeight: bigint;
   members: BridgeValidator[];
   rewardAmount: string;
   rewardToken: string;
@@ -263,10 +249,9 @@ export interface MsgValsetUpdatedClaimResponse {}
  * to cancel a given MsgSendToEvmChain and recieve a refund
  * of the tokens
  */
-
 export interface MsgCancelSendToEvmChain {
   chainName: string;
-  transactionId: Long;
+  transactionId: bigint;
   sender: string;
 }
 export interface MsgCancelSendToEvmChainResponse {}
@@ -276,7 +261,6 @@ export interface MsgCancelSendToEvmChainResponse {}
  * existed on the Cosmos chain.
  * Subject contains the batch, valset, or logic call.
  */
-
 export interface MsgSubmitBadSignatureEvidence {
   chainName: string;
   subject?: Any;
@@ -353,7 +337,6 @@ export interface EventSendToEvmChainFeeCollected {
   sendAmount: string;
   feeAmount: string;
 }
-
 function createBaseMsgSetOrchestratorAddress(): MsgSetOrchestratorAddress {
   return {
     validator: "",
@@ -361,78 +344,62 @@ function createBaseMsgSetOrchestratorAddress(): MsgSetOrchestratorAddress {
     evmAddresses: [],
   };
 }
-
 export const MsgSetOrchestratorAddress = {
-  encode(message: MsgSetOrchestratorAddress, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgSetOrchestratorAddress",
+  encode(message: MsgSetOrchestratorAddress, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.validator !== "") {
       writer.uint32(10).string(message.validator);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(18).string(message.orchestrator);
     }
-
     for (const v of message.evmAddresses) {
       EvmChainAddress.encode(v!, writer.uint32(26).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSetOrchestratorAddress {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSetOrchestratorAddress {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSetOrchestratorAddress();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.validator = reader.string();
           break;
-
         case 2:
           message.orchestrator = reader.string();
           break;
-
         case 3:
           message.evmAddresses.push(EvmChainAddress.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgSetOrchestratorAddress {
-    return {
-      validator: isSet(object.validator) ? String(object.validator) : "",
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-      evmAddresses: Array.isArray(object?.evmAddresses)
-        ? object.evmAddresses.map((e: any) => EvmChainAddress.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseMsgSetOrchestratorAddress();
+    if (isSet(object.validator)) obj.validator = String(object.validator);
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    if (Array.isArray(object?.evmAddresses))
+      obj.evmAddresses = object.evmAddresses.map((e: any) => EvmChainAddress.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: MsgSetOrchestratorAddress): unknown {
+  toJSON(message: MsgSetOrchestratorAddress): JsonSafe<MsgSetOrchestratorAddress> {
     const obj: any = {};
     message.validator !== undefined && (obj.validator = message.validator);
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
-
     if (message.evmAddresses) {
       obj.evmAddresses = message.evmAddresses.map((e) => (e ? EvmChainAddress.toJSON(e) : undefined));
     } else {
       obj.evmAddresses = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSetOrchestratorAddress>, I>>(
     object: I,
   ): MsgSetOrchestratorAddress {
@@ -443,43 +410,36 @@ export const MsgSetOrchestratorAddress = {
     return message;
   },
 };
-
 function createBaseMsgSetOrchestratorAddressResponse(): MsgSetOrchestratorAddressResponse {
   return {};
 }
-
 export const MsgSetOrchestratorAddressResponse = {
-  encode(_: MsgSetOrchestratorAddressResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgSetOrchestratorAddressResponse",
+  encode(_: MsgSetOrchestratorAddressResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSetOrchestratorAddressResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSetOrchestratorAddressResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSetOrchestratorAddressResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgSetOrchestratorAddressResponse {
-    return {};
+    const obj = createBaseMsgSetOrchestratorAddressResponse();
+    return obj;
   },
-
-  toJSON(_: MsgSetOrchestratorAddressResponse): unknown {
+  toJSON(_: MsgSetOrchestratorAddressResponse): JsonSafe<MsgSetOrchestratorAddressResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSetOrchestratorAddressResponse>, I>>(
     _: I,
   ): MsgSetOrchestratorAddressResponse {
@@ -487,248 +447,205 @@ export const MsgSetOrchestratorAddressResponse = {
     return message;
   },
 };
-
 function createBaseMsgValsetConfirm(): MsgValsetConfirm {
   return {
     chainName: "",
-    nonce: Long.UZERO,
+    nonce: BigInt(0),
     orchestrator: "",
     evmAddress: "",
     signature: "",
   };
 }
-
 export const MsgValsetConfirm = {
-  encode(message: MsgValsetConfirm, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgValsetConfirm",
+  encode(message: MsgValsetConfirm, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.nonce.isZero()) {
+    if (message.nonce !== BigInt(0)) {
       writer.uint32(16).uint64(message.nonce);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(26).string(message.orchestrator);
     }
-
     if (message.evmAddress !== "") {
       writer.uint32(34).string(message.evmAddress);
     }
-
     if (message.signature !== "") {
       writer.uint32(42).string(message.signature);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgValsetConfirm {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgValsetConfirm {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgValsetConfirm();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.nonce = reader.uint64() as Long;
+          message.nonce = reader.uint64();
           break;
-
         case 3:
           message.orchestrator = reader.string();
           break;
-
         case 4:
           message.evmAddress = reader.string();
           break;
-
         case 5:
           message.signature = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgValsetConfirm {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      nonce: isSet(object.nonce) ? Long.fromValue(object.nonce) : Long.UZERO,
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-      evmAddress: isSet(object.evmAddress) ? String(object.evmAddress) : "",
-      signature: isSet(object.signature) ? String(object.signature) : "",
-    };
+    const obj = createBaseMsgValsetConfirm();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.nonce)) obj.nonce = BigInt(object.nonce.toString());
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    if (isSet(object.evmAddress)) obj.evmAddress = String(object.evmAddress);
+    if (isSet(object.signature)) obj.signature = String(object.signature);
+    return obj;
   },
-
-  toJSON(message: MsgValsetConfirm): unknown {
+  toJSON(message: MsgValsetConfirm): JsonSafe<MsgValsetConfirm> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.nonce !== undefined && (obj.nonce = (message.nonce || Long.UZERO).toString());
+    message.nonce !== undefined && (obj.nonce = (message.nonce || BigInt(0)).toString());
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
     message.evmAddress !== undefined && (obj.evmAddress = message.evmAddress);
     message.signature !== undefined && (obj.signature = message.signature);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgValsetConfirm>, I>>(object: I): MsgValsetConfirm {
     const message = createBaseMsgValsetConfirm();
     message.chainName = object.chainName ?? "";
-    message.nonce =
-      object.nonce !== undefined && object.nonce !== null ? Long.fromValue(object.nonce) : Long.UZERO;
+    if (object.nonce !== undefined && object.nonce !== null) {
+      message.nonce = BigInt(object.nonce.toString());
+    }
     message.orchestrator = object.orchestrator ?? "";
     message.evmAddress = object.evmAddress ?? "";
     message.signature = object.signature ?? "";
     return message;
   },
 };
-
 function createBaseMsgValsetConfirmResponse(): MsgValsetConfirmResponse {
   return {};
 }
-
 export const MsgValsetConfirmResponse = {
-  encode(_: MsgValsetConfirmResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgValsetConfirmResponse",
+  encode(_: MsgValsetConfirmResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgValsetConfirmResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgValsetConfirmResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgValsetConfirmResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgValsetConfirmResponse {
-    return {};
+    const obj = createBaseMsgValsetConfirmResponse();
+    return obj;
   },
-
-  toJSON(_: MsgValsetConfirmResponse): unknown {
+  toJSON(_: MsgValsetConfirmResponse): JsonSafe<MsgValsetConfirmResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgValsetConfirmResponse>, I>>(_: I): MsgValsetConfirmResponse {
     const message = createBaseMsgValsetConfirmResponse();
     return message;
   },
 };
-
 function createBaseMsgSendToEvmChain(): MsgSendToEvmChain {
   return {
     sender: "",
     chainName: "",
     evmDest: "",
-    amount: undefined,
-    bridgeFee: undefined,
-    chainFee: undefined,
+    amount: Coin.fromPartial({}),
+    bridgeFee: Coin.fromPartial({}),
+    chainFee: Coin.fromPartial({}),
   };
 }
-
 export const MsgSendToEvmChain = {
-  encode(message: MsgSendToEvmChain, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgSendToEvmChain",
+  encode(message: MsgSendToEvmChain, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.sender !== "") {
       writer.uint32(10).string(message.sender);
     }
-
     if (message.chainName !== "") {
       writer.uint32(18).string(message.chainName);
     }
-
     if (message.evmDest !== "") {
       writer.uint32(26).string(message.evmDest);
     }
-
     if (message.amount !== undefined) {
       Coin.encode(message.amount, writer.uint32(34).fork()).ldelim();
     }
-
     if (message.bridgeFee !== undefined) {
       Coin.encode(message.bridgeFee, writer.uint32(42).fork()).ldelim();
     }
-
     if (message.chainFee !== undefined) {
       Coin.encode(message.chainFee, writer.uint32(50).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSendToEvmChain {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSendToEvmChain {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSendToEvmChain();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.sender = reader.string();
           break;
-
         case 2:
           message.chainName = reader.string();
           break;
-
         case 3:
           message.evmDest = reader.string();
           break;
-
         case 4:
           message.amount = Coin.decode(reader, reader.uint32());
           break;
-
         case 5:
           message.bridgeFee = Coin.decode(reader, reader.uint32());
           break;
-
         case 6:
           message.chainFee = Coin.decode(reader, reader.uint32());
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgSendToEvmChain {
-    return {
-      sender: isSet(object.sender) ? String(object.sender) : "",
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      evmDest: isSet(object.evmDest) ? String(object.evmDest) : "",
-      amount: isSet(object.amount) ? Coin.fromJSON(object.amount) : undefined,
-      bridgeFee: isSet(object.bridgeFee) ? Coin.fromJSON(object.bridgeFee) : undefined,
-      chainFee: isSet(object.chainFee) ? Coin.fromJSON(object.chainFee) : undefined,
-    };
+    const obj = createBaseMsgSendToEvmChain();
+    if (isSet(object.sender)) obj.sender = String(object.sender);
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.evmDest)) obj.evmDest = String(object.evmDest);
+    if (isSet(object.amount)) obj.amount = Coin.fromJSON(object.amount);
+    if (isSet(object.bridgeFee)) obj.bridgeFee = Coin.fromJSON(object.bridgeFee);
+    if (isSet(object.chainFee)) obj.chainFee = Coin.fromJSON(object.chainFee);
+    return obj;
   },
-
-  toJSON(message: MsgSendToEvmChain): unknown {
+  toJSON(message: MsgSendToEvmChain): JsonSafe<MsgSendToEvmChain> {
     const obj: any = {};
     message.sender !== undefined && (obj.sender = message.sender);
     message.chainName !== undefined && (obj.chainName = message.chainName);
@@ -740,68 +657,58 @@ export const MsgSendToEvmChain = {
       (obj.chainFee = message.chainFee ? Coin.toJSON(message.chainFee) : undefined);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSendToEvmChain>, I>>(object: I): MsgSendToEvmChain {
     const message = createBaseMsgSendToEvmChain();
     message.sender = object.sender ?? "";
     message.chainName = object.chainName ?? "";
     message.evmDest = object.evmDest ?? "";
-    message.amount =
-      object.amount !== undefined && object.amount !== null ? Coin.fromPartial(object.amount) : undefined;
-    message.bridgeFee =
-      object.bridgeFee !== undefined && object.bridgeFee !== null
-        ? Coin.fromPartial(object.bridgeFee)
-        : undefined;
-    message.chainFee =
-      object.chainFee !== undefined && object.chainFee !== null
-        ? Coin.fromPartial(object.chainFee)
-        : undefined;
+    if (object.amount !== undefined && object.amount !== null) {
+      message.amount = Coin.fromPartial(object.amount);
+    }
+    if (object.bridgeFee !== undefined && object.bridgeFee !== null) {
+      message.bridgeFee = Coin.fromPartial(object.bridgeFee);
+    }
+    if (object.chainFee !== undefined && object.chainFee !== null) {
+      message.chainFee = Coin.fromPartial(object.chainFee);
+    }
     return message;
   },
 };
-
 function createBaseMsgSendToEvmChainResponse(): MsgSendToEvmChainResponse {
   return {};
 }
-
 export const MsgSendToEvmChainResponse = {
-  encode(_: MsgSendToEvmChainResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgSendToEvmChainResponse",
+  encode(_: MsgSendToEvmChainResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSendToEvmChainResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSendToEvmChainResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSendToEvmChainResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgSendToEvmChainResponse {
-    return {};
+    const obj = createBaseMsgSendToEvmChainResponse();
+    return obj;
   },
-
-  toJSON(_: MsgSendToEvmChainResponse): unknown {
+  toJSON(_: MsgSendToEvmChainResponse): JsonSafe<MsgSendToEvmChainResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSendToEvmChainResponse>, I>>(_: I): MsgSendToEvmChainResponse {
     const message = createBaseMsgSendToEvmChainResponse();
     return message;
   },
 };
-
 function createBaseMsgRequestBatch(): MsgRequestBatch {
   return {
     sender: "",
@@ -809,70 +716,57 @@ function createBaseMsgRequestBatch(): MsgRequestBatch {
     chainName: "",
   };
 }
-
 export const MsgRequestBatch = {
-  encode(message: MsgRequestBatch, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgRequestBatch",
+  encode(message: MsgRequestBatch, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.sender !== "") {
       writer.uint32(10).string(message.sender);
     }
-
     if (message.denom !== "") {
       writer.uint32(18).string(message.denom);
     }
-
     if (message.chainName !== "") {
       writer.uint32(26).string(message.chainName);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgRequestBatch {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgRequestBatch {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgRequestBatch();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.sender = reader.string();
           break;
-
         case 2:
           message.denom = reader.string();
           break;
-
         case 3:
           message.chainName = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgRequestBatch {
-    return {
-      sender: isSet(object.sender) ? String(object.sender) : "",
-      denom: isSet(object.denom) ? String(object.denom) : "",
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-    };
+    const obj = createBaseMsgRequestBatch();
+    if (isSet(object.sender)) obj.sender = String(object.sender);
+    if (isSet(object.denom)) obj.denom = String(object.denom);
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    return obj;
   },
-
-  toJSON(message: MsgRequestBatch): unknown {
+  toJSON(message: MsgRequestBatch): JsonSafe<MsgRequestBatch> {
     const obj: any = {};
     message.sender !== undefined && (obj.sender = message.sender);
     message.denom !== undefined && (obj.denom = message.denom);
     message.chainName !== undefined && (obj.chainName = message.chainName);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgRequestBatch>, I>>(object: I): MsgRequestBatch {
     const message = createBaseMsgRequestBatch();
     message.sender = object.sender ?? "";
@@ -881,158 +775,132 @@ export const MsgRequestBatch = {
     return message;
   },
 };
-
 function createBaseMsgRequestBatchResponse(): MsgRequestBatchResponse {
   return {};
 }
-
 export const MsgRequestBatchResponse = {
-  encode(_: MsgRequestBatchResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgRequestBatchResponse",
+  encode(_: MsgRequestBatchResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgRequestBatchResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgRequestBatchResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgRequestBatchResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgRequestBatchResponse {
-    return {};
+    const obj = createBaseMsgRequestBatchResponse();
+    return obj;
   },
-
-  toJSON(_: MsgRequestBatchResponse): unknown {
+  toJSON(_: MsgRequestBatchResponse): JsonSafe<MsgRequestBatchResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgRequestBatchResponse>, I>>(_: I): MsgRequestBatchResponse {
     const message = createBaseMsgRequestBatchResponse();
     return message;
   },
 };
-
 function createBaseMsgConfirmBatch(): MsgConfirmBatch {
   return {
     chainName: "",
-    nonce: Long.UZERO,
+    nonce: BigInt(0),
     tokenContract: "",
     evmSigner: "",
     orchestrator: "",
     signature: "",
   };
 }
-
 export const MsgConfirmBatch = {
-  encode(message: MsgConfirmBatch, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgConfirmBatch",
+  encode(message: MsgConfirmBatch, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.nonce.isZero()) {
+    if (message.nonce !== BigInt(0)) {
       writer.uint32(16).uint64(message.nonce);
     }
-
     if (message.tokenContract !== "") {
       writer.uint32(26).string(message.tokenContract);
     }
-
     if (message.evmSigner !== "") {
       writer.uint32(34).string(message.evmSigner);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(42).string(message.orchestrator);
     }
-
     if (message.signature !== "") {
       writer.uint32(50).string(message.signature);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgConfirmBatch {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgConfirmBatch {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgConfirmBatch();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.nonce = reader.uint64() as Long;
+          message.nonce = reader.uint64();
           break;
-
         case 3:
           message.tokenContract = reader.string();
           break;
-
         case 4:
           message.evmSigner = reader.string();
           break;
-
         case 5:
           message.orchestrator = reader.string();
           break;
-
         case 6:
           message.signature = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgConfirmBatch {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      nonce: isSet(object.nonce) ? Long.fromValue(object.nonce) : Long.UZERO,
-      tokenContract: isSet(object.tokenContract) ? String(object.tokenContract) : "",
-      evmSigner: isSet(object.evmSigner) ? String(object.evmSigner) : "",
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-      signature: isSet(object.signature) ? String(object.signature) : "",
-    };
+    const obj = createBaseMsgConfirmBatch();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.nonce)) obj.nonce = BigInt(object.nonce.toString());
+    if (isSet(object.tokenContract)) obj.tokenContract = String(object.tokenContract);
+    if (isSet(object.evmSigner)) obj.evmSigner = String(object.evmSigner);
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    if (isSet(object.signature)) obj.signature = String(object.signature);
+    return obj;
   },
-
-  toJSON(message: MsgConfirmBatch): unknown {
+  toJSON(message: MsgConfirmBatch): JsonSafe<MsgConfirmBatch> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.nonce !== undefined && (obj.nonce = (message.nonce || Long.UZERO).toString());
+    message.nonce !== undefined && (obj.nonce = (message.nonce || BigInt(0)).toString());
     message.tokenContract !== undefined && (obj.tokenContract = message.tokenContract);
     message.evmSigner !== undefined && (obj.evmSigner = message.evmSigner);
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
     message.signature !== undefined && (obj.signature = message.signature);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgConfirmBatch>, I>>(object: I): MsgConfirmBatch {
     const message = createBaseMsgConfirmBatch();
     message.chainName = object.chainName ?? "";
-    message.nonce =
-      object.nonce !== undefined && object.nonce !== null ? Long.fromValue(object.nonce) : Long.UZERO;
+    if (object.nonce !== undefined && object.nonce !== null) {
+      message.nonce = BigInt(object.nonce.toString());
+    }
     message.tokenContract = object.tokenContract ?? "";
     message.evmSigner = object.evmSigner ?? "";
     message.orchestrator = object.orchestrator ?? "";
@@ -1040,207 +908,170 @@ export const MsgConfirmBatch = {
     return message;
   },
 };
-
 function createBaseMsgConfirmBatchResponse(): MsgConfirmBatchResponse {
   return {};
 }
-
 export const MsgConfirmBatchResponse = {
-  encode(_: MsgConfirmBatchResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgConfirmBatchResponse",
+  encode(_: MsgConfirmBatchResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgConfirmBatchResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgConfirmBatchResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgConfirmBatchResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgConfirmBatchResponse {
-    return {};
+    const obj = createBaseMsgConfirmBatchResponse();
+    return obj;
   },
-
-  toJSON(_: MsgConfirmBatchResponse): unknown {
+  toJSON(_: MsgConfirmBatchResponse): JsonSafe<MsgConfirmBatchResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgConfirmBatchResponse>, I>>(_: I): MsgConfirmBatchResponse {
     const message = createBaseMsgConfirmBatchResponse();
     return message;
   },
 };
-
 function createBaseMsgConfirmLogicCall(): MsgConfirmLogicCall {
   return {
     chainName: "",
     invalidationId: "",
-    invalidationNonce: Long.UZERO,
+    invalidationNonce: BigInt(0),
     evmSigner: "",
     orchestrator: "",
     signature: "",
   };
 }
-
 export const MsgConfirmLogicCall = {
-  encode(message: MsgConfirmLogicCall, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgConfirmLogicCall",
+  encode(message: MsgConfirmLogicCall, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
     if (message.invalidationId !== "") {
       writer.uint32(18).string(message.invalidationId);
     }
-
-    if (!message.invalidationNonce.isZero()) {
+    if (message.invalidationNonce !== BigInt(0)) {
       writer.uint32(24).uint64(message.invalidationNonce);
     }
-
     if (message.evmSigner !== "") {
       writer.uint32(34).string(message.evmSigner);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(42).string(message.orchestrator);
     }
-
     if (message.signature !== "") {
       writer.uint32(50).string(message.signature);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgConfirmLogicCall {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgConfirmLogicCall {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgConfirmLogicCall();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
           message.invalidationId = reader.string();
           break;
-
         case 3:
-          message.invalidationNonce = reader.uint64() as Long;
+          message.invalidationNonce = reader.uint64();
           break;
-
         case 4:
           message.evmSigner = reader.string();
           break;
-
         case 5:
           message.orchestrator = reader.string();
           break;
-
         case 6:
           message.signature = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgConfirmLogicCall {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      invalidationId: isSet(object.invalidationId) ? String(object.invalidationId) : "",
-      invalidationNonce: isSet(object.invalidationNonce)
-        ? Long.fromValue(object.invalidationNonce)
-        : Long.UZERO,
-      evmSigner: isSet(object.evmSigner) ? String(object.evmSigner) : "",
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-      signature: isSet(object.signature) ? String(object.signature) : "",
-    };
+    const obj = createBaseMsgConfirmLogicCall();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.invalidationId)) obj.invalidationId = String(object.invalidationId);
+    if (isSet(object.invalidationNonce)) obj.invalidationNonce = BigInt(object.invalidationNonce.toString());
+    if (isSet(object.evmSigner)) obj.evmSigner = String(object.evmSigner);
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    if (isSet(object.signature)) obj.signature = String(object.signature);
+    return obj;
   },
-
-  toJSON(message: MsgConfirmLogicCall): unknown {
+  toJSON(message: MsgConfirmLogicCall): JsonSafe<MsgConfirmLogicCall> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.invalidationId !== undefined && (obj.invalidationId = message.invalidationId);
     message.invalidationNonce !== undefined &&
-      (obj.invalidationNonce = (message.invalidationNonce || Long.UZERO).toString());
+      (obj.invalidationNonce = (message.invalidationNonce || BigInt(0)).toString());
     message.evmSigner !== undefined && (obj.evmSigner = message.evmSigner);
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
     message.signature !== undefined && (obj.signature = message.signature);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgConfirmLogicCall>, I>>(object: I): MsgConfirmLogicCall {
     const message = createBaseMsgConfirmLogicCall();
     message.chainName = object.chainName ?? "";
     message.invalidationId = object.invalidationId ?? "";
-    message.invalidationNonce =
-      object.invalidationNonce !== undefined && object.invalidationNonce !== null
-        ? Long.fromValue(object.invalidationNonce)
-        : Long.UZERO;
+    if (object.invalidationNonce !== undefined && object.invalidationNonce !== null) {
+      message.invalidationNonce = BigInt(object.invalidationNonce.toString());
+    }
     message.evmSigner = object.evmSigner ?? "";
     message.orchestrator = object.orchestrator ?? "";
     message.signature = object.signature ?? "";
     return message;
   },
 };
-
 function createBaseMsgConfirmLogicCallResponse(): MsgConfirmLogicCallResponse {
   return {};
 }
-
 export const MsgConfirmLogicCallResponse = {
-  encode(_: MsgConfirmLogicCallResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgConfirmLogicCallResponse",
+  encode(_: MsgConfirmLogicCallResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgConfirmLogicCallResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgConfirmLogicCallResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgConfirmLogicCallResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgConfirmLogicCallResponse {
-    return {};
+    const obj = createBaseMsgConfirmLogicCallResponse();
+    return obj;
   },
-
-  toJSON(_: MsgConfirmLogicCallResponse): unknown {
+  toJSON(_: MsgConfirmLogicCallResponse): JsonSafe<MsgConfirmLogicCallResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgConfirmLogicCallResponse>, I>>(
     _: I,
   ): MsgConfirmLogicCallResponse {
@@ -1248,12 +1079,11 @@ export const MsgConfirmLogicCallResponse = {
     return message;
   },
 };
-
 function createBaseMsgSendToCosmosClaim(): MsgSendToCosmosClaim {
   return {
     chainName: "",
-    eventNonce: Long.UZERO,
-    evmBlockHeight: Long.UZERO,
+    eventNonce: BigInt(0),
+    evmBlockHeight: BigInt(0),
     tokenContract: "",
     amount: "",
     evmSender: "",
@@ -1261,113 +1091,91 @@ function createBaseMsgSendToCosmosClaim(): MsgSendToCosmosClaim {
     orchestrator: "",
   };
 }
-
 export const MsgSendToCosmosClaim = {
-  encode(message: MsgSendToCosmosClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgSendToCosmosClaim",
+  encode(message: MsgSendToCosmosClaim, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.eventNonce.isZero()) {
+    if (message.eventNonce !== BigInt(0)) {
       writer.uint32(16).uint64(message.eventNonce);
     }
-
-    if (!message.evmBlockHeight.isZero()) {
+    if (message.evmBlockHeight !== BigInt(0)) {
       writer.uint32(24).uint64(message.evmBlockHeight);
     }
-
     if (message.tokenContract !== "") {
       writer.uint32(34).string(message.tokenContract);
     }
-
     if (message.amount !== "") {
       writer.uint32(42).string(message.amount);
     }
-
     if (message.evmSender !== "") {
       writer.uint32(50).string(message.evmSender);
     }
-
     if (message.cosmosReceiver !== "") {
       writer.uint32(58).string(message.cosmosReceiver);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(66).string(message.orchestrator);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSendToCosmosClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSendToCosmosClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSendToCosmosClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.eventNonce = reader.uint64() as Long;
+          message.eventNonce = reader.uint64();
           break;
-
         case 3:
-          message.evmBlockHeight = reader.uint64() as Long;
+          message.evmBlockHeight = reader.uint64();
           break;
-
         case 4:
           message.tokenContract = reader.string();
           break;
-
         case 5:
           message.amount = reader.string();
           break;
-
         case 6:
           message.evmSender = reader.string();
           break;
-
         case 7:
           message.cosmosReceiver = reader.string();
           break;
-
         case 8:
           message.orchestrator = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgSendToCosmosClaim {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      eventNonce: isSet(object.eventNonce) ? Long.fromValue(object.eventNonce) : Long.UZERO,
-      evmBlockHeight: isSet(object.evmBlockHeight) ? Long.fromValue(object.evmBlockHeight) : Long.UZERO,
-      tokenContract: isSet(object.tokenContract) ? String(object.tokenContract) : "",
-      amount: isSet(object.amount) ? String(object.amount) : "",
-      evmSender: isSet(object.evmSender) ? String(object.evmSender) : "",
-      cosmosReceiver: isSet(object.cosmosReceiver) ? String(object.cosmosReceiver) : "",
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-    };
+    const obj = createBaseMsgSendToCosmosClaim();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.eventNonce)) obj.eventNonce = BigInt(object.eventNonce.toString());
+    if (isSet(object.evmBlockHeight)) obj.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    if (isSet(object.tokenContract)) obj.tokenContract = String(object.tokenContract);
+    if (isSet(object.amount)) obj.amount = String(object.amount);
+    if (isSet(object.evmSender)) obj.evmSender = String(object.evmSender);
+    if (isSet(object.cosmosReceiver)) obj.cosmosReceiver = String(object.cosmosReceiver);
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    return obj;
   },
-
-  toJSON(message: MsgSendToCosmosClaim): unknown {
+  toJSON(message: MsgSendToCosmosClaim): JsonSafe<MsgSendToCosmosClaim> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || Long.UZERO).toString());
+    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || BigInt(0)).toString());
     message.evmBlockHeight !== undefined &&
-      (obj.evmBlockHeight = (message.evmBlockHeight || Long.UZERO).toString());
+      (obj.evmBlockHeight = (message.evmBlockHeight || BigInt(0)).toString());
     message.tokenContract !== undefined && (obj.tokenContract = message.tokenContract);
     message.amount !== undefined && (obj.amount = message.amount);
     message.evmSender !== undefined && (obj.evmSender = message.evmSender);
@@ -1375,18 +1183,15 @@ export const MsgSendToCosmosClaim = {
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSendToCosmosClaim>, I>>(object: I): MsgSendToCosmosClaim {
     const message = createBaseMsgSendToCosmosClaim();
     message.chainName = object.chainName ?? "";
-    message.eventNonce =
-      object.eventNonce !== undefined && object.eventNonce !== null
-        ? Long.fromValue(object.eventNonce)
-        : Long.UZERO;
-    message.evmBlockHeight =
-      object.evmBlockHeight !== undefined && object.evmBlockHeight !== null
-        ? Long.fromValue(object.evmBlockHeight)
-        : Long.UZERO;
+    if (object.eventNonce !== undefined && object.eventNonce !== null) {
+      message.eventNonce = BigInt(object.eventNonce.toString());
+    }
+    if (object.evmBlockHeight !== undefined && object.evmBlockHeight !== null) {
+      message.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    }
     message.tokenContract = object.tokenContract ?? "";
     message.amount = object.amount ?? "";
     message.evmSender = object.evmSender ?? "";
@@ -1395,43 +1200,36 @@ export const MsgSendToCosmosClaim = {
     return message;
   },
 };
-
 function createBaseMsgSendToCosmosClaimResponse(): MsgSendToCosmosClaimResponse {
   return {};
 }
-
 export const MsgSendToCosmosClaimResponse = {
-  encode(_: MsgSendToCosmosClaimResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgSendToCosmosClaimResponse",
+  encode(_: MsgSendToCosmosClaimResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSendToCosmosClaimResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSendToCosmosClaimResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSendToCosmosClaimResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgSendToCosmosClaimResponse {
-    return {};
+    const obj = createBaseMsgSendToCosmosClaimResponse();
+    return obj;
   },
-
-  toJSON(_: MsgSendToCosmosClaimResponse): unknown {
+  toJSON(_: MsgSendToCosmosClaimResponse): JsonSafe<MsgSendToCosmosClaimResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSendToCosmosClaimResponse>, I>>(
     _: I,
   ): MsgSendToCosmosClaimResponse {
@@ -1439,12 +1237,11 @@ export const MsgSendToCosmosClaimResponse = {
     return message;
   },
 };
-
 function createBaseMsgSendFromEvmChainToEvmChainClaim(): MsgSendFromEvmChainToEvmChainClaim {
   return {
     chainName: "",
-    eventNonce: Long.UZERO,
-    evmBlockHeight: Long.UZERO,
+    eventNonce: BigInt(0),
+    evmBlockHeight: BigInt(0),
     tokenContract: "",
     amount: "",
     evmSender: "",
@@ -1454,131 +1251,108 @@ function createBaseMsgSendFromEvmChainToEvmChainClaim(): MsgSendFromEvmChainToEv
     orchestrator: "",
   };
 }
-
 export const MsgSendFromEvmChainToEvmChainClaim = {
-  encode(message: MsgSendFromEvmChainToEvmChainClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgSendFromEvmChainToEvmChainClaim",
+  encode(
+    message: MsgSendFromEvmChainToEvmChainClaim,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.eventNonce.isZero()) {
+    if (message.eventNonce !== BigInt(0)) {
       writer.uint32(16).uint64(message.eventNonce);
     }
-
-    if (!message.evmBlockHeight.isZero()) {
+    if (message.evmBlockHeight !== BigInt(0)) {
       writer.uint32(24).uint64(message.evmBlockHeight);
     }
-
     if (message.tokenContract !== "") {
       writer.uint32(34).string(message.tokenContract);
     }
-
     if (message.amount !== "") {
       writer.uint32(42).string(message.amount);
     }
-
     if (message.evmSender !== "") {
       writer.uint32(50).string(message.evmSender);
     }
-
     if (message.toChainName !== "") {
       writer.uint32(58).string(message.toChainName);
     }
-
     if (message.receiver !== "") {
       writer.uint32(66).string(message.receiver);
     }
-
     if (message.bridgeFee !== "") {
       writer.uint32(74).string(message.bridgeFee);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(82).string(message.orchestrator);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSendFromEvmChainToEvmChainClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSendFromEvmChainToEvmChainClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSendFromEvmChainToEvmChainClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.eventNonce = reader.uint64() as Long;
+          message.eventNonce = reader.uint64();
           break;
-
         case 3:
-          message.evmBlockHeight = reader.uint64() as Long;
+          message.evmBlockHeight = reader.uint64();
           break;
-
         case 4:
           message.tokenContract = reader.string();
           break;
-
         case 5:
           message.amount = reader.string();
           break;
-
         case 6:
           message.evmSender = reader.string();
           break;
-
         case 7:
           message.toChainName = reader.string();
           break;
-
         case 8:
           message.receiver = reader.string();
           break;
-
         case 9:
           message.bridgeFee = reader.string();
           break;
-
         case 10:
           message.orchestrator = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgSendFromEvmChainToEvmChainClaim {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      eventNonce: isSet(object.eventNonce) ? Long.fromValue(object.eventNonce) : Long.UZERO,
-      evmBlockHeight: isSet(object.evmBlockHeight) ? Long.fromValue(object.evmBlockHeight) : Long.UZERO,
-      tokenContract: isSet(object.tokenContract) ? String(object.tokenContract) : "",
-      amount: isSet(object.amount) ? String(object.amount) : "",
-      evmSender: isSet(object.evmSender) ? String(object.evmSender) : "",
-      toChainName: isSet(object.toChainName) ? String(object.toChainName) : "",
-      receiver: isSet(object.receiver) ? String(object.receiver) : "",
-      bridgeFee: isSet(object.bridgeFee) ? String(object.bridgeFee) : "",
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-    };
+    const obj = createBaseMsgSendFromEvmChainToEvmChainClaim();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.eventNonce)) obj.eventNonce = BigInt(object.eventNonce.toString());
+    if (isSet(object.evmBlockHeight)) obj.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    if (isSet(object.tokenContract)) obj.tokenContract = String(object.tokenContract);
+    if (isSet(object.amount)) obj.amount = String(object.amount);
+    if (isSet(object.evmSender)) obj.evmSender = String(object.evmSender);
+    if (isSet(object.toChainName)) obj.toChainName = String(object.toChainName);
+    if (isSet(object.receiver)) obj.receiver = String(object.receiver);
+    if (isSet(object.bridgeFee)) obj.bridgeFee = String(object.bridgeFee);
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    return obj;
   },
-
-  toJSON(message: MsgSendFromEvmChainToEvmChainClaim): unknown {
+  toJSON(message: MsgSendFromEvmChainToEvmChainClaim): JsonSafe<MsgSendFromEvmChainToEvmChainClaim> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || Long.UZERO).toString());
+    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || BigInt(0)).toString());
     message.evmBlockHeight !== undefined &&
-      (obj.evmBlockHeight = (message.evmBlockHeight || Long.UZERO).toString());
+      (obj.evmBlockHeight = (message.evmBlockHeight || BigInt(0)).toString());
     message.tokenContract !== undefined && (obj.tokenContract = message.tokenContract);
     message.amount !== undefined && (obj.amount = message.amount);
     message.evmSender !== undefined && (obj.evmSender = message.evmSender);
@@ -1588,20 +1362,17 @@ export const MsgSendFromEvmChainToEvmChainClaim = {
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSendFromEvmChainToEvmChainClaim>, I>>(
     object: I,
   ): MsgSendFromEvmChainToEvmChainClaim {
     const message = createBaseMsgSendFromEvmChainToEvmChainClaim();
     message.chainName = object.chainName ?? "";
-    message.eventNonce =
-      object.eventNonce !== undefined && object.eventNonce !== null
-        ? Long.fromValue(object.eventNonce)
-        : Long.UZERO;
-    message.evmBlockHeight =
-      object.evmBlockHeight !== undefined && object.evmBlockHeight !== null
-        ? Long.fromValue(object.evmBlockHeight)
-        : Long.UZERO;
+    if (object.eventNonce !== undefined && object.eventNonce !== null) {
+      message.eventNonce = BigInt(object.eventNonce.toString());
+    }
+    if (object.evmBlockHeight !== undefined && object.evmBlockHeight !== null) {
+      message.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    }
     message.tokenContract = object.tokenContract ?? "";
     message.amount = object.amount ?? "";
     message.evmSender = object.evmSender ?? "";
@@ -1612,46 +1383,41 @@ export const MsgSendFromEvmChainToEvmChainClaim = {
     return message;
   },
 };
-
 function createBaseMsgSendFromEvmChainToEvmChainClaimResponse(): MsgSendFromEvmChainToEvmChainClaimResponse {
   return {};
 }
-
 export const MsgSendFromEvmChainToEvmChainClaimResponse = {
+  typeUrl: "/gravity.gravity.v1.MsgSendFromEvmChainToEvmChainClaimResponse",
   encode(
     _: MsgSendFromEvmChainToEvmChainClaimResponse,
-    writer: _m0.Writer = _m0.Writer.create(),
-  ): _m0.Writer {
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSendFromEvmChainToEvmChainClaimResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSendFromEvmChainToEvmChainClaimResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSendFromEvmChainToEvmChainClaimResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgSendFromEvmChainToEvmChainClaimResponse {
-    return {};
+    const obj = createBaseMsgSendFromEvmChainToEvmChainClaimResponse();
+    return obj;
   },
-
-  toJSON(_: MsgSendFromEvmChainToEvmChainClaimResponse): unknown {
+  toJSON(
+    _: MsgSendFromEvmChainToEvmChainClaimResponse,
+  ): JsonSafe<MsgSendFromEvmChainToEvmChainClaimResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSendFromEvmChainToEvmChainClaimResponse>, I>>(
     _: I,
   ): MsgSendFromEvmChainToEvmChainClaimResponse {
@@ -1659,129 +1425,107 @@ export const MsgSendFromEvmChainToEvmChainClaimResponse = {
     return message;
   },
 };
-
 function createBaseMsgExecuteIbcAutoForwards(): MsgExecuteIbcAutoForwards {
   return {
     chainName: "",
-    forwardsToClear: Long.UZERO,
+    forwardsToClear: BigInt(0),
     executor: "",
   };
 }
-
 export const MsgExecuteIbcAutoForwards = {
-  encode(message: MsgExecuteIbcAutoForwards, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgExecuteIbcAutoForwards",
+  encode(message: MsgExecuteIbcAutoForwards, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.forwardsToClear.isZero()) {
+    if (message.forwardsToClear !== BigInt(0)) {
       writer.uint32(16).uint64(message.forwardsToClear);
     }
-
     if (message.executor !== "") {
       writer.uint32(26).string(message.executor);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgExecuteIbcAutoForwards {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgExecuteIbcAutoForwards {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgExecuteIbcAutoForwards();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.forwardsToClear = reader.uint64() as Long;
+          message.forwardsToClear = reader.uint64();
           break;
-
         case 3:
           message.executor = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgExecuteIbcAutoForwards {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      forwardsToClear: isSet(object.forwardsToClear) ? Long.fromValue(object.forwardsToClear) : Long.UZERO,
-      executor: isSet(object.executor) ? String(object.executor) : "",
-    };
+    const obj = createBaseMsgExecuteIbcAutoForwards();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.forwardsToClear)) obj.forwardsToClear = BigInt(object.forwardsToClear.toString());
+    if (isSet(object.executor)) obj.executor = String(object.executor);
+    return obj;
   },
-
-  toJSON(message: MsgExecuteIbcAutoForwards): unknown {
+  toJSON(message: MsgExecuteIbcAutoForwards): JsonSafe<MsgExecuteIbcAutoForwards> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.forwardsToClear !== undefined &&
-      (obj.forwardsToClear = (message.forwardsToClear || Long.UZERO).toString());
+      (obj.forwardsToClear = (message.forwardsToClear || BigInt(0)).toString());
     message.executor !== undefined && (obj.executor = message.executor);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgExecuteIbcAutoForwards>, I>>(
     object: I,
   ): MsgExecuteIbcAutoForwards {
     const message = createBaseMsgExecuteIbcAutoForwards();
     message.chainName = object.chainName ?? "";
-    message.forwardsToClear =
-      object.forwardsToClear !== undefined && object.forwardsToClear !== null
-        ? Long.fromValue(object.forwardsToClear)
-        : Long.UZERO;
+    if (object.forwardsToClear !== undefined && object.forwardsToClear !== null) {
+      message.forwardsToClear = BigInt(object.forwardsToClear.toString());
+    }
     message.executor = object.executor ?? "";
     return message;
   },
 };
-
 function createBaseMsgExecuteIbcAutoForwardsResponse(): MsgExecuteIbcAutoForwardsResponse {
   return {};
 }
-
 export const MsgExecuteIbcAutoForwardsResponse = {
-  encode(_: MsgExecuteIbcAutoForwardsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgExecuteIbcAutoForwardsResponse",
+  encode(_: MsgExecuteIbcAutoForwardsResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgExecuteIbcAutoForwardsResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgExecuteIbcAutoForwardsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgExecuteIbcAutoForwardsResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgExecuteIbcAutoForwardsResponse {
-    return {};
+    const obj = createBaseMsgExecuteIbcAutoForwardsResponse();
+    return obj;
   },
-
-  toJSON(_: MsgExecuteIbcAutoForwardsResponse): unknown {
+  toJSON(_: MsgExecuteIbcAutoForwardsResponse): JsonSafe<MsgExecuteIbcAutoForwardsResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgExecuteIbcAutoForwardsResponse>, I>>(
     _: I,
   ): MsgExecuteIbcAutoForwardsResponse {
@@ -1789,171 +1533,141 @@ export const MsgExecuteIbcAutoForwardsResponse = {
     return message;
   },
 };
-
 function createBaseMsgBatchSendToEvmChainClaim(): MsgBatchSendToEvmChainClaim {
   return {
     chainName: "",
-    eventNonce: Long.UZERO,
-    evmBlockHeight: Long.UZERO,
-    batchNonce: Long.UZERO,
+    eventNonce: BigInt(0),
+    evmBlockHeight: BigInt(0),
+    batchNonce: BigInt(0),
     tokenContract: "",
     orchestrator: "",
   };
 }
-
 export const MsgBatchSendToEvmChainClaim = {
-  encode(message: MsgBatchSendToEvmChainClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgBatchSendToEvmChainClaim",
+  encode(message: MsgBatchSendToEvmChainClaim, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.eventNonce.isZero()) {
+    if (message.eventNonce !== BigInt(0)) {
       writer.uint32(16).uint64(message.eventNonce);
     }
-
-    if (!message.evmBlockHeight.isZero()) {
+    if (message.evmBlockHeight !== BigInt(0)) {
       writer.uint32(24).uint64(message.evmBlockHeight);
     }
-
-    if (!message.batchNonce.isZero()) {
+    if (message.batchNonce !== BigInt(0)) {
       writer.uint32(32).uint64(message.batchNonce);
     }
-
     if (message.tokenContract !== "") {
       writer.uint32(42).string(message.tokenContract);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(50).string(message.orchestrator);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgBatchSendToEvmChainClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgBatchSendToEvmChainClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgBatchSendToEvmChainClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.eventNonce = reader.uint64() as Long;
+          message.eventNonce = reader.uint64();
           break;
-
         case 3:
-          message.evmBlockHeight = reader.uint64() as Long;
+          message.evmBlockHeight = reader.uint64();
           break;
-
         case 4:
-          message.batchNonce = reader.uint64() as Long;
+          message.batchNonce = reader.uint64();
           break;
-
         case 5:
           message.tokenContract = reader.string();
           break;
-
         case 6:
           message.orchestrator = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgBatchSendToEvmChainClaim {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      eventNonce: isSet(object.eventNonce) ? Long.fromValue(object.eventNonce) : Long.UZERO,
-      evmBlockHeight: isSet(object.evmBlockHeight) ? Long.fromValue(object.evmBlockHeight) : Long.UZERO,
-      batchNonce: isSet(object.batchNonce) ? Long.fromValue(object.batchNonce) : Long.UZERO,
-      tokenContract: isSet(object.tokenContract) ? String(object.tokenContract) : "",
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-    };
+    const obj = createBaseMsgBatchSendToEvmChainClaim();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.eventNonce)) obj.eventNonce = BigInt(object.eventNonce.toString());
+    if (isSet(object.evmBlockHeight)) obj.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    if (isSet(object.batchNonce)) obj.batchNonce = BigInt(object.batchNonce.toString());
+    if (isSet(object.tokenContract)) obj.tokenContract = String(object.tokenContract);
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    return obj;
   },
-
-  toJSON(message: MsgBatchSendToEvmChainClaim): unknown {
+  toJSON(message: MsgBatchSendToEvmChainClaim): JsonSafe<MsgBatchSendToEvmChainClaim> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || Long.UZERO).toString());
+    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || BigInt(0)).toString());
     message.evmBlockHeight !== undefined &&
-      (obj.evmBlockHeight = (message.evmBlockHeight || Long.UZERO).toString());
-    message.batchNonce !== undefined && (obj.batchNonce = (message.batchNonce || Long.UZERO).toString());
+      (obj.evmBlockHeight = (message.evmBlockHeight || BigInt(0)).toString());
+    message.batchNonce !== undefined && (obj.batchNonce = (message.batchNonce || BigInt(0)).toString());
     message.tokenContract !== undefined && (obj.tokenContract = message.tokenContract);
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgBatchSendToEvmChainClaim>, I>>(
     object: I,
   ): MsgBatchSendToEvmChainClaim {
     const message = createBaseMsgBatchSendToEvmChainClaim();
     message.chainName = object.chainName ?? "";
-    message.eventNonce =
-      object.eventNonce !== undefined && object.eventNonce !== null
-        ? Long.fromValue(object.eventNonce)
-        : Long.UZERO;
-    message.evmBlockHeight =
-      object.evmBlockHeight !== undefined && object.evmBlockHeight !== null
-        ? Long.fromValue(object.evmBlockHeight)
-        : Long.UZERO;
-    message.batchNonce =
-      object.batchNonce !== undefined && object.batchNonce !== null
-        ? Long.fromValue(object.batchNonce)
-        : Long.UZERO;
+    if (object.eventNonce !== undefined && object.eventNonce !== null) {
+      message.eventNonce = BigInt(object.eventNonce.toString());
+    }
+    if (object.evmBlockHeight !== undefined && object.evmBlockHeight !== null) {
+      message.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    }
+    if (object.batchNonce !== undefined && object.batchNonce !== null) {
+      message.batchNonce = BigInt(object.batchNonce.toString());
+    }
     message.tokenContract = object.tokenContract ?? "";
     message.orchestrator = object.orchestrator ?? "";
     return message;
   },
 };
-
 function createBaseMsgBatchSendToEvmChainClaimResponse(): MsgBatchSendToEvmChainClaimResponse {
   return {};
 }
-
 export const MsgBatchSendToEvmChainClaimResponse = {
-  encode(_: MsgBatchSendToEvmChainClaimResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgBatchSendToEvmChainClaimResponse",
+  encode(_: MsgBatchSendToEvmChainClaimResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgBatchSendToEvmChainClaimResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgBatchSendToEvmChainClaimResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgBatchSendToEvmChainClaimResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgBatchSendToEvmChainClaimResponse {
-    return {};
+    const obj = createBaseMsgBatchSendToEvmChainClaimResponse();
+    return obj;
   },
-
-  toJSON(_: MsgBatchSendToEvmChainClaimResponse): unknown {
+  toJSON(_: MsgBatchSendToEvmChainClaimResponse): JsonSafe<MsgBatchSendToEvmChainClaimResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgBatchSendToEvmChainClaimResponse>, I>>(
     _: I,
   ): MsgBatchSendToEvmChainClaimResponse {
@@ -1961,205 +1675,169 @@ export const MsgBatchSendToEvmChainClaimResponse = {
     return message;
   },
 };
-
 function createBaseMsgERC20DeployedClaim(): MsgERC20DeployedClaim {
   return {
     chainName: "",
-    eventNonce: Long.UZERO,
-    evmBlockHeight: Long.UZERO,
+    eventNonce: BigInt(0),
+    evmBlockHeight: BigInt(0),
     cosmosDenom: "",
     tokenContract: "",
     name: "",
     symbol: "",
-    decimals: Long.UZERO,
+    decimals: BigInt(0),
     orchestrator: "",
   };
 }
-
 export const MsgERC20DeployedClaim = {
-  encode(message: MsgERC20DeployedClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgERC20DeployedClaim",
+  encode(message: MsgERC20DeployedClaim, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.eventNonce.isZero()) {
+    if (message.eventNonce !== BigInt(0)) {
       writer.uint32(16).uint64(message.eventNonce);
     }
-
-    if (!message.evmBlockHeight.isZero()) {
+    if (message.evmBlockHeight !== BigInt(0)) {
       writer.uint32(24).uint64(message.evmBlockHeight);
     }
-
     if (message.cosmosDenom !== "") {
       writer.uint32(34).string(message.cosmosDenom);
     }
-
     if (message.tokenContract !== "") {
       writer.uint32(42).string(message.tokenContract);
     }
-
     if (message.name !== "") {
       writer.uint32(50).string(message.name);
     }
-
     if (message.symbol !== "") {
       writer.uint32(58).string(message.symbol);
     }
-
-    if (!message.decimals.isZero()) {
+    if (message.decimals !== BigInt(0)) {
       writer.uint32(64).uint64(message.decimals);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(74).string(message.orchestrator);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgERC20DeployedClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgERC20DeployedClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgERC20DeployedClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.eventNonce = reader.uint64() as Long;
+          message.eventNonce = reader.uint64();
           break;
-
         case 3:
-          message.evmBlockHeight = reader.uint64() as Long;
+          message.evmBlockHeight = reader.uint64();
           break;
-
         case 4:
           message.cosmosDenom = reader.string();
           break;
-
         case 5:
           message.tokenContract = reader.string();
           break;
-
         case 6:
           message.name = reader.string();
           break;
-
         case 7:
           message.symbol = reader.string();
           break;
-
         case 8:
-          message.decimals = reader.uint64() as Long;
+          message.decimals = reader.uint64();
           break;
-
         case 9:
           message.orchestrator = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgERC20DeployedClaim {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      eventNonce: isSet(object.eventNonce) ? Long.fromValue(object.eventNonce) : Long.UZERO,
-      evmBlockHeight: isSet(object.evmBlockHeight) ? Long.fromValue(object.evmBlockHeight) : Long.UZERO,
-      cosmosDenom: isSet(object.cosmosDenom) ? String(object.cosmosDenom) : "",
-      tokenContract: isSet(object.tokenContract) ? String(object.tokenContract) : "",
-      name: isSet(object.name) ? String(object.name) : "",
-      symbol: isSet(object.symbol) ? String(object.symbol) : "",
-      decimals: isSet(object.decimals) ? Long.fromValue(object.decimals) : Long.UZERO,
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-    };
+    const obj = createBaseMsgERC20DeployedClaim();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.eventNonce)) obj.eventNonce = BigInt(object.eventNonce.toString());
+    if (isSet(object.evmBlockHeight)) obj.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    if (isSet(object.cosmosDenom)) obj.cosmosDenom = String(object.cosmosDenom);
+    if (isSet(object.tokenContract)) obj.tokenContract = String(object.tokenContract);
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (isSet(object.symbol)) obj.symbol = String(object.symbol);
+    if (isSet(object.decimals)) obj.decimals = BigInt(object.decimals.toString());
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    return obj;
   },
-
-  toJSON(message: MsgERC20DeployedClaim): unknown {
+  toJSON(message: MsgERC20DeployedClaim): JsonSafe<MsgERC20DeployedClaim> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || Long.UZERO).toString());
+    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || BigInt(0)).toString());
     message.evmBlockHeight !== undefined &&
-      (obj.evmBlockHeight = (message.evmBlockHeight || Long.UZERO).toString());
+      (obj.evmBlockHeight = (message.evmBlockHeight || BigInt(0)).toString());
     message.cosmosDenom !== undefined && (obj.cosmosDenom = message.cosmosDenom);
     message.tokenContract !== undefined && (obj.tokenContract = message.tokenContract);
     message.name !== undefined && (obj.name = message.name);
     message.symbol !== undefined && (obj.symbol = message.symbol);
-    message.decimals !== undefined && (obj.decimals = (message.decimals || Long.UZERO).toString());
+    message.decimals !== undefined && (obj.decimals = (message.decimals || BigInt(0)).toString());
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgERC20DeployedClaim>, I>>(object: I): MsgERC20DeployedClaim {
     const message = createBaseMsgERC20DeployedClaim();
     message.chainName = object.chainName ?? "";
-    message.eventNonce =
-      object.eventNonce !== undefined && object.eventNonce !== null
-        ? Long.fromValue(object.eventNonce)
-        : Long.UZERO;
-    message.evmBlockHeight =
-      object.evmBlockHeight !== undefined && object.evmBlockHeight !== null
-        ? Long.fromValue(object.evmBlockHeight)
-        : Long.UZERO;
+    if (object.eventNonce !== undefined && object.eventNonce !== null) {
+      message.eventNonce = BigInt(object.eventNonce.toString());
+    }
+    if (object.evmBlockHeight !== undefined && object.evmBlockHeight !== null) {
+      message.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    }
     message.cosmosDenom = object.cosmosDenom ?? "";
     message.tokenContract = object.tokenContract ?? "";
     message.name = object.name ?? "";
     message.symbol = object.symbol ?? "";
-    message.decimals =
-      object.decimals !== undefined && object.decimals !== null
-        ? Long.fromValue(object.decimals)
-        : Long.UZERO;
+    if (object.decimals !== undefined && object.decimals !== null) {
+      message.decimals = BigInt(object.decimals.toString());
+    }
     message.orchestrator = object.orchestrator ?? "";
     return message;
   },
 };
-
 function createBaseMsgERC20DeployedClaimResponse(): MsgERC20DeployedClaimResponse {
   return {};
 }
-
 export const MsgERC20DeployedClaimResponse = {
-  encode(_: MsgERC20DeployedClaimResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgERC20DeployedClaimResponse",
+  encode(_: MsgERC20DeployedClaimResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgERC20DeployedClaimResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgERC20DeployedClaimResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgERC20DeployedClaimResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgERC20DeployedClaimResponse {
-    return {};
+    const obj = createBaseMsgERC20DeployedClaimResponse();
+    return obj;
   },
-
-  toJSON(_: MsgERC20DeployedClaimResponse): unknown {
+  toJSON(_: MsgERC20DeployedClaimResponse): JsonSafe<MsgERC20DeployedClaimResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgERC20DeployedClaimResponse>, I>>(
     _: I,
   ): MsgERC20DeployedClaimResponse {
@@ -2167,179 +1845,145 @@ export const MsgERC20DeployedClaimResponse = {
     return message;
   },
 };
-
 function createBaseMsgLogicCallExecutedClaim(): MsgLogicCallExecutedClaim {
   return {
     chainName: "",
-    eventNonce: Long.UZERO,
-    evmBlockHeight: Long.UZERO,
+    eventNonce: BigInt(0),
+    evmBlockHeight: BigInt(0),
     invalidationId: new Uint8Array(),
-    invalidationNonce: Long.UZERO,
+    invalidationNonce: BigInt(0),
     orchestrator: "",
   };
 }
-
 export const MsgLogicCallExecutedClaim = {
-  encode(message: MsgLogicCallExecutedClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgLogicCallExecutedClaim",
+  encode(message: MsgLogicCallExecutedClaim, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.eventNonce.isZero()) {
+    if (message.eventNonce !== BigInt(0)) {
       writer.uint32(16).uint64(message.eventNonce);
     }
-
-    if (!message.evmBlockHeight.isZero()) {
+    if (message.evmBlockHeight !== BigInt(0)) {
       writer.uint32(24).uint64(message.evmBlockHeight);
     }
-
     if (message.invalidationId.length !== 0) {
       writer.uint32(34).bytes(message.invalidationId);
     }
-
-    if (!message.invalidationNonce.isZero()) {
+    if (message.invalidationNonce !== BigInt(0)) {
       writer.uint32(40).uint64(message.invalidationNonce);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(50).string(message.orchestrator);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgLogicCallExecutedClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgLogicCallExecutedClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgLogicCallExecutedClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.eventNonce = reader.uint64() as Long;
+          message.eventNonce = reader.uint64();
           break;
-
         case 3:
-          message.evmBlockHeight = reader.uint64() as Long;
+          message.evmBlockHeight = reader.uint64();
           break;
-
         case 4:
           message.invalidationId = reader.bytes();
           break;
-
         case 5:
-          message.invalidationNonce = reader.uint64() as Long;
+          message.invalidationNonce = reader.uint64();
           break;
-
         case 6:
           message.orchestrator = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgLogicCallExecutedClaim {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      eventNonce: isSet(object.eventNonce) ? Long.fromValue(object.eventNonce) : Long.UZERO,
-      evmBlockHeight: isSet(object.evmBlockHeight) ? Long.fromValue(object.evmBlockHeight) : Long.UZERO,
-      invalidationId: isSet(object.invalidationId)
-        ? bytesFromBase64(object.invalidationId)
-        : new Uint8Array(),
-      invalidationNonce: isSet(object.invalidationNonce)
-        ? Long.fromValue(object.invalidationNonce)
-        : Long.UZERO,
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-    };
+    const obj = createBaseMsgLogicCallExecutedClaim();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.eventNonce)) obj.eventNonce = BigInt(object.eventNonce.toString());
+    if (isSet(object.evmBlockHeight)) obj.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    if (isSet(object.invalidationId)) obj.invalidationId = bytesFromBase64(object.invalidationId);
+    if (isSet(object.invalidationNonce)) obj.invalidationNonce = BigInt(object.invalidationNonce.toString());
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    return obj;
   },
-
-  toJSON(message: MsgLogicCallExecutedClaim): unknown {
+  toJSON(message: MsgLogicCallExecutedClaim): JsonSafe<MsgLogicCallExecutedClaim> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || Long.UZERO).toString());
+    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || BigInt(0)).toString());
     message.evmBlockHeight !== undefined &&
-      (obj.evmBlockHeight = (message.evmBlockHeight || Long.UZERO).toString());
+      (obj.evmBlockHeight = (message.evmBlockHeight || BigInt(0)).toString());
     message.invalidationId !== undefined &&
       (obj.invalidationId = base64FromBytes(
         message.invalidationId !== undefined ? message.invalidationId : new Uint8Array(),
       ));
     message.invalidationNonce !== undefined &&
-      (obj.invalidationNonce = (message.invalidationNonce || Long.UZERO).toString());
+      (obj.invalidationNonce = (message.invalidationNonce || BigInt(0)).toString());
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgLogicCallExecutedClaim>, I>>(
     object: I,
   ): MsgLogicCallExecutedClaim {
     const message = createBaseMsgLogicCallExecutedClaim();
     message.chainName = object.chainName ?? "";
-    message.eventNonce =
-      object.eventNonce !== undefined && object.eventNonce !== null
-        ? Long.fromValue(object.eventNonce)
-        : Long.UZERO;
-    message.evmBlockHeight =
-      object.evmBlockHeight !== undefined && object.evmBlockHeight !== null
-        ? Long.fromValue(object.evmBlockHeight)
-        : Long.UZERO;
+    if (object.eventNonce !== undefined && object.eventNonce !== null) {
+      message.eventNonce = BigInt(object.eventNonce.toString());
+    }
+    if (object.evmBlockHeight !== undefined && object.evmBlockHeight !== null) {
+      message.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    }
     message.invalidationId = object.invalidationId ?? new Uint8Array();
-    message.invalidationNonce =
-      object.invalidationNonce !== undefined && object.invalidationNonce !== null
-        ? Long.fromValue(object.invalidationNonce)
-        : Long.UZERO;
+    if (object.invalidationNonce !== undefined && object.invalidationNonce !== null) {
+      message.invalidationNonce = BigInt(object.invalidationNonce.toString());
+    }
     message.orchestrator = object.orchestrator ?? "";
     return message;
   },
 };
-
 function createBaseMsgLogicCallExecutedClaimResponse(): MsgLogicCallExecutedClaimResponse {
   return {};
 }
-
 export const MsgLogicCallExecutedClaimResponse = {
-  encode(_: MsgLogicCallExecutedClaimResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgLogicCallExecutedClaimResponse",
+  encode(_: MsgLogicCallExecutedClaimResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgLogicCallExecutedClaimResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgLogicCallExecutedClaimResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgLogicCallExecutedClaimResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgLogicCallExecutedClaimResponse {
-    return {};
+    const obj = createBaseMsgLogicCallExecutedClaimResponse();
+    return obj;
   },
-
-  toJSON(_: MsgLogicCallExecutedClaimResponse): unknown {
+  toJSON(_: MsgLogicCallExecutedClaimResponse): JsonSafe<MsgLogicCallExecutedClaimResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgLogicCallExecutedClaimResponse>, I>>(
     _: I,
   ): MsgLogicCallExecutedClaimResponse {
@@ -2347,157 +1991,127 @@ export const MsgLogicCallExecutedClaimResponse = {
     return message;
   },
 };
-
 function createBaseMsgValsetUpdatedClaim(): MsgValsetUpdatedClaim {
   return {
     chainName: "",
-    eventNonce: Long.UZERO,
-    valsetNonce: Long.UZERO,
-    evmBlockHeight: Long.UZERO,
+    eventNonce: BigInt(0),
+    valsetNonce: BigInt(0),
+    evmBlockHeight: BigInt(0),
     members: [],
     rewardAmount: "",
     rewardToken: "",
     orchestrator: "",
   };
 }
-
 export const MsgValsetUpdatedClaim = {
-  encode(message: MsgValsetUpdatedClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgValsetUpdatedClaim",
+  encode(message: MsgValsetUpdatedClaim, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.eventNonce.isZero()) {
+    if (message.eventNonce !== BigInt(0)) {
       writer.uint32(16).uint64(message.eventNonce);
     }
-
-    if (!message.valsetNonce.isZero()) {
+    if (message.valsetNonce !== BigInt(0)) {
       writer.uint32(24).uint64(message.valsetNonce);
     }
-
-    if (!message.evmBlockHeight.isZero()) {
+    if (message.evmBlockHeight !== BigInt(0)) {
       writer.uint32(32).uint64(message.evmBlockHeight);
     }
-
     for (const v of message.members) {
       BridgeValidator.encode(v!, writer.uint32(42).fork()).ldelim();
     }
-
     if (message.rewardAmount !== "") {
       writer.uint32(50).string(message.rewardAmount);
     }
-
     if (message.rewardToken !== "") {
       writer.uint32(58).string(message.rewardToken);
     }
-
     if (message.orchestrator !== "") {
       writer.uint32(66).string(message.orchestrator);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgValsetUpdatedClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgValsetUpdatedClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgValsetUpdatedClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.eventNonce = reader.uint64() as Long;
+          message.eventNonce = reader.uint64();
           break;
-
         case 3:
-          message.valsetNonce = reader.uint64() as Long;
+          message.valsetNonce = reader.uint64();
           break;
-
         case 4:
-          message.evmBlockHeight = reader.uint64() as Long;
+          message.evmBlockHeight = reader.uint64();
           break;
-
         case 5:
           message.members.push(BridgeValidator.decode(reader, reader.uint32()));
           break;
-
         case 6:
           message.rewardAmount = reader.string();
           break;
-
         case 7:
           message.rewardToken = reader.string();
           break;
-
         case 8:
           message.orchestrator = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgValsetUpdatedClaim {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      eventNonce: isSet(object.eventNonce) ? Long.fromValue(object.eventNonce) : Long.UZERO,
-      valsetNonce: isSet(object.valsetNonce) ? Long.fromValue(object.valsetNonce) : Long.UZERO,
-      evmBlockHeight: isSet(object.evmBlockHeight) ? Long.fromValue(object.evmBlockHeight) : Long.UZERO,
-      members: Array.isArray(object?.members)
-        ? object.members.map((e: any) => BridgeValidator.fromJSON(e))
-        : [],
-      rewardAmount: isSet(object.rewardAmount) ? String(object.rewardAmount) : "",
-      rewardToken: isSet(object.rewardToken) ? String(object.rewardToken) : "",
-      orchestrator: isSet(object.orchestrator) ? String(object.orchestrator) : "",
-    };
+    const obj = createBaseMsgValsetUpdatedClaim();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.eventNonce)) obj.eventNonce = BigInt(object.eventNonce.toString());
+    if (isSet(object.valsetNonce)) obj.valsetNonce = BigInt(object.valsetNonce.toString());
+    if (isSet(object.evmBlockHeight)) obj.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    if (Array.isArray(object?.members))
+      obj.members = object.members.map((e: any) => BridgeValidator.fromJSON(e));
+    if (isSet(object.rewardAmount)) obj.rewardAmount = String(object.rewardAmount);
+    if (isSet(object.rewardToken)) obj.rewardToken = String(object.rewardToken);
+    if (isSet(object.orchestrator)) obj.orchestrator = String(object.orchestrator);
+    return obj;
   },
-
-  toJSON(message: MsgValsetUpdatedClaim): unknown {
+  toJSON(message: MsgValsetUpdatedClaim): JsonSafe<MsgValsetUpdatedClaim> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
-    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || Long.UZERO).toString());
-    message.valsetNonce !== undefined && (obj.valsetNonce = (message.valsetNonce || Long.UZERO).toString());
+    message.eventNonce !== undefined && (obj.eventNonce = (message.eventNonce || BigInt(0)).toString());
+    message.valsetNonce !== undefined && (obj.valsetNonce = (message.valsetNonce || BigInt(0)).toString());
     message.evmBlockHeight !== undefined &&
-      (obj.evmBlockHeight = (message.evmBlockHeight || Long.UZERO).toString());
-
+      (obj.evmBlockHeight = (message.evmBlockHeight || BigInt(0)).toString());
     if (message.members) {
       obj.members = message.members.map((e) => (e ? BridgeValidator.toJSON(e) : undefined));
     } else {
       obj.members = [];
     }
-
     message.rewardAmount !== undefined && (obj.rewardAmount = message.rewardAmount);
     message.rewardToken !== undefined && (obj.rewardToken = message.rewardToken);
     message.orchestrator !== undefined && (obj.orchestrator = message.orchestrator);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgValsetUpdatedClaim>, I>>(object: I): MsgValsetUpdatedClaim {
     const message = createBaseMsgValsetUpdatedClaim();
     message.chainName = object.chainName ?? "";
-    message.eventNonce =
-      object.eventNonce !== undefined && object.eventNonce !== null
-        ? Long.fromValue(object.eventNonce)
-        : Long.UZERO;
-    message.valsetNonce =
-      object.valsetNonce !== undefined && object.valsetNonce !== null
-        ? Long.fromValue(object.valsetNonce)
-        : Long.UZERO;
-    message.evmBlockHeight =
-      object.evmBlockHeight !== undefined && object.evmBlockHeight !== null
-        ? Long.fromValue(object.evmBlockHeight)
-        : Long.UZERO;
+    if (object.eventNonce !== undefined && object.eventNonce !== null) {
+      message.eventNonce = BigInt(object.eventNonce.toString());
+    }
+    if (object.valsetNonce !== undefined && object.valsetNonce !== null) {
+      message.valsetNonce = BigInt(object.valsetNonce.toString());
+    }
+    if (object.evmBlockHeight !== undefined && object.evmBlockHeight !== null) {
+      message.evmBlockHeight = BigInt(object.evmBlockHeight.toString());
+    }
     message.members = object.members?.map((e) => BridgeValidator.fromPartial(e)) || [];
     message.rewardAmount = object.rewardAmount ?? "";
     message.rewardToken = object.rewardToken ?? "";
@@ -2505,43 +2119,36 @@ export const MsgValsetUpdatedClaim = {
     return message;
   },
 };
-
 function createBaseMsgValsetUpdatedClaimResponse(): MsgValsetUpdatedClaimResponse {
   return {};
 }
-
 export const MsgValsetUpdatedClaimResponse = {
-  encode(_: MsgValsetUpdatedClaimResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgValsetUpdatedClaimResponse",
+  encode(_: MsgValsetUpdatedClaimResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgValsetUpdatedClaimResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgValsetUpdatedClaimResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgValsetUpdatedClaimResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgValsetUpdatedClaimResponse {
-    return {};
+    const obj = createBaseMsgValsetUpdatedClaimResponse();
+    return obj;
   },
-
-  toJSON(_: MsgValsetUpdatedClaimResponse): unknown {
+  toJSON(_: MsgValsetUpdatedClaimResponse): JsonSafe<MsgValsetUpdatedClaimResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgValsetUpdatedClaimResponse>, I>>(
     _: I,
   ): MsgValsetUpdatedClaimResponse {
@@ -2549,127 +2156,105 @@ export const MsgValsetUpdatedClaimResponse = {
     return message;
   },
 };
-
 function createBaseMsgCancelSendToEvmChain(): MsgCancelSendToEvmChain {
   return {
     chainName: "",
-    transactionId: Long.UZERO,
+    transactionId: BigInt(0),
     sender: "",
   };
 }
-
 export const MsgCancelSendToEvmChain = {
-  encode(message: MsgCancelSendToEvmChain, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgCancelSendToEvmChain",
+  encode(message: MsgCancelSendToEvmChain, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
-    if (!message.transactionId.isZero()) {
+    if (message.transactionId !== BigInt(0)) {
       writer.uint32(16).uint64(message.transactionId);
     }
-
     if (message.sender !== "") {
       writer.uint32(26).string(message.sender);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgCancelSendToEvmChain {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgCancelSendToEvmChain {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgCancelSendToEvmChain();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
-          message.transactionId = reader.uint64() as Long;
+          message.transactionId = reader.uint64();
           break;
-
         case 3:
           message.sender = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgCancelSendToEvmChain {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      transactionId: isSet(object.transactionId) ? Long.fromValue(object.transactionId) : Long.UZERO,
-      sender: isSet(object.sender) ? String(object.sender) : "",
-    };
+    const obj = createBaseMsgCancelSendToEvmChain();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.transactionId)) obj.transactionId = BigInt(object.transactionId.toString());
+    if (isSet(object.sender)) obj.sender = String(object.sender);
+    return obj;
   },
-
-  toJSON(message: MsgCancelSendToEvmChain): unknown {
+  toJSON(message: MsgCancelSendToEvmChain): JsonSafe<MsgCancelSendToEvmChain> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.transactionId !== undefined &&
-      (obj.transactionId = (message.transactionId || Long.UZERO).toString());
+      (obj.transactionId = (message.transactionId || BigInt(0)).toString());
     message.sender !== undefined && (obj.sender = message.sender);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgCancelSendToEvmChain>, I>>(object: I): MsgCancelSendToEvmChain {
     const message = createBaseMsgCancelSendToEvmChain();
     message.chainName = object.chainName ?? "";
-    message.transactionId =
-      object.transactionId !== undefined && object.transactionId !== null
-        ? Long.fromValue(object.transactionId)
-        : Long.UZERO;
+    if (object.transactionId !== undefined && object.transactionId !== null) {
+      message.transactionId = BigInt(object.transactionId.toString());
+    }
     message.sender = object.sender ?? "";
     return message;
   },
 };
-
 function createBaseMsgCancelSendToEvmChainResponse(): MsgCancelSendToEvmChainResponse {
   return {};
 }
-
 export const MsgCancelSendToEvmChainResponse = {
-  encode(_: MsgCancelSendToEvmChainResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgCancelSendToEvmChainResponse",
+  encode(_: MsgCancelSendToEvmChainResponse, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgCancelSendToEvmChainResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgCancelSendToEvmChainResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgCancelSendToEvmChainResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgCancelSendToEvmChainResponse {
-    return {};
+    const obj = createBaseMsgCancelSendToEvmChainResponse();
+    return obj;
   },
-
-  toJSON(_: MsgCancelSendToEvmChainResponse): unknown {
+  toJSON(_: MsgCancelSendToEvmChainResponse): JsonSafe<MsgCancelSendToEvmChainResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgCancelSendToEvmChainResponse>, I>>(
     _: I,
   ): MsgCancelSendToEvmChainResponse {
@@ -2677,7 +2262,6 @@ export const MsgCancelSendToEvmChainResponse = {
     return message;
   },
 };
-
 function createBaseMsgSubmitBadSignatureEvidence(): MsgSubmitBadSignatureEvidence {
   return {
     chainName: "",
@@ -2686,72 +2270,58 @@ function createBaseMsgSubmitBadSignatureEvidence(): MsgSubmitBadSignatureEvidenc
     sender: "",
   };
 }
-
 export const MsgSubmitBadSignatureEvidence = {
-  encode(message: MsgSubmitBadSignatureEvidence, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgSubmitBadSignatureEvidence",
+  encode(message: MsgSubmitBadSignatureEvidence, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
     if (message.subject !== undefined) {
       Any.encode(message.subject, writer.uint32(18).fork()).ldelim();
     }
-
     if (message.signature !== "") {
       writer.uint32(26).string(message.signature);
     }
-
     if (message.sender !== "") {
       writer.uint32(34).string(message.sender);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSubmitBadSignatureEvidence {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSubmitBadSignatureEvidence {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSubmitBadSignatureEvidence();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
           message.subject = Any.decode(reader, reader.uint32());
           break;
-
         case 3:
           message.signature = reader.string();
           break;
-
         case 4:
           message.sender = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): MsgSubmitBadSignatureEvidence {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      subject: isSet(object.subject) ? Any.fromJSON(object.subject) : undefined,
-      signature: isSet(object.signature) ? String(object.signature) : "",
-      sender: isSet(object.sender) ? String(object.sender) : "",
-    };
+    const obj = createBaseMsgSubmitBadSignatureEvidence();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.subject)) obj.subject = Any.fromJSON(object.subject);
+    if (isSet(object.signature)) obj.signature = String(object.signature);
+    if (isSet(object.sender)) obj.sender = String(object.sender);
+    return obj;
   },
-
-  toJSON(message: MsgSubmitBadSignatureEvidence): unknown {
+  toJSON(message: MsgSubmitBadSignatureEvidence): JsonSafe<MsgSubmitBadSignatureEvidence> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.subject !== undefined &&
@@ -2760,56 +2330,52 @@ export const MsgSubmitBadSignatureEvidence = {
     message.sender !== undefined && (obj.sender = message.sender);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSubmitBadSignatureEvidence>, I>>(
     object: I,
   ): MsgSubmitBadSignatureEvidence {
     const message = createBaseMsgSubmitBadSignatureEvidence();
     message.chainName = object.chainName ?? "";
-    message.subject =
-      object.subject !== undefined && object.subject !== null ? Any.fromPartial(object.subject) : undefined;
+    if (object.subject !== undefined && object.subject !== null) {
+      message.subject = Any.fromPartial(object.subject);
+    }
     message.signature = object.signature ?? "";
     message.sender = object.sender ?? "";
     return message;
   },
 };
-
 function createBaseMsgSubmitBadSignatureEvidenceResponse(): MsgSubmitBadSignatureEvidenceResponse {
   return {};
 }
-
 export const MsgSubmitBadSignatureEvidenceResponse = {
-  encode(_: MsgSubmitBadSignatureEvidenceResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.MsgSubmitBadSignatureEvidenceResponse",
+  encode(
+    _: MsgSubmitBadSignatureEvidenceResponse,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSubmitBadSignatureEvidenceResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSubmitBadSignatureEvidenceResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseMsgSubmitBadSignatureEvidenceResponse();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(_: any): MsgSubmitBadSignatureEvidenceResponse {
-    return {};
+    const obj = createBaseMsgSubmitBadSignatureEvidenceResponse();
+    return obj;
   },
-
-  toJSON(_: MsgSubmitBadSignatureEvidenceResponse): unknown {
+  toJSON(_: MsgSubmitBadSignatureEvidenceResponse): JsonSafe<MsgSubmitBadSignatureEvidenceResponse> {
     const obj: any = {};
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<MsgSubmitBadSignatureEvidenceResponse>, I>>(
     _: I,
   ): MsgSubmitBadSignatureEvidenceResponse {
@@ -2817,67 +2383,55 @@ export const MsgSubmitBadSignatureEvidenceResponse = {
     return message;
   },
 };
-
 function createBaseEventSetOperatorAddress(): EventSetOperatorAddress {
   return {
     message: "",
     address: "",
   };
 }
-
 export const EventSetOperatorAddress = {
-  encode(message: EventSetOperatorAddress, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventSetOperatorAddress",
+  encode(message: EventSetOperatorAddress, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
-
     if (message.address !== "") {
       writer.uint32(18).string(message.address);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventSetOperatorAddress {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventSetOperatorAddress {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventSetOperatorAddress();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.message = reader.string();
           break;
-
         case 2:
           message.address = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventSetOperatorAddress {
-    return {
-      message: isSet(object.message) ? String(object.message) : "",
-      address: isSet(object.address) ? String(object.address) : "",
-    };
+    const obj = createBaseEventSetOperatorAddress();
+    if (isSet(object.message)) obj.message = String(object.message);
+    if (isSet(object.address)) obj.address = String(object.address);
+    return obj;
   },
-
-  toJSON(message: EventSetOperatorAddress): unknown {
+  toJSON(message: EventSetOperatorAddress): JsonSafe<EventSetOperatorAddress> {
     const obj: any = {};
     message.message !== undefined && (obj.message = message.message);
     message.address !== undefined && (obj.address = message.address);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventSetOperatorAddress>, I>>(object: I): EventSetOperatorAddress {
     const message = createBaseEventSetOperatorAddress();
     message.message = object.message ?? "";
@@ -2885,7 +2439,6 @@ export const EventSetOperatorAddress = {
     return message;
   },
 };
-
 function createBaseEventValsetConfirmKey(): EventValsetConfirmKey {
   return {
     message: "",
@@ -2893,70 +2446,57 @@ function createBaseEventValsetConfirmKey(): EventValsetConfirmKey {
     key: "",
   };
 }
-
 export const EventValsetConfirmKey = {
-  encode(message: EventValsetConfirmKey, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventValsetConfirmKey",
+  encode(message: EventValsetConfirmKey, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
-
     if (message.chainName !== "") {
       writer.uint32(18).string(message.chainName);
     }
-
     if (message.key !== "") {
       writer.uint32(26).string(message.key);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventValsetConfirmKey {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventValsetConfirmKey {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventValsetConfirmKey();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.message = reader.string();
           break;
-
         case 2:
           message.chainName = reader.string();
           break;
-
         case 3:
           message.key = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventValsetConfirmKey {
-    return {
-      message: isSet(object.message) ? String(object.message) : "",
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      key: isSet(object.key) ? String(object.key) : "",
-    };
+    const obj = createBaseEventValsetConfirmKey();
+    if (isSet(object.message)) obj.message = String(object.message);
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.key)) obj.key = String(object.key);
+    return obj;
   },
-
-  toJSON(message: EventValsetConfirmKey): unknown {
+  toJSON(message: EventValsetConfirmKey): JsonSafe<EventValsetConfirmKey> {
     const obj: any = {};
     message.message !== undefined && (obj.message = message.message);
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.key !== undefined && (obj.key = message.key);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventValsetConfirmKey>, I>>(object: I): EventValsetConfirmKey {
     const message = createBaseEventValsetConfirmKey();
     message.message = object.message ?? "";
@@ -2965,7 +2505,6 @@ export const EventValsetConfirmKey = {
     return message;
   },
 };
-
 function createBaseEventBatchCreated(): EventBatchCreated {
   return {
     message: "",
@@ -2973,70 +2512,57 @@ function createBaseEventBatchCreated(): EventBatchCreated {
     batchNonce: "",
   };
 }
-
 export const EventBatchCreated = {
-  encode(message: EventBatchCreated, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventBatchCreated",
+  encode(message: EventBatchCreated, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
-
     if (message.chainName !== "") {
       writer.uint32(18).string(message.chainName);
     }
-
     if (message.batchNonce !== "") {
       writer.uint32(26).string(message.batchNonce);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventBatchCreated {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventBatchCreated {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventBatchCreated();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.message = reader.string();
           break;
-
         case 2:
           message.chainName = reader.string();
           break;
-
         case 3:
           message.batchNonce = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventBatchCreated {
-    return {
-      message: isSet(object.message) ? String(object.message) : "",
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      batchNonce: isSet(object.batchNonce) ? String(object.batchNonce) : "",
-    };
+    const obj = createBaseEventBatchCreated();
+    if (isSet(object.message)) obj.message = String(object.message);
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.batchNonce)) obj.batchNonce = String(object.batchNonce);
+    return obj;
   },
-
-  toJSON(message: EventBatchCreated): unknown {
+  toJSON(message: EventBatchCreated): JsonSafe<EventBatchCreated> {
     const obj: any = {};
     message.message !== undefined && (obj.message = message.message);
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.batchNonce !== undefined && (obj.batchNonce = message.batchNonce);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventBatchCreated>, I>>(object: I): EventBatchCreated {
     const message = createBaseEventBatchCreated();
     message.message = object.message ?? "";
@@ -3045,67 +2571,55 @@ export const EventBatchCreated = {
     return message;
   },
 };
-
 function createBaseEventBatchConfirmKey(): EventBatchConfirmKey {
   return {
     message: "",
     batchConfirmKey: "",
   };
 }
-
 export const EventBatchConfirmKey = {
-  encode(message: EventBatchConfirmKey, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventBatchConfirmKey",
+  encode(message: EventBatchConfirmKey, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
-
     if (message.batchConfirmKey !== "") {
       writer.uint32(18).string(message.batchConfirmKey);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventBatchConfirmKey {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventBatchConfirmKey {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventBatchConfirmKey();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.message = reader.string();
           break;
-
         case 2:
           message.batchConfirmKey = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventBatchConfirmKey {
-    return {
-      message: isSet(object.message) ? String(object.message) : "",
-      batchConfirmKey: isSet(object.batchConfirmKey) ? String(object.batchConfirmKey) : "",
-    };
+    const obj = createBaseEventBatchConfirmKey();
+    if (isSet(object.message)) obj.message = String(object.message);
+    if (isSet(object.batchConfirmKey)) obj.batchConfirmKey = String(object.batchConfirmKey);
+    return obj;
   },
-
-  toJSON(message: EventBatchConfirmKey): unknown {
+  toJSON(message: EventBatchConfirmKey): JsonSafe<EventBatchConfirmKey> {
     const obj: any = {};
     message.message !== undefined && (obj.message = message.message);
     message.batchConfirmKey !== undefined && (obj.batchConfirmKey = message.batchConfirmKey);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventBatchConfirmKey>, I>>(object: I): EventBatchConfirmKey {
     const message = createBaseEventBatchConfirmKey();
     message.message = object.message ?? "";
@@ -3113,67 +2627,55 @@ export const EventBatchConfirmKey = {
     return message;
   },
 };
-
 function createBaseEventBatchSendToEvmChainClaim(): EventBatchSendToEvmChainClaim {
   return {
     chainName: "",
     nonce: "",
   };
 }
-
 export const EventBatchSendToEvmChainClaim = {
-  encode(message: EventBatchSendToEvmChainClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventBatchSendToEvmChainClaim",
+  encode(message: EventBatchSendToEvmChainClaim, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
     if (message.nonce !== "") {
       writer.uint32(18).string(message.nonce);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventBatchSendToEvmChainClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventBatchSendToEvmChainClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventBatchSendToEvmChainClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
           message.nonce = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventBatchSendToEvmChainClaim {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      nonce: isSet(object.nonce) ? String(object.nonce) : "",
-    };
+    const obj = createBaseEventBatchSendToEvmChainClaim();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.nonce)) obj.nonce = String(object.nonce);
+    return obj;
   },
-
-  toJSON(message: EventBatchSendToEvmChainClaim): unknown {
+  toJSON(message: EventBatchSendToEvmChainClaim): JsonSafe<EventBatchSendToEvmChainClaim> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.nonce !== undefined && (obj.nonce = message.nonce);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventBatchSendToEvmChainClaim>, I>>(
     object: I,
   ): EventBatchSendToEvmChainClaim {
@@ -3183,7 +2685,6 @@ export const EventBatchSendToEvmChainClaim = {
     return message;
   },
 };
-
 function createBaseEventClaim(): EventClaim {
   return {
     message: "",
@@ -3192,72 +2693,58 @@ function createBaseEventClaim(): EventClaim {
     attestationId: "",
   };
 }
-
 export const EventClaim = {
-  encode(message: EventClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventClaim",
+  encode(message: EventClaim, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
-
     if (message.chainName !== "") {
       writer.uint32(18).string(message.chainName);
     }
-
     if (message.claimHash !== "") {
       writer.uint32(26).string(message.claimHash);
     }
-
     if (message.attestationId !== "") {
       writer.uint32(34).string(message.attestationId);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.message = reader.string();
           break;
-
         case 2:
           message.chainName = reader.string();
           break;
-
         case 3:
           message.claimHash = reader.string();
           break;
-
         case 4:
           message.attestationId = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventClaim {
-    return {
-      message: isSet(object.message) ? String(object.message) : "",
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      claimHash: isSet(object.claimHash) ? String(object.claimHash) : "",
-      attestationId: isSet(object.attestationId) ? String(object.attestationId) : "",
-    };
+    const obj = createBaseEventClaim();
+    if (isSet(object.message)) obj.message = String(object.message);
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.claimHash)) obj.claimHash = String(object.claimHash);
+    if (isSet(object.attestationId)) obj.attestationId = String(object.attestationId);
+    return obj;
   },
-
-  toJSON(message: EventClaim): unknown {
+  toJSON(message: EventClaim): JsonSafe<EventClaim> {
     const obj: any = {};
     message.message !== undefined && (obj.message = message.message);
     message.chainName !== undefined && (obj.chainName = message.chainName);
@@ -3265,7 +2752,6 @@ export const EventClaim = {
     message.attestationId !== undefined && (obj.attestationId = message.attestationId);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventClaim>, I>>(object: I): EventClaim {
     const message = createBaseEventClaim();
     message.message = object.message ?? "";
@@ -3275,7 +2761,6 @@ export const EventClaim = {
     return message;
   },
 };
-
 function createBaseEventBadSignatureEvidence(): EventBadSignatureEvidence {
   return {
     message: "",
@@ -3284,74 +2769,59 @@ function createBaseEventBadSignatureEvidence(): EventBadSignatureEvidence {
     badEvmSignatureSubject: "",
   };
 }
-
 export const EventBadSignatureEvidence = {
-  encode(message: EventBadSignatureEvidence, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventBadSignatureEvidence",
+  encode(message: EventBadSignatureEvidence, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
-
     if (message.chainName !== "") {
       writer.uint32(18).string(message.chainName);
     }
-
     if (message.badEvmSignature !== "") {
       writer.uint32(26).string(message.badEvmSignature);
     }
-
     if (message.badEvmSignatureSubject !== "") {
       writer.uint32(34).string(message.badEvmSignatureSubject);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventBadSignatureEvidence {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventBadSignatureEvidence {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventBadSignatureEvidence();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.message = reader.string();
           break;
-
         case 2:
           message.chainName = reader.string();
           break;
-
         case 3:
           message.badEvmSignature = reader.string();
           break;
-
         case 4:
           message.badEvmSignatureSubject = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventBadSignatureEvidence {
-    return {
-      message: isSet(object.message) ? String(object.message) : "",
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      badEvmSignature: isSet(object.badEvmSignature) ? String(object.badEvmSignature) : "",
-      badEvmSignatureSubject: isSet(object.badEvmSignatureSubject)
-        ? String(object.badEvmSignatureSubject)
-        : "",
-    };
+    const obj = createBaseEventBadSignatureEvidence();
+    if (isSet(object.message)) obj.message = String(object.message);
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.badEvmSignature)) obj.badEvmSignature = String(object.badEvmSignature);
+    if (isSet(object.badEvmSignatureSubject))
+      obj.badEvmSignatureSubject = String(object.badEvmSignatureSubject);
+    return obj;
   },
-
-  toJSON(message: EventBadSignatureEvidence): unknown {
+  toJSON(message: EventBadSignatureEvidence): JsonSafe<EventBadSignatureEvidence> {
     const obj: any = {};
     message.message !== undefined && (obj.message = message.message);
     message.chainName !== undefined && (obj.chainName = message.chainName);
@@ -3360,7 +2830,6 @@ export const EventBadSignatureEvidence = {
       (obj.badEvmSignatureSubject = message.badEvmSignatureSubject);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventBadSignatureEvidence>, I>>(
     object: I,
   ): EventBadSignatureEvidence {
@@ -3372,7 +2841,6 @@ export const EventBadSignatureEvidence = {
     return message;
   },
 };
-
 function createBaseEventERC20DeployedClaim(): EventERC20DeployedClaim {
   return {
     chainName: "",
@@ -3380,70 +2848,57 @@ function createBaseEventERC20DeployedClaim(): EventERC20DeployedClaim {
     nonce: "",
   };
 }
-
 export const EventERC20DeployedClaim = {
-  encode(message: EventERC20DeployedClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventERC20DeployedClaim",
+  encode(message: EventERC20DeployedClaim, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
     if (message.token !== "") {
       writer.uint32(18).string(message.token);
     }
-
     if (message.nonce !== "") {
       writer.uint32(26).string(message.nonce);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventERC20DeployedClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventERC20DeployedClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventERC20DeployedClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
           message.token = reader.string();
           break;
-
         case 3:
           message.nonce = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventERC20DeployedClaim {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      token: isSet(object.token) ? String(object.token) : "",
-      nonce: isSet(object.nonce) ? String(object.nonce) : "",
-    };
+    const obj = createBaseEventERC20DeployedClaim();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.token)) obj.token = String(object.token);
+    if (isSet(object.nonce)) obj.nonce = String(object.nonce);
+    return obj;
   },
-
-  toJSON(message: EventERC20DeployedClaim): unknown {
+  toJSON(message: EventERC20DeployedClaim): JsonSafe<EventERC20DeployedClaim> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.token !== undefined && (obj.token = message.token);
     message.nonce !== undefined && (obj.nonce = message.nonce);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventERC20DeployedClaim>, I>>(object: I): EventERC20DeployedClaim {
     const message = createBaseEventERC20DeployedClaim();
     message.chainName = object.chainName ?? "";
@@ -3452,67 +2907,55 @@ export const EventERC20DeployedClaim = {
     return message;
   },
 };
-
 function createBaseEventValsetUpdatedClaim(): EventValsetUpdatedClaim {
   return {
     chainName: "",
     nonce: "",
   };
 }
-
 export const EventValsetUpdatedClaim = {
-  encode(message: EventValsetUpdatedClaim, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventValsetUpdatedClaim",
+  encode(message: EventValsetUpdatedClaim, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
     if (message.nonce !== "") {
       writer.uint32(18).string(message.nonce);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventValsetUpdatedClaim {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventValsetUpdatedClaim {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventValsetUpdatedClaim();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
           message.nonce = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventValsetUpdatedClaim {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      nonce: isSet(object.nonce) ? String(object.nonce) : "",
-    };
+    const obj = createBaseEventValsetUpdatedClaim();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.nonce)) obj.nonce = String(object.nonce);
+    return obj;
   },
-
-  toJSON(message: EventValsetUpdatedClaim): unknown {
+  toJSON(message: EventValsetUpdatedClaim): JsonSafe<EventValsetUpdatedClaim> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.nonce !== undefined && (obj.nonce = message.nonce);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventValsetUpdatedClaim>, I>>(object: I): EventValsetUpdatedClaim {
     const message = createBaseEventValsetUpdatedClaim();
     message.chainName = object.chainName ?? "";
@@ -3520,7 +2963,6 @@ export const EventValsetUpdatedClaim = {
     return message;
   },
 };
-
 function createBaseEventMultisigUpdateRequest(): EventMultisigUpdateRequest {
   return {
     chainName: "",
@@ -3530,81 +2972,65 @@ function createBaseEventMultisigUpdateRequest(): EventMultisigUpdateRequest {
     nonce: "",
   };
 }
-
 export const EventMultisigUpdateRequest = {
-  encode(message: EventMultisigUpdateRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventMultisigUpdateRequest",
+  encode(message: EventMultisigUpdateRequest, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
     if (message.bridgeContract !== "") {
       writer.uint32(18).string(message.bridgeContract);
     }
-
     if (message.bridgeChainId !== "") {
       writer.uint32(26).string(message.bridgeChainId);
     }
-
     if (message.multisigId !== "") {
       writer.uint32(34).string(message.multisigId);
     }
-
     if (message.nonce !== "") {
       writer.uint32(42).string(message.nonce);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventMultisigUpdateRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventMultisigUpdateRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventMultisigUpdateRequest();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
           message.bridgeContract = reader.string();
           break;
-
         case 3:
           message.bridgeChainId = reader.string();
           break;
-
         case 4:
           message.multisigId = reader.string();
           break;
-
         case 5:
           message.nonce = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventMultisigUpdateRequest {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      bridgeContract: isSet(object.bridgeContract) ? String(object.bridgeContract) : "",
-      bridgeChainId: isSet(object.bridgeChainId) ? String(object.bridgeChainId) : "",
-      multisigId: isSet(object.multisigId) ? String(object.multisigId) : "",
-      nonce: isSet(object.nonce) ? String(object.nonce) : "",
-    };
+    const obj = createBaseEventMultisigUpdateRequest();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.bridgeContract)) obj.bridgeContract = String(object.bridgeContract);
+    if (isSet(object.bridgeChainId)) obj.bridgeChainId = String(object.bridgeChainId);
+    if (isSet(object.multisigId)) obj.multisigId = String(object.multisigId);
+    if (isSet(object.nonce)) obj.nonce = String(object.nonce);
+    return obj;
   },
-
-  toJSON(message: EventMultisigUpdateRequest): unknown {
+  toJSON(message: EventMultisigUpdateRequest): JsonSafe<EventMultisigUpdateRequest> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.bridgeContract !== undefined && (obj.bridgeContract = message.bridgeContract);
@@ -3613,7 +3039,6 @@ export const EventMultisigUpdateRequest = {
     message.nonce !== undefined && (obj.nonce = message.nonce);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventMultisigUpdateRequest>, I>>(
     object: I,
   ): EventMultisigUpdateRequest {
@@ -3626,7 +3051,6 @@ export const EventMultisigUpdateRequest = {
     return message;
   },
 };
-
 function createBaseEventOutgoingLogicCallCanceled(): EventOutgoingLogicCallCanceled {
   return {
     chainName: "",
@@ -3634,67 +3058,56 @@ function createBaseEventOutgoingLogicCallCanceled(): EventOutgoingLogicCallCance
     logicCallInvalidationNonce: "",
   };
 }
-
 export const EventOutgoingLogicCallCanceled = {
-  encode(message: EventOutgoingLogicCallCanceled, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventOutgoingLogicCallCanceled",
+  encode(
+    message: EventOutgoingLogicCallCanceled,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.chainName !== "") {
       writer.uint32(10).string(message.chainName);
     }
-
     if (message.logicCallInvalidationId !== "") {
       writer.uint32(18).string(message.logicCallInvalidationId);
     }
-
     if (message.logicCallInvalidationNonce !== "") {
       writer.uint32(26).string(message.logicCallInvalidationNonce);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventOutgoingLogicCallCanceled {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventOutgoingLogicCallCanceled {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventOutgoingLogicCallCanceled();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.chainName = reader.string();
           break;
-
         case 2:
           message.logicCallInvalidationId = reader.string();
           break;
-
         case 3:
           message.logicCallInvalidationNonce = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventOutgoingLogicCallCanceled {
-    return {
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      logicCallInvalidationId: isSet(object.logicCallInvalidationId)
-        ? String(object.logicCallInvalidationId)
-        : "",
-      logicCallInvalidationNonce: isSet(object.logicCallInvalidationNonce)
-        ? String(object.logicCallInvalidationNonce)
-        : "",
-    };
+    const obj = createBaseEventOutgoingLogicCallCanceled();
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.logicCallInvalidationId))
+      obj.logicCallInvalidationId = String(object.logicCallInvalidationId);
+    if (isSet(object.logicCallInvalidationNonce))
+      obj.logicCallInvalidationNonce = String(object.logicCallInvalidationNonce);
+    return obj;
   },
-
-  toJSON(message: EventOutgoingLogicCallCanceled): unknown {
+  toJSON(message: EventOutgoingLogicCallCanceled): JsonSafe<EventOutgoingLogicCallCanceled> {
     const obj: any = {};
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.logicCallInvalidationId !== undefined &&
@@ -3703,7 +3116,6 @@ export const EventOutgoingLogicCallCanceled = {
       (obj.logicCallInvalidationNonce = message.logicCallInvalidationNonce);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventOutgoingLogicCallCanceled>, I>>(
     object: I,
   ): EventOutgoingLogicCallCanceled {
@@ -3714,67 +3126,55 @@ export const EventOutgoingLogicCallCanceled = {
     return message;
   },
 };
-
 function createBaseEventSignatureSlashing(): EventSignatureSlashing {
   return {
     type: "",
     address: "",
   };
 }
-
 export const EventSignatureSlashing = {
-  encode(message: EventSignatureSlashing, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventSignatureSlashing",
+  encode(message: EventSignatureSlashing, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.type !== "") {
       writer.uint32(10).string(message.type);
     }
-
     if (message.address !== "") {
       writer.uint32(18).string(message.address);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventSignatureSlashing {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventSignatureSlashing {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventSignatureSlashing();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.type = reader.string();
           break;
-
         case 2:
           message.address = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventSignatureSlashing {
-    return {
-      type: isSet(object.type) ? String(object.type) : "",
-      address: isSet(object.address) ? String(object.address) : "",
-    };
+    const obj = createBaseEventSignatureSlashing();
+    if (isSet(object.type)) obj.type = String(object.type);
+    if (isSet(object.address)) obj.address = String(object.address);
+    return obj;
   },
-
-  toJSON(message: EventSignatureSlashing): unknown {
+  toJSON(message: EventSignatureSlashing): JsonSafe<EventSignatureSlashing> {
     const obj: any = {};
     message.type !== undefined && (obj.type = message.type);
     message.address !== undefined && (obj.address = message.address);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventSignatureSlashing>, I>>(object: I): EventSignatureSlashing {
     const message = createBaseEventSignatureSlashing();
     message.type = object.type ?? "";
@@ -3782,7 +3182,6 @@ export const EventSignatureSlashing = {
     return message;
   },
 };
-
 function createBaseEventOutgoingTxId(): EventOutgoingTxId {
   return {
     message: "",
@@ -3790,70 +3189,57 @@ function createBaseEventOutgoingTxId(): EventOutgoingTxId {
     txId: "",
   };
 }
-
 export const EventOutgoingTxId = {
-  encode(message: EventOutgoingTxId, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventOutgoingTxId",
+  encode(message: EventOutgoingTxId, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
-
     if (message.chainName !== "") {
       writer.uint32(18).string(message.chainName);
     }
-
     if (message.txId !== "") {
       writer.uint32(26).string(message.txId);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventOutgoingTxId {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventOutgoingTxId {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventOutgoingTxId();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.message = reader.string();
           break;
-
         case 2:
           message.chainName = reader.string();
           break;
-
         case 3:
           message.txId = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventOutgoingTxId {
-    return {
-      message: isSet(object.message) ? String(object.message) : "",
-      chainName: isSet(object.chainName) ? String(object.chainName) : "",
-      txId: isSet(object.txId) ? String(object.txId) : "",
-    };
+    const obj = createBaseEventOutgoingTxId();
+    if (isSet(object.message)) obj.message = String(object.message);
+    if (isSet(object.chainName)) obj.chainName = String(object.chainName);
+    if (isSet(object.txId)) obj.txId = String(object.txId);
+    return obj;
   },
-
-  toJSON(message: EventOutgoingTxId): unknown {
+  toJSON(message: EventOutgoingTxId): JsonSafe<EventOutgoingTxId> {
     const obj: any = {};
     message.message !== undefined && (obj.message = message.message);
     message.chainName !== undefined && (obj.chainName = message.chainName);
     message.txId !== undefined && (obj.txId = message.txId);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventOutgoingTxId>, I>>(object: I): EventOutgoingTxId {
     const message = createBaseEventOutgoingTxId();
     message.message = object.message ?? "";
@@ -3862,7 +3248,6 @@ export const EventOutgoingTxId = {
     return message;
   },
 };
-
 function createBaseEventSendToEvmChainFeeCollected(): EventSendToEvmChainFeeCollected {
   return {
     sender: "",
@@ -3870,70 +3255,60 @@ function createBaseEventSendToEvmChainFeeCollected(): EventSendToEvmChainFeeColl
     feeAmount: "",
   };
 }
-
 export const EventSendToEvmChainFeeCollected = {
-  encode(message: EventSendToEvmChainFeeCollected, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/gravity.gravity.v1.EventSendToEvmChainFeeCollected",
+  encode(
+    message: EventSendToEvmChainFeeCollected,
+    writer: BinaryWriter = BinaryWriter.create(),
+  ): BinaryWriter {
     if (message.sender !== "") {
       writer.uint32(10).string(message.sender);
     }
-
     if (message.sendAmount !== "") {
       writer.uint32(18).string(message.sendAmount);
     }
-
     if (message.feeAmount !== "") {
       writer.uint32(26).string(message.feeAmount);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventSendToEvmChainFeeCollected {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): EventSendToEvmChainFeeCollected {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEventSendToEvmChainFeeCollected();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.sender = reader.string();
           break;
-
         case 2:
           message.sendAmount = reader.string();
           break;
-
         case 3:
           message.feeAmount = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): EventSendToEvmChainFeeCollected {
-    return {
-      sender: isSet(object.sender) ? String(object.sender) : "",
-      sendAmount: isSet(object.sendAmount) ? String(object.sendAmount) : "",
-      feeAmount: isSet(object.feeAmount) ? String(object.feeAmount) : "",
-    };
+    const obj = createBaseEventSendToEvmChainFeeCollected();
+    if (isSet(object.sender)) obj.sender = String(object.sender);
+    if (isSet(object.sendAmount)) obj.sendAmount = String(object.sendAmount);
+    if (isSet(object.feeAmount)) obj.feeAmount = String(object.feeAmount);
+    return obj;
   },
-
-  toJSON(message: EventSendToEvmChainFeeCollected): unknown {
+  toJSON(message: EventSendToEvmChainFeeCollected): JsonSafe<EventSendToEvmChainFeeCollected> {
     const obj: any = {};
     message.sender !== undefined && (obj.sender = message.sender);
     message.sendAmount !== undefined && (obj.sendAmount = message.sendAmount);
     message.feeAmount !== undefined && (obj.feeAmount = message.feeAmount);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<EventSendToEvmChainFeeCollected>, I>>(
     object: I,
   ): EventSendToEvmChainFeeCollected {
@@ -3945,7 +3320,6 @@ export const EventSendToEvmChainFeeCollected = {
   },
 };
 /** Msg defines the state transitions possible within gravity */
-
 export interface Msg {
   ValsetConfirm(request: MsgValsetConfirm): Promise<MsgValsetConfirmResponse>;
   SendToEvmChain(request: MsgSendToEvmChain): Promise<MsgSendToEvmChainResponse>;
@@ -3971,7 +3345,6 @@ export interface Msg {
 }
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
-
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.ValsetConfirm = this.ValsetConfirm.bind(this);
@@ -3990,100 +3363,85 @@ export class MsgClientImpl implements Msg {
     this.CancelSendToEvmChain = this.CancelSendToEvmChain.bind(this);
     this.SubmitBadSignatureEvidence = this.SubmitBadSignatureEvidence.bind(this);
   }
-
   ValsetConfirm(request: MsgValsetConfirm): Promise<MsgValsetConfirmResponse> {
     const data = MsgValsetConfirm.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "ValsetConfirm", data);
-    return promise.then((data) => MsgValsetConfirmResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgValsetConfirmResponse.decode(new BinaryReader(data)));
   }
-
   SendToEvmChain(request: MsgSendToEvmChain): Promise<MsgSendToEvmChainResponse> {
     const data = MsgSendToEvmChain.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "SendToEvmChain", data);
-    return promise.then((data) => MsgSendToEvmChainResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgSendToEvmChainResponse.decode(new BinaryReader(data)));
   }
-
   RequestBatch(request: MsgRequestBatch): Promise<MsgRequestBatchResponse> {
     const data = MsgRequestBatch.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "RequestBatch", data);
-    return promise.then((data) => MsgRequestBatchResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgRequestBatchResponse.decode(new BinaryReader(data)));
   }
-
   ConfirmBatch(request: MsgConfirmBatch): Promise<MsgConfirmBatchResponse> {
     const data = MsgConfirmBatch.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "ConfirmBatch", data);
-    return promise.then((data) => MsgConfirmBatchResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgConfirmBatchResponse.decode(new BinaryReader(data)));
   }
-
   ConfirmLogicCall(request: MsgConfirmLogicCall): Promise<MsgConfirmLogicCallResponse> {
     const data = MsgConfirmLogicCall.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "ConfirmLogicCall", data);
-    return promise.then((data) => MsgConfirmLogicCallResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgConfirmLogicCallResponse.decode(new BinaryReader(data)));
   }
-
   SendToCosmosClaim(request: MsgSendToCosmosClaim): Promise<MsgSendToCosmosClaimResponse> {
     const data = MsgSendToCosmosClaim.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "SendToCosmosClaim", data);
-    return promise.then((data) => MsgSendToCosmosClaimResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgSendToCosmosClaimResponse.decode(new BinaryReader(data)));
   }
-
   SendFromEvmChainToEvmChainClaim(
     request: MsgSendFromEvmChainToEvmChainClaim,
   ): Promise<MsgSendFromEvmChainToEvmChainClaimResponse> {
     const data = MsgSendFromEvmChainToEvmChainClaim.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "SendFromEvmChainToEvmChainClaim", data);
-    return promise.then((data) => MsgSendFromEvmChainToEvmChainClaimResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgSendFromEvmChainToEvmChainClaimResponse.decode(new BinaryReader(data)));
   }
-
   ExecuteIbcAutoForwards(request: MsgExecuteIbcAutoForwards): Promise<MsgExecuteIbcAutoForwardsResponse> {
     const data = MsgExecuteIbcAutoForwards.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "ExecuteIbcAutoForwards", data);
-    return promise.then((data) => MsgExecuteIbcAutoForwardsResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgExecuteIbcAutoForwardsResponse.decode(new BinaryReader(data)));
   }
-
   BatchSendToEvmChainClaim(
     request: MsgBatchSendToEvmChainClaim,
   ): Promise<MsgBatchSendToEvmChainClaimResponse> {
     const data = MsgBatchSendToEvmChainClaim.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "BatchSendToEvmChainClaim", data);
-    return promise.then((data) => MsgBatchSendToEvmChainClaimResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgBatchSendToEvmChainClaimResponse.decode(new BinaryReader(data)));
   }
-
   ValsetUpdateClaim(request: MsgValsetUpdatedClaim): Promise<MsgValsetUpdatedClaimResponse> {
     const data = MsgValsetUpdatedClaim.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "ValsetUpdateClaim", data);
-    return promise.then((data) => MsgValsetUpdatedClaimResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgValsetUpdatedClaimResponse.decode(new BinaryReader(data)));
   }
-
   ERC20DeployedClaim(request: MsgERC20DeployedClaim): Promise<MsgERC20DeployedClaimResponse> {
     const data = MsgERC20DeployedClaim.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "ERC20DeployedClaim", data);
-    return promise.then((data) => MsgERC20DeployedClaimResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgERC20DeployedClaimResponse.decode(new BinaryReader(data)));
   }
-
   LogicCallExecutedClaim(request: MsgLogicCallExecutedClaim): Promise<MsgLogicCallExecutedClaimResponse> {
     const data = MsgLogicCallExecutedClaim.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "LogicCallExecutedClaim", data);
-    return promise.then((data) => MsgLogicCallExecutedClaimResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgLogicCallExecutedClaimResponse.decode(new BinaryReader(data)));
   }
-
   SetOrchestratorAddress(request: MsgSetOrchestratorAddress): Promise<MsgSetOrchestratorAddressResponse> {
     const data = MsgSetOrchestratorAddress.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "SetOrchestratorAddress", data);
-    return promise.then((data) => MsgSetOrchestratorAddressResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgSetOrchestratorAddressResponse.decode(new BinaryReader(data)));
   }
-
   CancelSendToEvmChain(request: MsgCancelSendToEvmChain): Promise<MsgCancelSendToEvmChainResponse> {
     const data = MsgCancelSendToEvmChain.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "CancelSendToEvmChain", data);
-    return promise.then((data) => MsgCancelSendToEvmChainResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgCancelSendToEvmChainResponse.decode(new BinaryReader(data)));
   }
-
   SubmitBadSignatureEvidence(
     request: MsgSubmitBadSignatureEvidence,
   ): Promise<MsgSubmitBadSignatureEvidenceResponse> {
     const data = MsgSubmitBadSignatureEvidence.encode(request).finish();
     const promise = this.rpc.request("gravity.gravity.v1.Msg", "SubmitBadSignatureEvidence", data);
-    return promise.then((data) => MsgSubmitBadSignatureEvidenceResponse.decode(new _m0.Reader(data)));
+    return promise.then((data) => MsgSubmitBadSignatureEvidenceResponse.decode(new BinaryReader(data)));
   }
 }

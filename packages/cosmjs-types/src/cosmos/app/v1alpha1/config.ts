@@ -1,6 +1,7 @@
 /* eslint-disable */
 import { Any } from "../../../google/protobuf/any";
-import * as _m0 from "protobufjs/minimal";
+import { BinaryReader, BinaryWriter } from "../../../binary";
+import { JsonSafe } from "../../../json-safe";
 import { DeepPartial, Exact, isSet } from "../../../helpers";
 export const protobufPackage = "cosmos.app.v1alpha1";
 /**
@@ -12,7 +13,6 @@ export const protobufPackage = "cosmos.app.v1alpha1";
  * that strive for the maximum ease of maintainability should be able to describe
  * their state machine with a config object alone.
  */
-
 export interface Config {
   /** modules are the module configurations for the app. */
   modules: ModuleConfig[];
@@ -21,11 +21,9 @@ export interface Config {
    * depinject uses to resolve interface inputs to provider functions.  The scope of this
    * field's configuration is global (not module specific).
    */
-
   golangBindings: GolangBinding[];
 }
 /** ModuleConfig is a module configuration for an app. */
-
 export interface ModuleConfig {
   /**
    * name is the unique name of the module within the app. It should be a name
@@ -44,99 +42,80 @@ export interface ModuleConfig {
    * config is the config object for the module. Module config messages should
    * define a ModuleDescriptor using the cosmos.app.v1alpha1.is_module extension.
    */
-
   config?: Any;
   /**
    * golang_bindings specifies explicit interface to implementation type bindings which
    * depinject uses to resolve interface inputs to provider functions.  The scope of this
    * field's configuration is module specific.
    */
-
   golangBindings: GolangBinding[];
 }
 /** GolangBinding is an explicit interface type to implementing type binding for dependency injection. */
-
 export interface GolangBinding {
   /** interface_type is the interface type which will be bound to a specific implementation type */
   interfaceType: string;
   /** implementation is the implementing type which will be supplied when an input of type interface is requested */
-
   implementation: string;
 }
-
 function createBaseConfig(): Config {
   return {
     modules: [],
     golangBindings: [],
   };
 }
-
 export const Config = {
-  encode(message: Config, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/cosmos.app.v1alpha1.Config",
+  encode(message: Config, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     for (const v of message.modules) {
       ModuleConfig.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-
     for (const v of message.golangBindings) {
       GolangBinding.encode(v!, writer.uint32(18).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Config {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): Config {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseConfig();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.modules.push(ModuleConfig.decode(reader, reader.uint32()));
           break;
-
         case 2:
           message.golangBindings.push(GolangBinding.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): Config {
-    return {
-      modules: Array.isArray(object?.modules) ? object.modules.map((e: any) => ModuleConfig.fromJSON(e)) : [],
-      golangBindings: Array.isArray(object?.golangBindings)
-        ? object.golangBindings.map((e: any) => GolangBinding.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseConfig();
+    if (Array.isArray(object?.modules))
+      obj.modules = object.modules.map((e: any) => ModuleConfig.fromJSON(e));
+    if (Array.isArray(object?.golangBindings))
+      obj.golangBindings = object.golangBindings.map((e: any) => GolangBinding.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: Config): unknown {
+  toJSON(message: Config): JsonSafe<Config> {
     const obj: any = {};
-
     if (message.modules) {
       obj.modules = message.modules.map((e) => (e ? ModuleConfig.toJSON(e) : undefined));
     } else {
       obj.modules = [];
     }
-
     if (message.golangBindings) {
       obj.golangBindings = message.golangBindings.map((e) => (e ? GolangBinding.toJSON(e) : undefined));
     } else {
       obj.golangBindings = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<Config>, I>>(object: I): Config {
     const message = createBaseConfig();
     message.modules = object.modules?.map((e) => ModuleConfig.fromPartial(e)) || [];
@@ -144,7 +123,6 @@ export const Config = {
     return message;
   },
 };
-
 function createBaseModuleConfig(): ModuleConfig {
   return {
     name: "",
@@ -152,148 +130,121 @@ function createBaseModuleConfig(): ModuleConfig {
     golangBindings: [],
   };
 }
-
 export const ModuleConfig = {
-  encode(message: ModuleConfig, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/cosmos.app.v1alpha1.ModuleConfig",
+  encode(message: ModuleConfig, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     if (message.config !== undefined) {
       Any.encode(message.config, writer.uint32(18).fork()).ldelim();
     }
-
     for (const v of message.golangBindings) {
       GolangBinding.encode(v!, writer.uint32(26).fork()).ldelim();
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ModuleConfig {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): ModuleConfig {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseModuleConfig();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.config = Any.decode(reader, reader.uint32());
           break;
-
         case 3:
           message.golangBindings.push(GolangBinding.decode(reader, reader.uint32()));
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): ModuleConfig {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      config: isSet(object.config) ? Any.fromJSON(object.config) : undefined,
-      golangBindings: Array.isArray(object?.golangBindings)
-        ? object.golangBindings.map((e: any) => GolangBinding.fromJSON(e))
-        : [],
-    };
+    const obj = createBaseModuleConfig();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (isSet(object.config)) obj.config = Any.fromJSON(object.config);
+    if (Array.isArray(object?.golangBindings))
+      obj.golangBindings = object.golangBindings.map((e: any) => GolangBinding.fromJSON(e));
+    return obj;
   },
-
-  toJSON(message: ModuleConfig): unknown {
+  toJSON(message: ModuleConfig): JsonSafe<ModuleConfig> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.config !== undefined && (obj.config = message.config ? Any.toJSON(message.config) : undefined);
-
     if (message.golangBindings) {
       obj.golangBindings = message.golangBindings.map((e) => (e ? GolangBinding.toJSON(e) : undefined));
     } else {
       obj.golangBindings = [];
     }
-
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<ModuleConfig>, I>>(object: I): ModuleConfig {
     const message = createBaseModuleConfig();
     message.name = object.name ?? "";
-    message.config =
-      object.config !== undefined && object.config !== null ? Any.fromPartial(object.config) : undefined;
+    if (object.config !== undefined && object.config !== null) {
+      message.config = Any.fromPartial(object.config);
+    }
     message.golangBindings = object.golangBindings?.map((e) => GolangBinding.fromPartial(e)) || [];
     return message;
   },
 };
-
 function createBaseGolangBinding(): GolangBinding {
   return {
     interfaceType: "",
     implementation: "",
   };
 }
-
 export const GolangBinding = {
-  encode(message: GolangBinding, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/cosmos.app.v1alpha1.GolangBinding",
+  encode(message: GolangBinding, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.interfaceType !== "") {
       writer.uint32(10).string(message.interfaceType);
     }
-
     if (message.implementation !== "") {
       writer.uint32(18).string(message.implementation);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GolangBinding {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): GolangBinding {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGolangBinding();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.interfaceType = reader.string();
           break;
-
         case 2:
           message.implementation = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): GolangBinding {
-    return {
-      interfaceType: isSet(object.interfaceType) ? String(object.interfaceType) : "",
-      implementation: isSet(object.implementation) ? String(object.implementation) : "",
-    };
+    const obj = createBaseGolangBinding();
+    if (isSet(object.interfaceType)) obj.interfaceType = String(object.interfaceType);
+    if (isSet(object.implementation)) obj.implementation = String(object.implementation);
+    return obj;
   },
-
-  toJSON(message: GolangBinding): unknown {
+  toJSON(message: GolangBinding): JsonSafe<GolangBinding> {
     const obj: any = {};
     message.interfaceType !== undefined && (obj.interfaceType = message.interfaceType);
     message.implementation !== undefined && (obj.implementation = message.implementation);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<GolangBinding>, I>>(object: I): GolangBinding {
     const message = createBaseGolangBinding();
     message.interfaceType = object.interfaceType ?? "";

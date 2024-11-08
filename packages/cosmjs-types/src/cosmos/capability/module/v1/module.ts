@@ -1,9 +1,9 @@
 /* eslint-disable */
-import * as _m0 from "protobufjs/minimal";
+import { BinaryReader, BinaryWriter } from "../../../../binary";
 import { isSet, DeepPartial, Exact } from "../../../../helpers";
+import { JsonSafe } from "../../../../json-safe";
 export const protobufPackage = "cosmos.capability.module.v1";
 /** Module is the config object of the capability module. */
-
 export interface Module {
   /**
    * seal_keeper defines if keeper.Seal() will run on BeginBlock() to prevent further modules from creating a scoped
@@ -11,56 +11,46 @@ export interface Module {
    */
   sealKeeper: boolean;
 }
-
 function createBaseModule(): Module {
   return {
     sealKeeper: false,
   };
 }
-
 export const Module = {
-  encode(message: Module, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/cosmos.capability.module.v1.Module",
+  encode(message: Module, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.sealKeeper === true) {
       writer.uint32(8).bool(message.sealKeeper);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Module {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): Module {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseModule();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.sealKeeper = reader.bool();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): Module {
-    return {
-      sealKeeper: isSet(object.sealKeeper) ? Boolean(object.sealKeeper) : false,
-    };
+    const obj = createBaseModule();
+    if (isSet(object.sealKeeper)) obj.sealKeeper = Boolean(object.sealKeeper);
+    return obj;
   },
-
-  toJSON(message: Module): unknown {
+  toJSON(message: Module): JsonSafe<Module> {
     const obj: any = {};
     message.sealKeeper !== undefined && (obj.sealKeeper = message.sealKeeper);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<Module>, I>>(object: I): Module {
     const message = createBaseModule();
     message.sealKeeper = object.sealKeeper ?? false;

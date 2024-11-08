@@ -9,6 +9,7 @@ import {
   DirectSignResponse,
   makeAuthInfoBytes,
 } from "@cosmjs/proto-signing";
+import { assertDefinedAndNotNull } from "@cosmjs/utils";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { AuthInfo, SignDoc, TxBody } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
@@ -23,35 +24,42 @@ export function simapp46Enabled(): boolean {
   return !!process.env.SIMAPP46_ENABLED;
 }
 
+export function simapp47Enabled(): boolean {
+  return !!process.env.SIMAPP47_ENABLED;
+}
+
+export function simapp50Enabled(): boolean {
+  return !!process.env.SIMAPP50_ENABLED;
+}
+
 export function simappEnabled(): boolean {
-  return simapp44Enabled() || simapp46Enabled();
+  return simapp44Enabled() || simapp46Enabled() || simapp47Enabled() || simapp50Enabled();
 }
 
-export function pendingWithoutSimapp44Or46(): void {
-  if (!simapp44Enabled() && !simapp46Enabled()) {
-    return pending("Set SIMAPP{44,46}_ENABLED to enable Simapp based tests");
-  }
-}
-
-export function pendingWithoutSimapp46(): void {
-  if (!simapp46Enabled()) {
-    return pending("Set SIMAPP46_ENABLED to enable Simapp based tests");
+export function pendingWithoutSimapp46OrHigher(): void {
+  if (!simapp46Enabled() && !simapp47Enabled() && !simapp50Enabled()) {
+    return pending("Set SIMAPP{46,47,50}_ENABLED to enable Simapp based tests");
   }
 }
 
 export function pendingWithoutSimapp(): void {
   if (!simappEnabled()) {
-    return pending("Set SIMAPP{44,46}_ENABLED to enable Simapp based tests");
+    return pending("Set SIMAPP{44,46,47,50}_ENABLED to enable Simapp based tests");
   }
 }
 
 export function slowSimappEnabled(): boolean {
-  return !!process.env.SLOW_SIMAPP44_ENABLED || !!process.env.SLOW_SIMAPP46_ENABLED;
+  return (
+    !!process.env.SLOW_SIMAPP44_ENABLED ||
+    !!process.env.SLOW_SIMAPP46_ENABLED ||
+    !!process.env.SLOW_SIMAPP47_ENABLED ||
+    !!process.env.SLOW_SIMAPP50_ENABLED
+  );
 }
 
 export function pendingWithoutSlowSimapp(): void {
   if (!slowSimappEnabled()) {
-    return pending("Set SLOW_SIMAPP{44,46}_ENABLED to enable slow Simapp based tests");
+    return pending("Set SLOW_SIMAPP{44,46,47,50}_ENABLED to enable slow Simapp based tests");
   }
 }
 
@@ -73,7 +81,6 @@ export const defaultGasPrice = GasPrice.fromString("0.025ucosm");
 export const defaultSendFee = calculateFee(100_000, defaultGasPrice);
 
 export const simapp = {
-  tendermintUrl: "localhost:26658",
   tendermintUrlWs: "ws://localhost:26658",
   tendermintUrlHttp: "http://localhost:26658",
   chainId: "simd-testing",
@@ -85,7 +92,6 @@ export const simapp = {
 };
 
 export const slowSimapp = {
-  tendermintUrl: "localhost:26660",
   tendermintUrlWs: "ws://localhost:26660",
   tendermintUrlHttp: "http://localhost:26660",
   chainId: "simd-testing",
@@ -155,7 +161,7 @@ export const validator = {
    */
   pubkey: {
     type: "tendermint/PubKeySecp256k1",
-    value: "AtDcuH4cX1eaxZrJ5shheLG3tXPAoV4awoIZmNQtQxmf",
+    value: "A0RZ3+xLf9xJiySHQxQsQtW8HJYEcniJKbFxG2R9ZEQv",
   },
   /**
    * delegator_address from /cosmos.staking.v1beta1.MsgCreateValidator in scripts/simapp44/template/.simapp/config/genesis.json
@@ -164,7 +170,7 @@ export const validator = {
    * jq ".app_state.genutil.gen_txs[0].body.messages[0].delegator_address" scripts/simapp44/template/.simapp/config/genesis.json
    * ```
    */
-  delegatorAddress: "cosmos1urk9gy7cfws0ak9x5nu7lx4un9n6gqkry79679",
+  delegatorAddress: "cosmos12nt2hqjps8r065wc02qks88tvqzdeua0ld3jxy",
   /**
    * validator_address from /cosmos.staking.v1beta1.MsgCreateValidator in scripts/simapp44/template/.simapp/config/genesis.json
    *
@@ -172,7 +178,7 @@ export const validator = {
    * jq ".app_state.genutil.gen_txs[0].body.messages[0].validator_address" scripts/simapp44/template/.simapp/config/genesis.json
    * ```
    */
-  validatorAddress: "cosmosvaloper1urk9gy7cfws0ak9x5nu7lx4un9n6gqkrp230jk",
+  validatorAddress: "cosmosvaloper12nt2hqjps8r065wc02qks88tvqzdeua06e982h",
   accountNumber: 0,
   sequence: 1,
 };
@@ -228,10 +234,13 @@ export class ModifyingDirectSecp256k1HdWallet extends DirectSecp256k1HdWallet {
       memo: "This was modified",
     });
     const authInfo = AuthInfo.decode(signDoc.authInfoBytes);
-    const signers = authInfo.signerInfos.map((signerInfo) => ({
-      pubkey: signerInfo.publicKey!,
-      sequence: signerInfo.sequence.toNumber(),
-    }));
+    const signers = authInfo.signerInfos.map((signerInfo) => {
+      assertDefinedAndNotNull(signerInfo.publicKey);
+      return {
+        pubkey: signerInfo.publicKey,
+        sequence: signerInfo.sequence,
+      };
+    });
     const modifiedFeeAmount = coins(3000, "ucosm");
     const modifiedGasLimit = 333333;
     const modifiedFeeGranter = undefined;

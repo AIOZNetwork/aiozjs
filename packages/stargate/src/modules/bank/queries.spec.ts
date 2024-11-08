@@ -1,4 +1,4 @@
-import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { CometClient, Tendermint34Client } from "@cosmjs/tendermint-rpc";
 
 import { QueryClient } from "../../queryclient";
 import {
@@ -10,18 +10,16 @@ import {
 } from "../../testutils.spec";
 import { BankExtension, setupBankExtension } from "./queries";
 
-async function makeClientWithBank(
-  rpcUrl: string,
-): Promise<[QueryClient & BankExtension, Tendermint34Client]> {
-  const tmClient = await Tendermint34Client.connect(rpcUrl);
-  return [QueryClient.withExtensions(tmClient, setupBankExtension), tmClient];
+async function makeClientWithBank(rpcUrl: string): Promise<[QueryClient & BankExtension, CometClient]> {
+  const cometClient = await Tendermint34Client.connect(rpcUrl);
+  return [QueryClient.withExtensions(cometClient, setupBankExtension), cometClient];
 }
 
 describe("BankExtension", () => {
   describe("balance", () => {
     it("works for different existing balances", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const response1 = await client.bank.balance(unused.address, simapp.denomFee);
       expect(response1).toEqual({
@@ -34,12 +32,12 @@ describe("BankExtension", () => {
         denom: simapp.denomStaking,
       });
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
 
     it("returns zero for non-existent balance", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const response = await client.bank.balance(unused.address, "gintonic");
       expect(response).toEqual({
@@ -47,12 +45,12 @@ describe("BankExtension", () => {
         denom: "gintonic",
       });
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
 
     it("returns zero for non-existent address", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const response = await client.bank.balance(nonExistentAddress, simapp.denomFee);
       expect(response).toEqual({
@@ -60,14 +58,14 @@ describe("BankExtension", () => {
         denom: simapp.denomFee,
       });
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
   });
 
   describe("allBalances", () => {
     it("returns all balances for unused account", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const balances = await client.bank.allBalances(unused.address);
       expect(balances).toEqual([
@@ -81,24 +79,24 @@ describe("BankExtension", () => {
         },
       ]);
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
 
     it("returns an empty list for non-existent account", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const balances = await client.bank.allBalances(nonExistentAddress);
       expect(balances).toEqual([]);
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
   });
 
   describe("totalSupply", () => {
     it("works", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const { supply } = await client.bank.totalSupply();
       expect(supply).toEqual([
@@ -112,14 +110,14 @@ describe("BankExtension", () => {
         },
       ]);
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
   });
 
   describe("supplyOf", () => {
     it("works for existing denom", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const response = await client.bank.supplyOf(simapp.denomFee);
       expect(response).toEqual({
@@ -127,12 +125,12 @@ describe("BankExtension", () => {
         denom: simapp.denomFee,
       });
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
 
     it("returns zero for non-existent denom", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const response = await client.bank.supplyOf("gintonic");
       expect(response).toEqual({
@@ -140,81 +138,81 @@ describe("BankExtension", () => {
         denom: "gintonic",
       });
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
   });
 
   describe("denomMetadata", () => {
     it("works for existent denom", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const metadata = await client.bank.denomMetadata("ucosm");
-      expect(metadata).toEqual({
-        description: "The fee token of this test chain",
-        denomUnits: [
-          {
-            denom: "ucosm",
-            exponent: 0,
-            aliases: [],
-          },
-          {
-            denom: "COSM",
-            exponent: 6,
-            aliases: [],
-          },
-        ],
-        base: "ucosm",
-        display: "COSM",
-        name: "",
-        symbol: "",
-        uri: "",
-        uriHash: "",
-      });
+      expect(metadata).toEqual(
+        jasmine.objectContaining({
+          description: "The fee token of this test chain",
+          denomUnits: [
+            {
+              denom: "ucosm",
+              exponent: 0,
+              aliases: [],
+            },
+            {
+              denom: "COSM",
+              exponent: 6,
+              aliases: [],
+            },
+          ],
+          base: "ucosm",
+          display: "COSM",
+          name: "",
+          symbol: "",
+        }),
+      );
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
 
     it("works for non-existent denom", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       await expectAsync(client.bank.denomMetadata("nothere")).toBeRejectedWithError(/code = NotFound/i);
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
   });
 
   describe("denomsMetadata", () => {
     it("works", async () => {
       pendingWithoutSimapp();
-      const [client, tmClient] = await makeClientWithBank(simapp.tendermintUrl);
+      const [client, cometClient] = await makeClientWithBank(simapp.tendermintUrlHttp);
 
       const metadatas = await client.bank.denomsMetadata();
       expect(metadatas.length).toEqual(1);
-      expect(metadatas[0]).toEqual({
-        description: "The fee token of this test chain",
-        denomUnits: [
-          {
-            denom: "ucosm",
-            exponent: 0,
-            aliases: [],
-          },
-          {
-            denom: "COSM",
-            exponent: 6,
-            aliases: [],
-          },
-        ],
-        base: "ucosm",
-        display: "COSM",
-        name: "",
-        symbol: "",
-        uri: "",
-        uriHash: "",
-      });
+      expect(metadatas[0]).toEqual(
+        jasmine.objectContaining({
+          description: "The fee token of this test chain",
+          denomUnits: [
+            {
+              denom: "ucosm",
+              exponent: 0,
+              aliases: [],
+            },
+            {
+              denom: "COSM",
+              exponent: 6,
+              aliases: [],
+            },
+          ],
+          base: "ucosm",
+          display: "COSM",
+          name: "",
+          symbol: "",
+        }),
+      );
 
-      tmClient.disconnect();
+      cometClient.disconnect();
     });
   });
 });

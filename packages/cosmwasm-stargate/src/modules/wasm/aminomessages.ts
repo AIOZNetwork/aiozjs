@@ -1,21 +1,69 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import { omitDefault } from "@cosmjs/amino";
 import { fromBase64, fromUtf8, toBase64, toUtf8 } from "@cosmjs/encoding";
 import { AminoConverters, Coin } from "@cosmjs/stargate";
 import {
   MsgClearAdmin,
   MsgExecuteContract,
   MsgInstantiateContract,
+  MsgInstantiateContract2,
   MsgMigrateContract,
   MsgStoreCode,
   MsgUpdateAdmin,
 } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import Long from "long";
+import { AccessConfig, AccessType } from "cosmjs-types/cosmwasm/wasm/v1/types";
 
-// TODO: implement
+export function accessTypeFromString(str: string): AccessType {
+  switch (str) {
+    case "Unspecified":
+      return AccessType.ACCESS_TYPE_UNSPECIFIED;
+    case "Nobody":
+      return AccessType.ACCESS_TYPE_NOBODY;
+    case "OnlyAddress":
+      return AccessType.ACCESS_TYPE_ONLY_ADDRESS;
+    case "Everybody":
+      return AccessType.ACCESS_TYPE_EVERYBODY;
+    case "AnyOfAddresses":
+      return AccessType.ACCESS_TYPE_ANY_OF_ADDRESSES;
+    default:
+      return AccessType.UNRECOGNIZED;
+  }
+}
+
+export function accessTypeToString(object: any): string {
+  switch (object) {
+    case AccessType.ACCESS_TYPE_UNSPECIFIED:
+      return "Unspecified";
+    case AccessType.ACCESS_TYPE_NOBODY:
+      return "Nobody";
+    case AccessType.ACCESS_TYPE_ONLY_ADDRESS:
+      return "OnlyAddress";
+    case AccessType.ACCESS_TYPE_EVERYBODY:
+      return "Everybody";
+    case AccessType.ACCESS_TYPE_ANY_OF_ADDRESSES:
+      return "AnyOfAddresses";
+    case AccessType.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 /**
  * @see https://github.com/CosmWasm/wasmd/blob/v0.18.0-rc1/proto/cosmwasm/wasm/v1/types.proto#L36-L41
  */
-type AccessConfig = never;
+export interface AminoAccessConfig {
+  /**
+   * Permission should be one kind of string 'Nobody', 'OnlyAddress', 'Everybody', 'AnyOfAddresses', 'Unspecified'
+   * @see https://github.com/CosmWasm/wasmd/blob/v0.31.0/x/wasm/types/params.go#L54
+   */
+  readonly permission: string;
+  /**
+   * Address
+   * Deprecated: replaced by addresses
+   */
+  readonly address?: string;
+  readonly addresses?: string[];
+}
 
 /**
  * The Amino JSON representation of [MsgStoreCode].
@@ -29,7 +77,7 @@ export interface AminoMsgStoreCode {
     readonly sender: string;
     /** Base64 encoded Wasm */
     readonly wasm_byte_code: string;
-    readonly instantiate_permission?: AccessConfig;
+    readonly instantiate_permission?: AminoAccessConfig;
   };
 }
 
@@ -70,6 +118,35 @@ export interface AminoMsgInstantiateContract {
     readonly funds: readonly Coin[];
     /** Bech32-encoded admin address */
     readonly admin?: string;
+  };
+}
+
+/**
+ * The Amino JSON representation of [MsgInstantiateContract2].
+ *
+ * [MsgInstantiateContract2]: https://github.com/CosmWasm/wasmd/blob/v0.31.0/proto/cosmwasm/wasm/v1/tx.proto#L76-L99
+ */
+export interface AminoMsgInstantiateContract2 {
+  type: "wasm/MsgInstantiateContract2";
+  value: {
+    /** Bech32 account address */
+    readonly sender: string;
+    /** ID of the Wasm code that was uploaded before */
+    readonly code_id: string;
+    /** Human-readable label for this contract */
+    readonly label: string;
+    /** Instantiate message as JavaScript object */
+    readonly msg: any;
+    readonly funds: readonly Coin[];
+    /** Bech32-encoded admin address */
+    readonly admin?: string;
+    /** Arbitrary Base64-encoded value provided by the sender */
+    readonly salt: string;
+    /**
+     * Whether or not to include the msg value into the hash for the address.
+     * Unset means false. This should always be unset/false (https://medium.com/cosmwasm/dev-note-3-limitations-of-instantiate2-and-how-to-deal-with-them-a3f946874230).
+     */
+    readonly fix_msg?: boolean;
   };
 }
 
@@ -128,14 +205,36 @@ export function createWasmAminoConverters(): AminoConverters {
   return {
     "/cosmwasm.wasm.v1.MsgStoreCode": {
       aminoType: "wasm/MsgStoreCode",
-      toAmino: ({ sender, wasmByteCode }: MsgStoreCode): AminoMsgStoreCode["value"] => ({
+      toAmino: ({
+        sender,
+        wasmByteCode,
+        instantiatePermission,
+      }: MsgStoreCode): AminoMsgStoreCode["value"] => ({
         sender: sender,
         wasm_byte_code: toBase64(wasmByteCode),
+        instantiate_permission: instantiatePermission
+          ? {
+              permission: accessTypeToString(instantiatePermission.permission),
+              address: instantiatePermission.address || undefined,
+              addresses:
+                instantiatePermission.addresses.length !== 0 ? instantiatePermission.addresses : undefined,
+            }
+          : undefined,
       }),
-      fromAmino: ({ sender, wasm_byte_code }: AminoMsgStoreCode["value"]): MsgStoreCode => ({
+      fromAmino: ({
+        sender,
+        wasm_byte_code,
+        instantiate_permission,
+      }: AminoMsgStoreCode["value"]): MsgStoreCode => ({
         sender: sender,
         wasmByteCode: fromBase64(wasm_byte_code),
-        instantiatePermission: undefined,
+        instantiatePermission: instantiate_permission
+          ? AccessConfig.fromPartial({
+              permission: accessTypeFromString(instantiate_permission.permission),
+              address: instantiate_permission.address ?? "",
+              addresses: instantiate_permission.addresses ?? [],
+            })
+          : undefined,
       }),
     },
     "/cosmwasm.wasm.v1.MsgInstantiateContract": {
@@ -153,7 +252,7 @@ export function createWasmAminoConverters(): AminoConverters {
         label: label,
         msg: JSON.parse(fromUtf8(msg)),
         funds: funds,
-        admin: admin || undefined,
+        admin: omitDefault(admin),
       }),
       fromAmino: ({
         sender,
@@ -164,11 +263,52 @@ export function createWasmAminoConverters(): AminoConverters {
         admin,
       }: AminoMsgInstantiateContract["value"]): MsgInstantiateContract => ({
         sender: sender,
-        codeId: Long.fromString(code_id),
+        codeId: BigInt(code_id),
         label: label,
         msg: toUtf8(JSON.stringify(msg)),
         funds: [...funds],
         admin: admin ?? "",
+      }),
+    },
+    "/cosmwasm.wasm.v1.MsgInstantiateContract2": {
+      aminoType: "wasm/MsgInstantiateContract2",
+      toAmino: ({
+        sender,
+        codeId,
+        label,
+        msg,
+        funds,
+        admin,
+        salt,
+        fixMsg,
+      }: MsgInstantiateContract2): AminoMsgInstantiateContract2["value"] => ({
+        sender: sender,
+        code_id: codeId.toString(),
+        label: label,
+        msg: JSON.parse(fromUtf8(msg)),
+        funds: funds,
+        admin: omitDefault(admin),
+        salt: toBase64(salt),
+        fix_msg: omitDefault(fixMsg),
+      }),
+      fromAmino: ({
+        sender,
+        code_id,
+        label,
+        msg,
+        funds,
+        admin,
+        salt,
+        fix_msg,
+      }: AminoMsgInstantiateContract2["value"]): MsgInstantiateContract2 => ({
+        sender: sender,
+        codeId: BigInt(code_id),
+        label: label,
+        msg: toUtf8(JSON.stringify(msg)),
+        funds: [...funds],
+        admin: admin ?? "",
+        salt: fromBase64(salt),
+        fixMsg: fix_msg ?? false,
       }),
     },
     "/cosmwasm.wasm.v1.MsgUpdateAdmin": {
@@ -231,12 +371,9 @@ export function createWasmAminoConverters(): AminoConverters {
       }: AminoMsgMigrateContract["value"]): MsgMigrateContract => ({
         sender: sender,
         contract: contract,
-        codeId: Long.fromString(code_id),
+        codeId: BigInt(code_id),
         msg: toUtf8(JSON.stringify(msg)),
       }),
     },
   };
 }
-
-/** @deprecated use `createWasmAminoConverters()` */
-export const cosmWasmTypes: AminoConverters = createWasmAminoConverters();

@@ -1,6 +1,6 @@
 import { Slip10RawIndex } from "@cosmjs/crypto";
 
-import { makeCosmoshubPath, makeAiozPath, makeEthPath } from "./paths";
+import { makeAiozPath, makeCosmoshubPath, makeEthPath } from "./paths";
 
 describe("paths", () => {
   describe("makeCosmoshubPath", () => {

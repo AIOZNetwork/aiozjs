@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { AminoMsg, Coin, Pubkey } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
-import { anyToSinglePubkey, encodePubkey } from "@cosmjs/proto-signing";
+import { decodePubkey, encodePubkey } from "@cosmjs/proto-signing";
 import { assertDefinedAndNotNull } from "@cosmjs/utils";
 import {
   MsgBeginRedelegate,
+  MsgCancelUnbondingDelegation,
   MsgCreateValidator,
   MsgDelegate,
   MsgEditValidator,
   MsgUndelegate,
 } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 
-import { AminoConverter } from "../../aminotypes";
+import { AminoConverter } from "../..";
 
 /** The initial commission rates to be used for creating a validator */
 interface CommissionRates {
@@ -143,9 +144,21 @@ export function isAminoMsgUndelegate(msg: AminoMsg): msg is AminoMsgUndelegate {
   return msg.type === "cosmos-sdk/MsgUndelegate";
 }
 
-export function createSdkStakingAminoConverters(
-  _prefix: string,
-): Record<string, AminoConverter | "not_supported_by_chain"> {
+export interface AminoMsgCancelUnbondingDelegation extends AminoMsg {
+  readonly type: "cosmos-sdk/MsgCancelUnbondingDelegation";
+  readonly value: {
+    readonly delegator_address: string;
+    readonly validator_address: string;
+    readonly amount: Coin;
+    readonly creation_height: string;
+  };
+}
+
+export function isAminoMsgCancelUnbondingDelegation(msg: AminoMsg): msg is AminoMsgCancelUnbondingDelegation {
+  return msg.type === "cosmos-sdk/MsgCancelUnbondingDelegation";
+}
+
+export function createSdkStakingAminoConverters(): Record<string, AminoConverter> {
   return {
     "/cosmos.staking.v1beta1.MsgBeginRedelegate": {
       aminoType: "cosmos-sdk/MsgBeginRedelegate",
@@ -206,7 +219,7 @@ export function createSdkStakingAminoConverters(
           min_self_delegation: minSelfDelegation,
           delegator_address: delegatorAddress,
           validator_address: validatorAddress,
-          pubkey: anyToSinglePubkey(pubkey),
+          pubkey: decodePubkey(pubkey),
           value: value,
         };
       },
@@ -326,6 +339,34 @@ export function createSdkStakingAminoConverters(
         delegatorAddress: delegator_address,
         validatorAddress: validator_address,
         amount: amount,
+      }),
+    },
+    "/cosmos.staking.v1beta1.MsgCancelUnbondingDelegation": {
+      aminoType: "cosmos-sdk/MsgCancelUnbondingDelegation",
+      toAmino: ({
+        delegatorAddress,
+        validatorAddress,
+        amount,
+        creationHeight,
+      }: MsgCancelUnbondingDelegation): AminoMsgCancelUnbondingDelegation["value"] => {
+        assertDefinedAndNotNull(amount, "missing amount");
+        return {
+          delegator_address: delegatorAddress,
+          validator_address: validatorAddress,
+          amount: amount,
+          creation_height: creationHeight.toString(),
+        };
+      },
+      fromAmino: ({
+        delegator_address,
+        validator_address,
+        amount,
+        creation_height,
+      }: AminoMsgCancelUnbondingDelegation["value"]): MsgCancelUnbondingDelegation => ({
+        delegatorAddress: delegator_address,
+        validatorAddress: validator_address,
+        amount: amount,
+        creationHeight: BigInt(creation_height),
       }),
     },
   };

@@ -12,8 +12,8 @@ import {
   faucet,
   nonNegativeIntegerMatcher,
   pendingWithoutSimapp,
-  pendingWithoutSimapp44Or46,
   simapp,
+  simapp50Enabled,
   simappEnabled,
   validator,
 } from "../../testutils.spec";
@@ -46,7 +46,7 @@ describe("gov messages", () => {
       voterWallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic, { hdPaths: voterPaths });
       voterWalletAmino = await Secp256k1HdWallet.fromMnemonic(faucet.mnemonic, { hdPaths: voterPaths });
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         voterWallet,
         defaultSigningClientOptions,
       );
@@ -69,10 +69,10 @@ describe("gov messages", () => {
         "Test proposal for simd",
       );
       assertIsDeliverTxSuccess(proposalResult);
-      const logs = JSON.parse(proposalResult.rawLog || "");
-      proposalId = logs[0].events
-        .find(({ type }: any) => type === "submit_proposal")
-        .attributes.find(({ key }: any) => key === "proposal_id").value;
+
+      proposalId = proposalResult.events
+        .find(({ type }) => type === "submit_proposal")
+        ?.attributes.find(({ key }: any) => key === "proposal_id")?.value;
       assert(proposalId, "Proposal ID not found in events");
       assert(proposalId.match(nonNegativeIntegerMatcher));
 
@@ -132,7 +132,7 @@ describe("gov messages", () => {
       pendingWithoutSimapp();
       assert(voterWallet);
       assert(proposalId, "Missing proposal ID");
-      const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrl, voterWallet);
+      const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrlHttp, voterWallet);
 
       const voteMsg: MsgVoteEncodeObject = {
         typeUrl: "/cosmos.gov.v1beta1.MsgVote",
@@ -148,11 +148,14 @@ describe("gov messages", () => {
       client.disconnect();
     });
 
-    it("works with Amino JSON sign mode", async () => {
+    it("works with Amino JSON signer", async () => {
       pendingWithoutSimapp();
       assert(voterWalletAmino);
       assert(proposalId, "Missing proposal ID");
-      const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrl, voterWalletAmino);
+      const client = await SigningStargateClient.connectWithSigner(
+        simapp.tendermintUrlHttp,
+        voterWalletAmino,
+      );
 
       const voteMsg: MsgVoteEncodeObject = {
         typeUrl: "/cosmos.gov.v1beta1.MsgVote",
@@ -171,10 +174,10 @@ describe("gov messages", () => {
 
   describe("MsgVoteWeighted", () => {
     it("works", async () => {
-      pendingWithoutSimapp44Or46(); // MsgVoteWeighted does not yet exist in Cosmos SDK 0.42
+      pendingWithoutSimapp();
       assert(voterWallet);
       assert(proposalId, "Missing proposal ID");
-      const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrl, voterWallet);
+      const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrlHttp, voterWallet);
 
       const voteMsg: MsgVoteWeightedEncodeObject = {
         typeUrl: "/cosmos.gov.v1beta1.MsgVoteWeighted",
@@ -203,11 +206,15 @@ describe("gov messages", () => {
       client.disconnect();
     });
 
-    it("works with Amino JSON sign mode", async () => {
-      pendingWithoutSimapp44Or46(); // MsgVoteWeighted does not yet exist in Cosmos SDK 0.42
+    it("works with Amino JSON signer", async () => {
+      pendingWithoutSimapp();
+      if (simapp50Enabled()) pending("Not working, see https://github.com/cosmos/cosmos-sdk/issues/18546");
       assert(voterWalletAmino);
       assert(proposalId, "Missing proposal ID");
-      const client = await SigningStargateClient.connectWithSigner(simapp.tendermintUrl, voterWalletAmino);
+      const client = await SigningStargateClient.connectWithSigner(
+        simapp.tendermintUrlHttp,
+        voterWalletAmino,
+      );
 
       const voteMsg: MsgVoteWeightedEncodeObject = {
         typeUrl: "/cosmos.gov.v1beta1.MsgVoteWeighted",

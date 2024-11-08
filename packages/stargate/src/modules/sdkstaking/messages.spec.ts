@@ -12,6 +12,7 @@ import {
   faucet,
   pendingWithoutSimapp,
   simapp,
+  simapp50Enabled,
 } from "../../testutils.spec";
 import { MsgCreateValidatorEncodeObject, MsgEditValidatorEncodeObject } from "./messages";
 
@@ -23,7 +24,7 @@ async function sendFeeAndStakingTokens(address: string): Promise<void> {
   const wallet = await DirectSecp256k1HdWallet.fromMnemonic(faucet.mnemonic);
   const [firstAccount] = await wallet.getAccounts();
   const client = await SigningStargateClient.connectWithSigner(
-    simapp.tendermintUrl,
+    simapp.tendermintUrlHttp,
     wallet,
     defaultSigningClientOptions,
   );
@@ -52,7 +53,7 @@ describe("staking messages", () => {
       await sendFeeAndStakingTokens(valAccount.address);
 
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         valWallet,
         defaultSigningClientOptions,
       );
@@ -93,8 +94,9 @@ describe("staking messages", () => {
       client.disconnect();
     });
 
-    it("works with Amino JSON sign mode", async () => {
+    it("works with Amino JSON signer", async () => {
       pendingWithoutSimapp();
+      if (simapp50Enabled()) pending("Not working, see https://github.com/cosmos/cosmos-sdk/issues/18546");
 
       const valWallet = await Secp256k1HdWallet.generate();
       const [valAccount] = await valWallet.getAccounts();
@@ -102,7 +104,7 @@ describe("staking messages", () => {
       await sendFeeAndStakingTokens(valAccount.address);
 
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         valWallet,
         defaultSigningClientOptions,
       );
@@ -154,7 +156,7 @@ describe("staking messages", () => {
       await sendFeeAndStakingTokens(valAccount.address);
 
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         valWallet,
         defaultSigningClientOptions,
       );
@@ -233,8 +235,9 @@ describe("staking messages", () => {
       client.disconnect();
     });
 
-    it("works with Amino JSON sign mode", async () => {
+    it("works with Amino JSON signer", async () => {
       pendingWithoutSimapp();
+      if (simapp50Enabled()) pending("Not working, see https://github.com/cosmos/cosmos-sdk/issues/18546");
 
       const valWallet = await Secp256k1HdWallet.generate();
       const [valAccount] = await valWallet.getAccounts();
@@ -242,7 +245,7 @@ describe("staking messages", () => {
       await sendFeeAndStakingTokens(valAccount.address);
 
       const client = await SigningStargateClient.connectWithSigner(
-        simapp.tendermintUrl,
+        simapp.tendermintUrlHttp,
         valWallet,
         defaultSigningClientOptions,
       );

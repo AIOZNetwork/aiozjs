@@ -12,9 +12,9 @@ export interface AminoMsgSendToEvmChain extends AminoMsg {
     readonly sender: string;
     readonly chain_name: string;
     readonly evm_dest: string;
-    readonly amount?: Coin;
-    readonly bridge_fee?: Coin;
-    readonly chain_fee?: Coin;
+    readonly amount: Coin;
+    readonly bridge_fee: Coin;
+    readonly chain_fee: Coin;
   };
 }
 
@@ -28,7 +28,7 @@ export interface AminoMsgCancelSendToEvmChain extends AminoMsg {
     /** Hex account address */
     readonly sender: string;
     readonly chain_name: string;
-    readonly transaction_id: Long;
+    readonly transaction_id: bigint;
   };
 }
 

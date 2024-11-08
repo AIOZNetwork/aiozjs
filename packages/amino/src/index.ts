@@ -34,6 +34,7 @@ export {
   extractKdfConfiguration as extractEthSecp256k1WalletKdfConfiguration,
 } from "./ethsecp256k1wallet";
 export { createMultisigThresholdPubkey } from "./multisig";
+export { omitDefault } from "./omitdefault";
 export { makeAiozPath, makeCosmoshubPath, makeEthPath } from "./paths";
 export {
   Ed25519Pubkey,

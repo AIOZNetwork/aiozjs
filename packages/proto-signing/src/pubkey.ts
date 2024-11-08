@@ -68,8 +68,7 @@ export function encodePubkey(pubkey: Pubkey): Any {
  * Decodes a single pubkey (i.e. not a multisig pubkey) from `Any` into
  * `SinglePubkey`.
  *
- * In most cases you probably want to use `decodePubkey`, but `anyToSinglePubkey`
- * might be preferred in CosmJS 0.29.x due to https://github.com/cosmos/cosmjs/issues/1289.
+ * In most cases you probably want to use `decodePubkey`.
  */
 export function anyToSinglePubkey(pubkey: Any): SinglePubkey {
   switch (pubkey.typeUrl) {
@@ -90,11 +89,12 @@ export function anyToSinglePubkey(pubkey: Any): SinglePubkey {
   }
 }
 
-export function decodePubkey(pubkey?: Any | null): Pubkey | null {
-  if (!pubkey || !pubkey.value) {
-    return null;
-  }
-
+/**
+ * Decodes a pubkey from a protobuf `Any` into `Pubkey`.
+ * This supports single pubkeys such as Cosmos ed25519 and secp256k1 keys
+ * as well as multisig threshold pubkeys.
+ */
+export function decodePubkey(pubkey: Any): Pubkey {
   switch (pubkey.typeUrl) {
     case "/cosmos.crypto.secp256k1.PubKey":
     case "/ethermint.crypto.v1.ethsecp256k1.PubKey":
@@ -113,6 +113,30 @@ export function decodePubkey(pubkey?: Any | null): Pubkey | null {
       return out;
     }
     default:
-      throw new Error(`Pubkey type_url ${pubkey.typeUrl} not recognized`);
+      throw new Error(`Pubkey type URL '${pubkey.typeUrl}' not recognized`);
+  }
+}
+
+/**
+ * Decodes an optional pubkey from a protobuf `Any` into `Pubkey | null`.
+ * This supports single pubkeys such as Cosmos ed25519 and secp256k1 keys
+ * as well as multisig threshold pubkeys.
+ */
+export function decodeOptionalPubkey(pubkey: Any | null | undefined): Pubkey | null {
+  if (!pubkey) return null;
+  if (pubkey.typeUrl) {
+    if (pubkey.value.length) {
+      // both set
+      return decodePubkey(pubkey);
+    } else {
+      throw new Error(`Pubkey is an Any with type URL '${pubkey.typeUrl}' but an empty value`);
+    }
+  } else {
+    if (pubkey.value.length) {
+      throw new Error(`Pubkey is an Any with an empty type URL but a value set`);
+    } else {
+      // both unset, assuming this empty instance means null
+      return null;
+    }
   }
 }

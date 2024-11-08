@@ -1,5 +1,4 @@
 import { ecrecover, fromRpcSig } from "ethereumjs-util";
-import Long from "long";
 
 /**
  * Recover the public key from the given signature and message hash.
@@ -15,7 +14,7 @@ export function recoverPublicKey(messageHash: Buffer, signature: string): Buffer
 
 const chainIdRegex = /^([a-z]{1,})_{1}([1-9][0-9]*)-{1}([1-9][0-9]*)$/;
 
-export function parseChainId(chainId: string): Long {
+export function parseChainId(chainId: string): number {
   // eslint-disable-next-line no-param-reassign
   chainId = chainId.trim();
   if (chainId.length > 48) {
@@ -28,5 +27,5 @@ export function parseChainId(chainId: string): Long {
   }
 
   // verify that the chain-id entered is a base 10 integer
-  return Long.fromString(matches[2], true, 10);
+  return Number(matches[2]);
 }

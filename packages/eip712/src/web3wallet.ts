@@ -107,7 +107,7 @@ export class Web3Wallet implements OfflineEIP712Signer {
 
     const from = await this.addressHex();
     const types = generateTypes(getMsgTypes(signDoc.msgs[0].type));
-    const chainId = parseChainId(signDoc.chain_id).toNumber();
+    const chainId = parseChainId(signDoc.chain_id);
     const msgParams = generateEIP712(types, chainId, signDoc);
     const params = [from, JSON.stringify(msgParams)];
     const method = "eth_signTypedData_v4";

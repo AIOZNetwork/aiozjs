@@ -2,15 +2,15 @@
 import { addCoins } from "@cosmjs/amino";
 import { toHex } from "@cosmjs/encoding";
 import { Uint53 } from "@cosmjs/math";
-import { HttpEndpoint, Tendermint34Client, toRfc3339WithNanoseconds } from "@cosmjs/tendermint-rpc";
+import { CometClient, connectComet, HttpEndpoint, toRfc3339WithNanoseconds } from "@cosmjs/tendermint-rpc";
 import { assert, sleep } from "@cosmjs/utils";
-import { MsgData } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
+import { MsgData, TxMsgData } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import { QueryDelegatorDelegationsResponse } from "cosmjs-types/cosmos/staking/v1beta1/query";
 import { DelegationResponse } from "cosmjs-types/cosmos/staking/v1beta1/staking";
 
 import { Account, accountFromAny, AccountParser } from "./accounts";
-import { Event, fromTendermint34Event } from "./events";
+import { Event, fromTendermintEvent } from "./events";
 import {
   Aiozrc20Extension,
   AuthExtension,
@@ -34,13 +34,7 @@ import {
   TxExtension,
 } from "./modules";
 import { QueryClient } from "./queryclient";
-import {
-  isSearchByHeightQuery,
-  isSearchBySentFromOrToQuery,
-  isSearchByTagsQuery,
-  SearchTxFilter,
-  SearchTxQuery,
-} from "./search";
+import { isSearchTxQueryArray, SearchTxQuery } from "./search";
 
 export class TimeoutError extends Error {
   public readonly txId: string;
@@ -73,6 +67,8 @@ export interface Block {
 /** A transaction that is indexed as part of the transaction history */
 export interface IndexedTx {
   readonly height: number;
+  /** The position of the transaction within the block. This is a 0-based index. */
+  readonly txIndex: number;
   /** Transaction hash (might be used as transaction ID). Guaranteed to be non-empty upper-case hex */
   readonly hash: string;
   /** Transaction execution error code. 0 on success. */
@@ -84,6 +80,9 @@ export interface IndexedTx {
    * This currently seems to merge attributes of multiple events into one event per type
    * (https://github.com/tendermint/tendermint/issues/9595). You might want to use the `events`
    * field instead.
+   *
+   * @deprecated This field is not filled anymore in Cosmos SDK 0.50+ (https://github.com/cosmos/cosmos-sdk/pull/15845).
+   * Please consider using `events` instead.
    */
   readonly rawLog: string;
   /**
@@ -101,8 +100,14 @@ export interface IndexedTx {
    * Use `decodeTxRaw` from @cosmjs/proto-signing to decode this.
    */
   readonly tx: Uint8Array;
-  readonly gasUsed: number;
-  readonly gasWanted: number;
+  /**
+   * The message responses of the [TxMsgData](https://github.com/cosmos/cosmos-sdk/blob/v0.46.3/proto/cosmos/base/abci/v1beta1/abci.proto#L128-L140)
+   * as `Any`s.
+   * This field is an empty list for chains running Cosmos SDK < 0.46.
+   */
+  readonly msgResponses: Array<{ readonly typeUrl: string; readonly value: Uint8Array }>;
+  readonly gasUsed: bigint;
+  readonly gasWanted: bigint;
 }
 
 export interface SequenceResponse {
@@ -116,7 +121,9 @@ export interface SequenceResponse {
  */
 export interface DeliverTxResponse {
   readonly height: number;
-  /** Error code. The transaction suceeded iff code is 0. */
+  /** The position of the transaction within the block. This is a 0-based index. */
+  readonly txIndex: number;
+  /** Error code. The transaction suceeded if and only if code is 0. */
   readonly code: number;
   readonly transactionHash: string;
   readonly events: readonly Event[];
@@ -126,11 +133,21 @@ export interface DeliverTxResponse {
    * This currently seems to merge attributes of multiple events into one event per type
    * (https://github.com/tendermint/tendermint/issues/9595). You might want to use the `events`
    * field instead.
+   *
+   * @deprecated This field is not filled anymore in Cosmos SDK 0.50+ (https://github.com/cosmos/cosmos-sdk/pull/15845).
+   * Please consider using `events` instead.
    */
   readonly rawLog?: string;
+  /** @deprecated Use `msgResponses` instead. */
   readonly data?: readonly MsgData[];
-  readonly gasUsed: number;
-  readonly gasWanted: number;
+  /**
+   * The message responses of the [TxMsgData](https://github.com/cosmos/cosmos-sdk/blob/v0.46.3/proto/cosmos/base/abci/v1beta1/abci.proto#L128-L140)
+   * as `Any`s.
+   * This field is an empty list for chains running Cosmos SDK < 0.46.
+   */
+  readonly msgResponses: Array<{ readonly typeUrl: string; readonly value: Uint8Array }>;
+  readonly gasUsed: bigint;
+  readonly gasWanted: bigint;
 }
 
 export function isDeliverTxFailure(result: DeliverTxResponse): boolean {
@@ -183,7 +200,7 @@ export class BroadcastTxError extends Error {
 
 /** Use for testing only */
 export interface PrivateStargateClient {
-  readonly tmClient: Tendermint34Client | undefined;
+  readonly cometClient: CometClient | undefined;
 }
 
 export interface StargateClientOptions {
@@ -191,7 +208,7 @@ export interface StargateClientOptions {
 }
 
 export class StargateClient {
-  private readonly tmClient: Tendermint34Client | undefined;
+  private readonly cometClient: CometClient | undefined;
   private readonly queryClient:
     | (QueryClient &
         AuthExtension &
@@ -208,19 +225,36 @@ export class StargateClient {
   private chainId: string | undefined;
   private readonly accountParser: AccountParser;
 
+  /**
+   * Creates an instance by connecting to the given CometBFT RPC endpoint.
+   *
+   * This uses auto-detection to decide between a CometBFT 0.38, Tendermint 0.37 and 0.34 client.
+   * To set the Comet client explicitly, use `create`.
+   */
   public static async connect(
     endpoint: string | HttpEndpoint,
     options: StargateClientOptions = {},
   ): Promise<StargateClient> {
-    const tmClient = await Tendermint34Client.connect(endpoint);
-    return new StargateClient(tmClient, options);
+    const cometClient = await connectComet(endpoint);
+    return StargateClient.create(cometClient, options);
   }
 
-  protected constructor(tmClient: Tendermint34Client | undefined, options: StargateClientOptions) {
-    if (tmClient) {
-      this.tmClient = tmClient;
+  /**
+   * Creates an instance from a manually created Comet client.
+   * Use this to use `Comet38Client` or `Tendermint37Client` instead of `Tendermint34Client`.
+   */
+  public static async create(
+    cometClient: CometClient,
+    options: StargateClientOptions = {},
+  ): Promise<StargateClient> {
+    return new StargateClient(cometClient, options);
+  }
+
+  protected constructor(cometClient: CometClient | undefined, options: StargateClientOptions) {
+    if (cometClient) {
+      this.cometClient = cometClient;
       this.queryClient = QueryClient.withExtensions(
-        tmClient,
+        cometClient,
         setupAuthExtension,
         setupBankExtension,
         setupSdkStakingExtension,
@@ -237,17 +271,15 @@ export class StargateClient {
     this.accountParser = accountParser;
   }
 
-  protected getTmClient(): Tendermint34Client | undefined {
-    return this.tmClient;
+  protected getCometClient(): CometClient | undefined {
+    return this.cometClient;
   }
 
-  protected forceGetTmClient(): Tendermint34Client {
-    if (!this.tmClient) {
-      throw new Error(
-        "Tendermint client not available. You cannot use online functionality in offline mode.",
-      );
+  protected forceGetCometClient(): CometClient {
+    if (!this.cometClient) {
+      throw new Error("Comet client not available. You cannot use online functionality in offline mode.");
     }
-    return this.tmClient;
+    return this.cometClient;
   }
 
   protected getQueryClient():
@@ -285,7 +317,7 @@ export class StargateClient {
 
   public async getChainId(): Promise<string> {
     if (!this.chainId) {
-      const response = await this.forceGetTmClient().status();
+      const response = await this.forceGetCometClient().status();
       const chainId = response.nodeInfo.network;
       if (!chainId) throw new Error("Chain ID must not be empty");
       this.chainId = chainId;
@@ -295,7 +327,7 @@ export class StargateClient {
   }
 
   public async getHeight(): Promise<number> {
-    const status = await this.forceGetTmClient().status();
+    const status = await this.forceGetCometClient().status();
     return status.syncInfo.latestBlockHeight;
   }
 
@@ -325,7 +357,7 @@ export class StargateClient {
   }
 
   public async getBlock(height?: number): Promise<Block> {
-    const response = await this.forceGetTmClient().block(height);
+    const response = await this.forceGetCometClient().block(height);
     return {
       id: toHex(response.blockId.hash).toUpperCase(),
       header: {
@@ -400,46 +432,26 @@ export class StargateClient {
     return results[0] ?? null;
   }
 
-  public async searchTx(query: SearchTxQuery, filter: SearchTxFilter = {}): Promise<readonly IndexedTx[]> {
-    const minHeight = filter.minHeight || 0;
-    const maxHeight = filter.maxHeight || Number.MAX_SAFE_INTEGER;
-
-    if (maxHeight < minHeight) return []; // optional optimization
-
-    function withFilters(originalQuery: string): string {
-      return `${originalQuery} AND tx.height>=${minHeight} AND tx.height<=${maxHeight}`;
-    }
-
-    let txs: readonly IndexedTx[];
-
-    if (isSearchByHeightQuery(query)) {
-      txs =
-        query.height >= minHeight && query.height <= maxHeight
-          ? await this.txsQuery(`tx.height=${query.height}`)
-          : [];
-    } else if (isSearchBySentFromOrToQuery(query)) {
-      const sentQuery = withFilters(`message.module='bank' AND transfer.sender='${query.sentFromOrTo}'`);
-      const receivedQuery = withFilters(
-        `message.module='bank' AND transfer.recipient='${query.sentFromOrTo}'`,
-      );
-      const [sent, received] = await Promise.all(
-        [sentQuery, receivedQuery].map((rawQuery) => this.txsQuery(rawQuery)),
-      );
-      const sentHashes = sent.map((t) => t.hash);
-      txs = [...sent, ...received.filter((t) => !sentHashes.includes(t.hash))];
-    } else if (isSearchByTagsQuery(query)) {
-      const rawQuery = withFilters(query.tags.map((t) => `${t.key}='${t.value}'`).join(" AND "));
-      txs = await this.txsQuery(rawQuery);
+  public async searchTx(query: SearchTxQuery): Promise<IndexedTx[]> {
+    let rawQuery: string;
+    if (typeof query === "string") {
+      rawQuery = query;
+    } else if (isSearchTxQueryArray(query)) {
+      rawQuery = query
+        .map((t) => {
+          // numeric values must not have quotes https://github.com/cosmos/cosmjs/issues/1462
+          if (typeof t.value === "string") return `${t.key}='${t.value}'`;
+          else return `${t.key}=${t.value}`;
+        })
+        .join(" AND ");
     } else {
-      throw new Error("Unknown query type");
+      throw new Error("Got unsupported query type. See CosmJS 0.31 CHANGELOG for API breaking changes here.");
     }
-
-    const filtered = txs.filter((tx) => tx.height >= minHeight && tx.height <= maxHeight);
-    return filtered;
+    return this.txsQuery(rawQuery);
   }
 
   public disconnect(): void {
-    if (this.tmClient) this.tmClient.disconnect();
+    if (this.cometClient) this.cometClient.disconnect();
   }
 
   /**
@@ -478,22 +490,19 @@ export class StargateClient {
         ? {
             code: result.code,
             height: result.height,
+            txIndex: result.txIndex,
             events: result.events,
             rawLog: result.rawLog,
             transactionHash: txId,
+            msgResponses: result.msgResponses,
             gasUsed: result.gasUsed,
             gasWanted: result.gasWanted,
           }
         : pollForTx(txId);
     };
 
-    const broadcasted = await this.forceGetTmClient().broadcastTxSync({ tx });
-    if (broadcasted.code) {
-      return Promise.reject(
-        new BroadcastTxError(broadcasted.code, broadcasted.codespace ?? "", broadcasted.log),
-      );
-    }
-    const transactionId = toHex(broadcasted.hash).toUpperCase();
+    const transactionId = await this.broadcastTxSync(tx);
+
     return new Promise((resolve, reject) =>
       pollForTx(transactionId).then(
         (value) => {
@@ -508,16 +517,44 @@ export class StargateClient {
     );
   }
 
-  private async txsQuery(query: string): Promise<readonly IndexedTx[]> {
-    const results = await this.forceGetTmClient().txSearchAll({ query: query });
-    return results.txs.map((tx) => {
+  /**
+   * Broadcasts a signed transaction to the network without monitoring it.
+   *
+   * If broadcasting is rejected by the node for some reason (e.g. because of a CheckTx failure),
+   * an error is thrown.
+   *
+   * If the transaction is broadcasted, a `string` containing the hash of the transaction is returned. The caller then
+   * usually needs to check if the transaction was included in a block and was successful.
+   *
+   * @returns Returns the hash of the transaction
+   */
+  public async broadcastTxSync(tx: Uint8Array): Promise<string> {
+    const broadcasted = await this.forceGetCometClient().broadcastTxSync({ tx });
+
+    if (broadcasted.code) {
+      return Promise.reject(
+        new BroadcastTxError(broadcasted.code, broadcasted.codespace ?? "", broadcasted.log),
+      );
+    }
+
+    const transactionId = toHex(broadcasted.hash).toUpperCase();
+
+    return transactionId;
+  }
+
+  private async txsQuery(query: string): Promise<IndexedTx[]> {
+    const results = await this.forceGetCometClient().txSearchAll({ query: query });
+    return results.txs.map((tx): IndexedTx => {
+      const txMsgData = TxMsgData.decode(tx.result.data ?? new Uint8Array());
       return {
         height: tx.height,
+        txIndex: tx.index,
         hash: toHex(tx.hash).toUpperCase(),
         code: tx.result.code,
-        events: tx.result.events.map(fromTendermint34Event),
+        events: tx.result.events.map(fromTendermintEvent),
         rawLog: tx.result.log || "",
         tx: tx.tx,
+        msgResponses: txMsgData.msgResponses,
         gasUsed: tx.result.gasUsed,
         gasWanted: tx.result.gasWanted,
       };

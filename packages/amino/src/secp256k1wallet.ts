@@ -1,5 +1,5 @@
 import { Secp256k1, Sha256 } from "@cosmjs/crypto";
-import { Bech32, fromHex, fromBase64, fromUtf8, toHex, toBase64, toUtf8 } from "@cosmjs/encoding";
+import { fromBase64, fromHex, fromUtf8, toBase64, toBech32, toHex, toUtf8 } from "@cosmjs/encoding";
 import { assert, isNonNullObject } from "@cosmjs/utils/build";
 
 import { ethAddressChecksumRaw, rawSecp256k1PubkeyToRawAddress } from "./addresses";
@@ -49,7 +49,7 @@ export interface Secp256k1WalletSerialization {
  * The data of a wallet serialization that is encrypted.
  * All fields in here must be JSON types.
  */
- interface Secp256k1WalletData {
+interface Secp256k1WalletData {
   readonly privkey: string;
   readonly prefix: string;
 }
@@ -93,7 +93,7 @@ export class Secp256k1Wallet implements OfflineAminoSigner {
    * @param password The user provided password used to generate an encryption key via a KDF.
    *                 This is not normalized internally (see "Unicode normalization" to learn more).
    */
-   public static async deserialize(serialization: string, password: string): Promise<Secp256k1Wallet> {
+  public static async deserialize(serialization: string, password: string): Promise<Secp256k1Wallet> {
     const root = JSON.parse(serialization);
     if (!isNonNullObject(root)) throw new Error("Root document is not an object.");
     switch ((root as any).type) {
@@ -137,10 +137,7 @@ export class Secp256k1Wallet implements OfflineAminoSigner {
     }
   }
 
-  private static async deserializeTypeV1(
-    serialization: string,
-    password: string,
-  ): Promise<Secp256k1Wallet> {
+  private static async deserializeTypeV1(serialization: string, password: string): Promise<Secp256k1Wallet> {
     const root = JSON.parse(serialization);
     if (!isNonNullObject(root)) throw new Error("Root document is not an object.");
     const encryptionKey = await executeKdf(password, (root as any).kdf);
@@ -158,7 +155,7 @@ export class Secp256k1Wallet implements OfflineAminoSigner {
   }
 
   private get address(): string {
-    return Bech32.encode(this.prefix, rawSecp256k1PubkeyToRawAddress(this.pubkey));
+    return toBech32(this.prefix, rawSecp256k1PubkeyToRawAddress(this.pubkey));
   }
 
   private get addressHex(): string {
@@ -195,7 +192,7 @@ export class Secp256k1Wallet implements OfflineAminoSigner {
    * @param password The user provided password used to generate an encryption key via a KDF.
    *                 This is not normalized internally (see "Unicode normalization" to learn more).
    */
-   public async serialize(password: string): Promise<string> {
+  public async serialize(password: string): Promise<string> {
     const kdfConfiguration = basicPasswordHashingOptions;
     const encryptionKey = await executeKdf(password, kdfConfiguration);
     return this.serializeWithEncryptionKey(encryptionKey, kdfConfiguration);

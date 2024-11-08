@@ -15,6 +15,7 @@ export interface ExpectedValues {
 }
 
 export interface TendermintInstance {
+  /** URL without protocol. Protocol will be added in tests. */
   readonly url: string;
   readonly version: string;
   /** rough block time in ms */
@@ -49,13 +50,26 @@ export const tendermintInstances = {
       appVersion: 1,
     },
   },
-  35: {
-    url: "localhost:11135",
-    version: "0.35.x",
+  37: {
+    url: "localhost:11137",
+    version: "0.37.x",
     blockTime: 500,
     expected: {
       chainId: /^dockerchain$/,
-      version: /^$/, // Unfortunately we don't get info here
+      version: /^0\.37\.0-alpha\.3$/,
+      appCreator: "Cosmoshi Netowoko",
+      p2pVersion: 8,
+      blockVersion: 11,
+      appVersion: 1,
+    },
+  },
+  38: {
+    url: "localhost:11138",
+    version: "0.38.x",
+    blockTime: 500,
+    expected: {
+      chainId: /^dockerchain$/,
+      version: /^0\.38\.0$/,
       appCreator: "Cosmoshi Netowoko",
       p2pVersion: 8,
       blockVersion: 11,

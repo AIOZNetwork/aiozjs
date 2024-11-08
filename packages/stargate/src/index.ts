@@ -1,6 +1,6 @@
 export { Account, accountFromAny, AccountParser } from "./accounts";
 export { AminoConverter, AminoConverters, AminoTypes } from "./aminotypes";
-export { Attribute, Event, fromTendermint34Event } from "./events";
+export { Attribute, Event, fromTendermintEvent } from "./events";
 export { calculateFee, GasPrice } from "./fee";
 export * as logs from "./logs";
 export {
@@ -115,6 +115,7 @@ export {
   MintExtension,
   MintParams,
   MsgBeginRedelegateEncodeObject,
+  MsgCancelUnbondingDelegationEncodeObject,
   MsgCancelSendToEvmChainEncodeObject,
   MsgConvertAIOZRC20EncodeObject,
   MsgConvertCoinEncodeObject,
@@ -131,7 +132,6 @@ export {
   MsgVoteWeightedEncodeObject,
   MsgWithdrawDelegatorRewardEncodeObject,
   MsgWrappedEthereumTxEncodeObject,
-  parseChainIdRevision,
   SdkStakingExtension,
   setupAiozrc20Extension,
   setupAuthExtension,
@@ -165,17 +165,9 @@ export {
   QueryClient,
   QueryStoreResponse,
 } from "./queryclient";
+export { isSearchTxQueryArray, SearchPair, SearchTxQuery } from "./search";
 export {
-  isSearchByHeightQuery,
-  isSearchBySentFromOrToQuery,
-  isSearchByTagsQuery,
-  SearchByHeightQuery,
-  SearchBySentFromOrToQuery,
-  SearchByTagsQuery,
-  SearchTxFilter,
-  SearchTxQuery,
-} from "./search";
-export {
+  createDefaultAminoConverters,
   defaultRegistryTypes,
   SignerData,
   SigningStargateClient,

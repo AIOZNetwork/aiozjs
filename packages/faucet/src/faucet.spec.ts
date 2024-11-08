@@ -7,8 +7,13 @@ import { Faucet } from "./faucet";
 import { TokenConfiguration } from "./tokenmanager";
 
 function pendingWithoutSimapp(): void {
-  if (!process.env.SIMAPP44_ENABLED && !process.env.SIMAPP46_ENABLED) {
-    return pending("Set SIMAPP{44,46}_ENABLED to enabled Stargate node-based tests");
+  if (
+    !process.env.SIMAPP44_ENABLED &&
+    !process.env.SIMAPP46_ENABLED &&
+    !process.env.SIMAPP47_ENABLED &&
+    !process.env.SIMAPP50_ENABLED
+  ) {
+    return pending("Set SIMAPP{44,46,47,50}_ENABLED to enabled Stargate node-based tests");
   }
 }
 
@@ -27,7 +32,7 @@ const faucetMnemonic =
 describe("Faucet", () => {
   const pathBuilder = makeCosmoshubPath;
 
-  const apiUrl = "localhost:26658";
+  const apiUrl = "http://localhost:26658";
   const stargate = true;
   let originalEnvVariable: string | undefined;
 

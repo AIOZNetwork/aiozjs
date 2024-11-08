@@ -3,7 +3,6 @@ import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { Any } from "cosmjs-types/google/protobuf/any";
-import Long from "long";
 
 import { decodeTxRaw } from "./decode";
 import { faucet, testVectors } from "./testutils.spec";
@@ -33,7 +32,7 @@ describe("decode", () => {
 
       const decoded = decodeTxRaw(fromHex(testVector.outputs.signedTxBytes));
       expect(decoded).toEqual({
-        authInfo: {
+        authInfo: jasmine.objectContaining({
           signerInfos: [
             {
               publicKey: {
@@ -46,19 +45,19 @@ describe("decode", () => {
                 },
                 multi: undefined,
               },
-              sequence: Long.UZERO,
+              sequence: BigInt(0),
             },
           ],
           fee: {
-            gasLimit: Long.fromNumber(200000, true),
+            gasLimit: BigInt(200000),
             payer: "",
             granter: "",
             amount: [{ amount: "2000", denom: "ucosm" }],
           },
-        },
+        }),
         body: {
           memo: "",
-          timeoutHeight: Long.UZERO,
+          timeoutHeight: BigInt(0),
           messages: [expectedMsg],
           extensionOptions: [],
           nonCriticalExtensionOptions: [],

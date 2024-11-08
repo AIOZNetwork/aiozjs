@@ -728,21 +728,21 @@ async function main() {
   const { hash } = await queryClient.ibc.transfer.denomHash("transfer/channel-90/uatom");
   show("denomHash " + hash);
 
-  const { converterAddress } = await queryClient.aiozrc20.converterAddress();
-  show("converter addresss: " + converterAddress);
-  show("converter ABI: " + JSON.stringify(converterABI));
+  // const { converterAddress } = await queryClient.aiozrc20.converterAddress();
+  // show("converter addresss: " + converterAddress);
+  // show("converter ABI: " + JSON.stringify(converterABI));
 
   // const cpChainId = "gaia0-1";
   // const cpRpcEndpoint = "http://10.0.0.77:27757";
   // const cpClient = await StargateClient.connect(cpRpcEndpoint);
 
-  const recipient = "0x70207819eC28FB8cc692A4327C80282006E6476A";
+  const recipient = "0x2EE4F848e7fB7ab5c126Eda2BCB07a6958B64156";
   const ibcRecipient = "cosmos1davg4s96ulrya44njxgzdstlyau69fuvlyn2x4";
   const validator = "0xfFE6b1A63667c8c5BC4c804b898E20747C52C611";
 
   const amount = {
     denom: "attoaioz",
-    amount: "1000000000000000000",
+    amount: "1000000000000000",
   };
   // const msg = {
   //   typeUrl: "/aioz.aiozrc20.v1.MsgConvertCoin",
@@ -791,39 +791,39 @@ async function main() {
     accessList: [],
     type: "0x02",
   };
-  const result0 = await client.sendWrappedEthereumTx(firstAccount.address, txData0, "attoaioz");
-  console.log(result0);
+  // const result0 = await client.sendWrappedEthereumTx(firstAccount.address, txData0, "attoaioz");
+  // console.log(result0);
 
-  const convertContract = new Contract(converterABI, converterAddress);
-  const data = convertContract.methods
-    .sendToAccount(
-      "0x7eb9e4642AD81C2Ebb5AeB61555c1526575d0393",
-      0,
-      firstAccount.address,
-      "100000000000000000",
-      [],
-    )
-    .encodeABI();
+  // const convertContract = new Contract(converterABI, converterAddress);
+  // const data = convertContract.methods
+  //   .sendToAccount(
+  //     "0x7eb9e4642AD81C2Ebb5AeB61555c1526575d0393",
+  //     0,
+  //     firstAccount.address,
+  //     "100000000000000000",
+  //     [],
+  //   )
+  //   .encodeABI();
   const gasUsed = 200000;
 
-  const txData = {
-    data: data,
-    gasLimit: Web3.utils.numberToHex(gasUsed),
-    maxPriorityFeePerGas: Web3.utils.numberToHex(1000000000),
-    maxFeePerGas: Web3.utils.numberToHex(1000000000),
-    // nonce: '0x00',
-    to: converterAddress,
-    value: Web3.utils.numberToHex("0"),
-    // v: "0x01",
-    // r: "0xafb6e247b1c490e284053c87ab5f6b59e219d51f743f7a4d83e400782bc7e4b9",
-    // s: "0x479a268e0e0acd4de3f1e28e4fac2a6b32a4195e8dfa9d19147abe8807aa6f64",
-    chainId: Web3.utils.numberToHex(chainIdNumber),
-    accessList: [],
-    type: "0x02",
-  };
+  // const txData = {
+  //   data: data,
+  //   gasLimit: Web3.utils.numberToHex(gasUsed),
+  //   maxPriorityFeePerGas: Web3.utils.numberToHex(1000000000),
+  //   maxFeePerGas: Web3.utils.numberToHex(1000000000),
+  //   // nonce: '0x00',
+  //   to: converterAddress,
+  //   value: Web3.utils.numberToHex("0"),
+  //   // v: "0x01",
+  //   // r: "0xafb6e247b1c490e284053c87ab5f6b59e219d51f743f7a4d83e400782bc7e4b9",
+  //   // s: "0x479a268e0e0acd4de3f1e28e4fac2a6b32a4195e8dfa9d19147abe8807aa6f64",
+  //   chainId: Web3.utils.numberToHex(chainIdNumber),
+  //   accessList: [],
+  //   type: "0x02",
+  // };
 
-  const fee = calculateFee(gasUsed, "1000000000attoaioz");
-  // const result = await client.sendTokens(firstAccount.address, recipient, [amount], fee, "Have fun with your star coins");
+  const fee = calculateFee(gasUsed, "7000000000attoaioz");
+  const result = await client.sendTokens(firstAccount.address, recipient, [amount], fee, "Have fun with your coins");
   // const cpHeight = await cpClient.getHeight();
   // const cpRevision = parseChainIdRevision(cpChainId);
   // const result = await client.sendIbcTokens(
@@ -841,7 +841,7 @@ async function main() {
   //   "send ibc",
   // )
   // const result = await client.delegateTokens(firstAccount.address, validator, amount, fee, "Have fun with your star coins");
-  const result = await client.sendWrappedEthereumTx(firstAccount.address, txData, "attoaioz");
+  // const result = await client.sendWrappedEthereumTx(firstAccount.address, txData, "attoaioz");
   // const result = await client.signAndBroadcast(firstAccount.address, [msg], fee, memo);
 
   console.log(result);

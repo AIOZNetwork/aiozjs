@@ -1,6 +1,7 @@
 /* eslint-disable */
-import * as _m0 from "protobufjs/minimal";
+import { BinaryReader, BinaryWriter } from "../binary";
 import { isSet, DeepPartial, Exact } from "../helpers";
+import { JsonSafe } from "../json-safe";
 export const protobufPackage = "cosmos_proto";
 export enum ScalarType {
   SCALAR_TYPE_UNSPECIFIED = 0,
@@ -13,15 +14,12 @@ export function scalarTypeFromJSON(object: any): ScalarType {
     case 0:
     case "SCALAR_TYPE_UNSPECIFIED":
       return ScalarType.SCALAR_TYPE_UNSPECIFIED;
-
     case 1:
     case "SCALAR_TYPE_STRING":
       return ScalarType.SCALAR_TYPE_STRING;
-
     case 2:
     case "SCALAR_TYPE_BYTES":
       return ScalarType.SCALAR_TYPE_BYTES;
-
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -32,13 +30,10 @@ export function scalarTypeToJSON(object: ScalarType): string {
   switch (object) {
     case ScalarType.SCALAR_TYPE_UNSPECIFIED:
       return "SCALAR_TYPE_UNSPECIFIED";
-
     case ScalarType.SCALAR_TYPE_STRING:
       return "SCALAR_TYPE_STRING";
-
     case ScalarType.SCALAR_TYPE_BYTES:
       return "SCALAR_TYPE_BYTES";
-
     case ScalarType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -48,7 +43,6 @@ export function scalarTypeToJSON(object: ScalarType): string {
  * InterfaceDescriptor describes an interface type to be used with
  * accepts_interface and implements_interface and declared by declare_interface.
  */
-
 export interface InterfaceDescriptor {
   /**
    * name is the name of the interface. It should be a short-name (without
@@ -61,7 +55,6 @@ export interface InterfaceDescriptor {
    * description is a human-readable description of the interface and its
    * purpose.
    */
-
   description: string;
 }
 /**
@@ -73,7 +66,6 @@ export interface InterfaceDescriptor {
  * valid syntactical representation for a given semantic meaning,
  * i.e. the encoding should be deterministic.
  */
-
 export interface ScalarDescriptor {
   /**
    * name is the name of the scalar. It should be a short-name (without
@@ -87,7 +79,6 @@ export interface ScalarDescriptor {
    * encoding format. For instance a big integer or decimal scalar should
    * specify precisely the expected encoding format.
    */
-
   description: string;
   /**
    * field_type is the type of field with which this scalar can be used.
@@ -95,7 +86,6 @@ export interface ScalarDescriptor {
    * encoding standards and simple and clear. Currently only string and
    * bytes fields are supported for scalars.
    */
-
   fieldType: ScalarType[];
   /**
    * legacy_amino_encoding is an optional string to describe the encoding
@@ -108,70 +98,57 @@ export interface ScalarDescriptor {
    * If left empty, then the Amino encoding is expected to be the same as the
    * Protobuf one.
    */
-
   legacyAminoEncoding: string;
 }
-
 function createBaseInterfaceDescriptor(): InterfaceDescriptor {
   return {
     name: "",
     description: "",
   };
 }
-
 export const InterfaceDescriptor = {
-  encode(message: InterfaceDescriptor, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/cosmos_proto.InterfaceDescriptor",
+  encode(message: InterfaceDescriptor, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     if (message.description !== "") {
       writer.uint32(18).string(message.description);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): InterfaceDescriptor {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): InterfaceDescriptor {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseInterfaceDescriptor();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.description = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): InterfaceDescriptor {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      description: isSet(object.description) ? String(object.description) : "",
-    };
+    const obj = createBaseInterfaceDescriptor();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (isSet(object.description)) obj.description = String(object.description);
+    return obj;
   },
-
-  toJSON(message: InterfaceDescriptor): unknown {
+  toJSON(message: InterfaceDescriptor): JsonSafe<InterfaceDescriptor> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<InterfaceDescriptor>, I>>(object: I): InterfaceDescriptor {
     const message = createBaseInterfaceDescriptor();
     message.name = object.name ?? "";
@@ -179,7 +156,6 @@ export const InterfaceDescriptor = {
     return message;
   },
 };
-
 function createBaseScalarDescriptor(): ScalarDescriptor {
   return {
     name: "",
@@ -188,101 +164,79 @@ function createBaseScalarDescriptor(): ScalarDescriptor {
     legacyAminoEncoding: "",
   };
 }
-
 export const ScalarDescriptor = {
-  encode(message: ScalarDescriptor, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  typeUrl: "/cosmos_proto.ScalarDescriptor",
+  encode(message: ScalarDescriptor, writer: BinaryWriter = BinaryWriter.create()): BinaryWriter {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-
     if (message.description !== "") {
       writer.uint32(18).string(message.description);
     }
-
     writer.uint32(26).fork();
-
     for (const v of message.fieldType) {
       writer.int32(v);
     }
-
     writer.ldelim();
-
     if (message.legacyAminoEncoding !== "") {
       writer.uint32(34).string(message.legacyAminoEncoding);
     }
-
     return writer;
   },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ScalarDescriptor {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): ScalarDescriptor {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseScalarDescriptor();
-
     while (reader.pos < end) {
       const tag = reader.uint32();
-
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
           break;
-
         case 2:
           message.description = reader.string();
           break;
-
         case 3:
           if ((tag & 7) === 2) {
             const end2 = reader.uint32() + reader.pos;
-
             while (reader.pos < end2) {
               message.fieldType.push(reader.int32() as any);
             }
           } else {
             message.fieldType.push(reader.int32() as any);
           }
-
           break;
-
         case 4:
           message.legacyAminoEncoding = reader.string();
           break;
-
         default:
           reader.skipType(tag & 7);
           break;
       }
     }
-
     return message;
   },
-
   fromJSON(object: any): ScalarDescriptor {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      description: isSet(object.description) ? String(object.description) : "",
-      fieldType: Array.isArray(object?.fieldType)
-        ? object.fieldType.map((e: any) => scalarTypeFromJSON(e))
-        : [],
-      legacyAminoEncoding: isSet(object.legacyAminoEncoding) ? String(object.legacyAminoEncoding) : "",
-    };
+    const obj = createBaseScalarDescriptor();
+    if (isSet(object.name)) obj.name = String(object.name);
+    if (isSet(object.description)) obj.description = String(object.description);
+    if (Array.isArray(object?.fieldType))
+      obj.fieldType = object.fieldType.map((e: any) => scalarTypeFromJSON(e));
+    if (isSet(object.legacyAminoEncoding)) obj.legacyAminoEncoding = String(object.legacyAminoEncoding);
+    return obj;
   },
-
-  toJSON(message: ScalarDescriptor): unknown {
+  toJSON(message: ScalarDescriptor): JsonSafe<ScalarDescriptor> {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
-
     if (message.fieldType) {
       obj.fieldType = message.fieldType.map((e) => scalarTypeToJSON(e));
     } else {
       obj.fieldType = [];
     }
-
     message.legacyAminoEncoding !== undefined && (obj.legacyAminoEncoding = message.legacyAminoEncoding);
     return obj;
   },
-
   fromPartial<I extends Exact<DeepPartial<ScalarDescriptor>, I>>(object: I): ScalarDescriptor {
     const message = createBaseScalarDescriptor();
     message.name = object.name ?? "";

@@ -21,7 +21,7 @@ export interface GravityExtension {
     ) => Promise<QueryPendingSendToEvmChainResponse>;
     readonly pendingIbcAutoForwards: (
       chainName: string,
-      limit: Long,
+      limit: bigint,
     ) => Promise<QueryPendingIbcAutoForwardsResponse>;
   };
 }
@@ -53,7 +53,7 @@ export function setupGravityExtension(base: QueryClient): GravityExtension {
         });
         return response;
       },
-      pendingIbcAutoForwards: async (chainName: string, limit: Long) => {
+      pendingIbcAutoForwards: async (chainName: string, limit: bigint) => {
         const response = await queryService.GetPendingIbcAutoForwards({ chainName: chainName, limit: limit });
         return response;
       },
