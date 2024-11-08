@@ -3,15 +3,16 @@ package aioz.aiozrc20.v1;
 import "aioz/aiozrc20/v1/aiozrc20.proto";
 
 import "gogoproto/gogo.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/AIOZNetwork/go-aioz/x/aiozrc20/types";
 
 // GenesisState defines the module's genesis state.
 message GenesisState {
   // module parameters
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
   // registered token pairs
-  repeated TokenPair token_pairs = 2 [ (gogoproto.nullable) = false ];
+  repeated TokenPair token_pairs = 2 [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
   // converter address
   string converter_address = 3;
 }

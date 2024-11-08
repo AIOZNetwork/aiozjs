@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { Duration } from "../../../../google/protobuf/duration";
 import { Height } from "../../../core/client/v1/client";
-import { ProofSpec } from "../../../../cosmos/ics23/v1/proofs";
+import { ProofSpec } from "../../../../ics23/v1/proofs";
 import { Timestamp } from "../../../../google/protobuf/timestamp";
 import { MerkleRoot } from "../../../core/commitment/v1/commitment";
 import { SignedHeader } from "../../../../tendermint/types/types";

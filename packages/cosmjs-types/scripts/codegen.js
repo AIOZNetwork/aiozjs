@@ -7,7 +7,7 @@ const telescope = require("@cosmology/telescope").default;
 const outPath = join(__dirname, "/../src");
 
 telescope({
-  protoDirs: ["proto", "third_party/proto"],
+  protoDirs: ["proto"],
   outPath: outPath,
   options: {
     logLevel: 0,

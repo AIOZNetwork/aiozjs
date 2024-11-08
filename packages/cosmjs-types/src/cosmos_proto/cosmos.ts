@@ -87,18 +87,6 @@ export interface ScalarDescriptor {
    * bytes fields are supported for scalars.
    */
   fieldType: ScalarType[];
-  /**
-   * legacy_amino_encoding is an optional string to describe the encoding
-   * format used by Amino. The field type is chosen to be a string so that
-   * the value can either be:
-   * - a machine-readable string, such as "base64", "bech32" or "utf8",
-   * - or a human-readable string, for instance a short specification of how
-   * a big integer would be encoded using Amino.
-   *
-   * If left empty, then the Amino encoding is expected to be the same as the
-   * Protobuf one.
-   */
-  legacyAminoEncoding: string;
 }
 function createBaseInterfaceDescriptor(): InterfaceDescriptor {
   return {
@@ -161,7 +149,6 @@ function createBaseScalarDescriptor(): ScalarDescriptor {
     name: "",
     description: "",
     fieldType: [],
-    legacyAminoEncoding: "",
   };
 }
 export const ScalarDescriptor = {
@@ -178,9 +165,6 @@ export const ScalarDescriptor = {
       writer.int32(v);
     }
     writer.ldelim();
-    if (message.legacyAminoEncoding !== "") {
-      writer.uint32(34).string(message.legacyAminoEncoding);
-    }
     return writer;
   },
   decode(input: BinaryReader | Uint8Array, length?: number): ScalarDescriptor {
@@ -206,9 +190,6 @@ export const ScalarDescriptor = {
             message.fieldType.push(reader.int32() as any);
           }
           break;
-        case 4:
-          message.legacyAminoEncoding = reader.string();
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -222,7 +203,6 @@ export const ScalarDescriptor = {
     if (isSet(object.description)) obj.description = String(object.description);
     if (Array.isArray(object?.fieldType))
       obj.fieldType = object.fieldType.map((e: any) => scalarTypeFromJSON(e));
-    if (isSet(object.legacyAminoEncoding)) obj.legacyAminoEncoding = String(object.legacyAminoEncoding);
     return obj;
   },
   toJSON(message: ScalarDescriptor): JsonSafe<ScalarDescriptor> {
@@ -234,7 +214,6 @@ export const ScalarDescriptor = {
     } else {
       obj.fieldType = [];
     }
-    message.legacyAminoEncoding !== undefined && (obj.legacyAminoEncoding = message.legacyAminoEncoding);
     return obj;
   },
   fromPartial<I extends Exact<DeepPartial<ScalarDescriptor>, I>>(object: I): ScalarDescriptor {
@@ -242,7 +221,6 @@ export const ScalarDescriptor = {
     message.name = object.name ?? "";
     message.description = object.description ?? "";
     message.fieldType = object.fieldType?.map((e) => e) || [];
-    message.legacyAminoEncoding = object.legacyAminoEncoding ?? "";
     return message;
   },
 };

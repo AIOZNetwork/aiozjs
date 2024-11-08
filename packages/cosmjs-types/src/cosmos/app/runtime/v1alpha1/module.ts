@@ -36,6 +36,12 @@ export interface Module {
    * to be used in keeper construction.
    */
   overrideStoreKeys: StoreKeyConfig[];
+  /**
+   * order_migrations defines the order in which module migrations are performed.
+   * If this is left empty, it uses the default migration order.
+   * https://pkg.go.dev/github.com/cosmos/cosmos-sdk@v0.47.0-alpha2/types/module#DefaultMigrationsOrder
+   */
+  orderMigrations: string[];
 }
 /**
  * StoreKeyConfig may be supplied to override the default module store key, which
@@ -55,6 +61,7 @@ function createBaseModule(): Module {
     initGenesis: [],
     exportGenesis: [],
     overrideStoreKeys: [],
+    orderMigrations: [],
   };
 }
 export const Module = {
@@ -77,6 +84,9 @@ export const Module = {
     }
     for (const v of message.overrideStoreKeys) {
       StoreKeyConfig.encode(v!, writer.uint32(50).fork()).ldelim();
+    }
+    for (const v of message.orderMigrations) {
+      writer.uint32(58).string(v!);
     }
     return writer;
   },
@@ -105,6 +115,9 @@ export const Module = {
         case 6:
           message.overrideStoreKeys.push(StoreKeyConfig.decode(reader, reader.uint32()));
           break;
+        case 7:
+          message.orderMigrations.push(reader.string());
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -123,6 +136,8 @@ export const Module = {
       obj.exportGenesis = object.exportGenesis.map((e: any) => String(e));
     if (Array.isArray(object?.overrideStoreKeys))
       obj.overrideStoreKeys = object.overrideStoreKeys.map((e: any) => StoreKeyConfig.fromJSON(e));
+    if (Array.isArray(object?.orderMigrations))
+      obj.orderMigrations = object.orderMigrations.map((e: any) => String(e));
     return obj;
   },
   toJSON(message: Module): JsonSafe<Module> {
@@ -155,6 +170,11 @@ export const Module = {
     } else {
       obj.overrideStoreKeys = [];
     }
+    if (message.orderMigrations) {
+      obj.orderMigrations = message.orderMigrations.map((e) => e);
+    } else {
+      obj.orderMigrations = [];
+    }
     return obj;
   },
   fromPartial<I extends Exact<DeepPartial<Module>, I>>(object: I): Module {
@@ -165,6 +185,7 @@ export const Module = {
     message.initGenesis = object.initGenesis?.map((e) => e) || [];
     message.exportGenesis = object.exportGenesis?.map((e) => e) || [];
     message.overrideStoreKeys = object.overrideStoreKeys?.map((e) => StoreKeyConfig.fromPartial(e)) || [];
+    message.orderMigrations = object.orderMigrations?.map((e) => e) || [];
     return message;
   },
 };

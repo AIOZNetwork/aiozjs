@@ -11,7 +11,7 @@ import { AccountData, EIP712SignResponse, OfflineEIP712Signer } from "./signer";
 import { eip712Hash, MessageTypes, SignTypedDataVersion, TypedMessage } from "./typed-data";
 import { parseChainId, recoverPublicKey } from "./utils";
 
-function generateEIP712(types: MessageTypes, chainId: number, message: any): TypedMessage<MessageTypes> {
+function generateEIP712(types: MessageTypes, chainId: bigint, message: any): TypedMessage<MessageTypes> {
   return {
     types,
     primaryType: "Tx",

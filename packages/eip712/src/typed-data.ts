@@ -56,7 +56,7 @@ export interface TypedMessage<T extends MessageTypes> {
   domain: {
     name?: string;
     version?: string;
-    chainId?: number;
+    chainId?: bigint;
     verifyingContract?: string;
     salt?: string;
   };

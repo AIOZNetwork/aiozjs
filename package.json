@@ -33,7 +33,7 @@
     "test-firefox": "yarn workspaces foreach --topological-dev --parallel --verbose run test-firefox",
     "test-chrome": "yarn workspaces foreach --topological-dev --parallel --verbose run test-chrome",
     "coverage": "yarn workspaces foreach --topological-dev --parallel --verbose run coverage",
-    "build": "yarn workspaces foreach --topological-dev --parallel --verbose run build",
+    "build": "yarn workspaces foreach -A --topological-dev --parallel --verbose run build",
     "docs": "yarn workspaces foreach --topological-dev --parallel --verbose run docs",
     "pack-web": "yarn workspaces foreach --topological-dev --parallel --verbose run pack-web",
     "publish-next": "yarn workspaces foreach --no-private exec yarn npm publish --tag next",

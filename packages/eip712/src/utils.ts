@@ -14,7 +14,7 @@ export function recoverPublicKey(messageHash: Buffer, signature: string): Buffer
 
 const chainIdRegex = /^([a-z]{1,})_{1}([1-9][0-9]*)-{1}([1-9][0-9]*)$/;
 
-export function parseChainId(chainId: string): number {
+export function parseChainId(chainId: string): bigint {
   // eslint-disable-next-line no-param-reassign
   chainId = chainId.trim();
   if (chainId.length > 48) {
@@ -27,5 +27,5 @@ export function parseChainId(chainId: string): number {
   }
 
   // verify that the chain-id entered is a base 10 integer
-  return Number(matches[2]);
+  return BigInt(matches[2]);
 }
