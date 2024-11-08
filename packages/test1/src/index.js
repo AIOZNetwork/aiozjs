@@ -646,8 +646,8 @@ const waiozABI = [
 ];
 
 async function main() {
-  //const rpcEndpoint = "https://rpc-ds.testnet.aioz.network";
-  const rpcEndpoint = "http://10.0.0.77:26657";
+  const rpcEndpoint = "https://rpc-ds.testnet.aioz.network";
+  // const rpcEndpoint = "http://10.0.0.77:26657";
   // const rpcEndpoint = "http://157.245.144.55:26657";
 
   // const wallet1 = await DirectEthSecp256k1HdWallet.deserialize('{"type":"ethsecp256k1hdwallet-v1","kdf":{"algorithm":"argon2id","params":{"outputLength":32,"opsLimit":24,"memLimitKib":12288}},"encryption":{"algorithm":"xchacha20poly1305-ietf","params":null},"data":"oKFAFsGzIPUIfYVrxXinwQoyMEopU5K7YVFb4CfTE2u14/ed2O3phhfiS9U6uVNZBAhXbfHOIrrr7EWke6gVcTD1EzZJ/glIM3nbTM8CpsNwn6WnaCqYlFhlL57qGhPnvMJzz35RHFrA55H7IKkRNZ8gvy4trjnV5UDLcRWZKIZykl94npIs5iv4MY3PXJe48MJwjwoFyZ4scOVxiNRqAjLVi5ggeuN/FFBK/FU/fhe4AjpThs2krz90i3KwXOJbs6kPMnGeufcEThrEb44R6P+4l3dz/qyY+KaS7ciWfWCVxnZx6ip3ncy+xsFgBSK7Hxi2H5fwz7nUepDtwEoSwrzg6oxKXpZ5WDM="}', '12345678');
@@ -656,9 +656,9 @@ async function main() {
   // show(firstAccount1.addressHex);
   // return;
 
-  // const mnemonic = "federal injury annual melt near scan daughter before nut catalog spend decade";
-  // const wallet = await DirectEthSecp256k1HdWallet.fromMnemonic(mnemonic, {prefix: 'aioz'});
-  // const [firstAccount] = await wallet.getAccounts();
+  const mnemonic = "federal injury annual melt near scan daughter before nut catalog spend decade";
+  const wallet = await DirectEthSecp256k1HdWallet.fromMnemonic(mnemonic, {prefix: 'aioz'});
+  const [firstAccount] = await wallet.getAccounts();
 
   // const keyStore = await wallet.serialize('123123123');
   // show(keyStore);
@@ -672,39 +672,39 @@ async function main() {
 
   const chainId = "testnet_11-1";
   const chainIdNumber = 11;
-  await window.keplr.experimentalSuggestChain({
-    chainId: chainId,
-    chainName: "aioz-testnet-local",
-    rpc: rpcEndpoint,
-    rest: "http://10.0.0.77:1317",
-    bip44: { coinType: 60 },
-    bech32Config: {
-      bech32PrefixAccAddr: "aioz",
-      bech32PrefixAccPub: "aioz" + "pub",
-      bech32PrefixValAddr: "aioz" + "valoper",
-      bech32PrefixValPub: "aioz" + "valoperpub",
-      bech32PrefixConsAddr: "aioz" + "valcons",
-      bech32PrefixConsPub: "aioz" + "valconspub",
-    },
-    currencies: [
-      { coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network" },
-    ],
-    feeCurrencies: [
-      { coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network" },
-    ],
-    stakeCurrency: {
-      coinDenom: "AIOZ",
-      coinMinimalDenom: "attoaioz",
-      coinDecimals: 18,
-      coinGeckoId: "aioz-network",
-    },
-    coinType: 60,
-    gasPriceStep: { low: 500000000, average: 1000000000, high: 2000000000 },
-    features: ["ibc-transfer", "stargate", "no-legacy-stdTx", "ibc-go", "eth-address-gen", "eth-key-sign"],
-  });
-  await window.keplr.enable(chainId);
-  const wallet = window.keplr.getOfflineSigner(chainId);
-  const [firstAccount] = await wallet.getAccounts();
+  // await window.keplr.experimentalSuggestChain({
+  //   chainId: chainId,
+  //   chainName: "aioz-testnet-local",
+  //   rpc: rpcEndpoint,
+  //   rest: "http://10.0.0.77:1317",
+  //   bip44: { coinType: 60 },
+  //   bech32Config: {
+  //     bech32PrefixAccAddr: "aioz",
+  //     bech32PrefixAccPub: "aioz" + "pub",
+  //     bech32PrefixValAddr: "aioz" + "valoper",
+  //     bech32PrefixValPub: "aioz" + "valoperpub",
+  //     bech32PrefixConsAddr: "aioz" + "valcons",
+  //     bech32PrefixConsPub: "aioz" + "valconspub",
+  //   },
+  //   currencies: [
+  //     { coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network" },
+  //   ],
+  //   feeCurrencies: [
+  //     { coinDenom: "AIOZ", coinMinimalDenom: "attoaioz", coinDecimals: 18, coinGeckoId: "aioz-network" },
+  //   ],
+  //   stakeCurrency: {
+  //     coinDenom: "AIOZ",
+  //     coinMinimalDenom: "attoaioz",
+  //     coinDecimals: 18,
+  //     coinGeckoId: "aioz-network",
+  //   },
+  //   coinType: 60,
+  //   gasPriceStep: { low: 500000000, average: 1000000000, high: 2000000000 },
+  //   features: ["ibc-transfer", "stargate", "no-legacy-stdTx", "ibc-go", "eth-address-gen", "eth-key-sign"],
+  // });
+  // await window.keplr.enable(chainId);
+  // const wallet = window.keplr.getOfflineSigner(chainId);
+  // const [firstAccount] = await wallet.getAccounts();
 
   show(firstAccount.address);
   show(firstAccount.addressHex);
@@ -721,6 +721,13 @@ async function main() {
   });
 
   const queryClient = client.getQueryClient();
+
+  const { bech32Prefix } = await queryClient.auth.bech32Prefix();
+  show("bech32prefix " + bech32Prefix);
+
+  const { hash } = await queryClient.ibc.transfer.denomHash("transfer/channel-90/uatom");
+  show("denomHash " + hash);
+
   const { converterAddress } = await queryClient.aiozrc20.converterAddress();
   show("converter addresss: " + converterAddress);
   show("converter ABI: " + JSON.stringify(converterABI));
